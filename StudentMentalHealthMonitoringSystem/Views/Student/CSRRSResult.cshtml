@@ -1,0 +1,164 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.CSSRSAssessment
+
+@{
+    ViewData["Title"] = "C-SSRS Result";
+
+    string badgeClass = "bg-success";
+
+    if (Model.RiskLevel == "Low")
+    {
+        badgeClass = "bg-info text-dark";
+    }
+    else if (Model.RiskLevel == "Moderate")
+    {
+        badgeClass = "bg-warning text-dark";
+    }
+    else if (Model.RiskLevel == "High")
+    {
+        badgeClass = "bg-danger";
+    }
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-danger text-white">
+
+            <h3>C-SSRS Assessment Result</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <div class="text-center mb-4">
+
+                <h5>Identified Risk Level</h5>
+
+                <h2>
+                    <span class="badge @badgeClass">
+                        @Model.RiskLevel
+                    </span>
+                </h2>
+
+            </div>
+
+            <table class="table table-bordered">
+
+                <tr>
+                    <th width="35%">Semester</th>
+                    <td>@Model.Semester</td>
+                </tr>
+
+                <tr>
+                    <th>Assessment Date</th>
+                    <td>
+                        @Model.AssessmentDate.ToString("dd MMMM yyyy, hh:mm tt")
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Recent Behaviour</th>
+                    <td>
+
+                        @if (Model.Question6Answer == true)
+                        {
+                            if (Model.RecentBehavior == true)
+                            {
+                                <span>Yes, within the past three months</span>
+                            }
+                            else
+                            {
+                                <span>No, not within the past three months</span>
+                            }
+                        }
+                        else
+                        {
+                            <span>Not Applicable</span>
+                        }
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Additional Information</th>
+                    <td>
+
+                        @if (string.IsNullOrEmpty(Model.AdditionalInformation))
+                        {
+                            <span>Not Provided</span>
+                        }
+                        else
+                        {
+                            <span>@Model.AdditionalInformation</span>
+                        }
+
+                    </td>
+                </tr>
+
+            </table>
+
+            @if (Model.RequiresImmediateAction)
+            {
+                <div class="alert alert-danger mt-4">
+
+                    <h5>Immediate Professional Review Required</h5>
+
+                    <p class="mb-0">
+                        This assessment contains a high-risk response.
+                        An authorised mental health professional should
+                        review it immediately according to university policy.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mt-4">
+
+                    Your C-SSRS assessment has been saved successfully
+                    in your semester mental health record.
+
+                </div>
+            }
+
+            <div class="alert alert-secondary">
+
+                <strong>Note:</strong>
+
+                This screening result is not a medical diagnosis.
+
+            </div>
+
+            <div class="text-end">
+
+                <a asp-controller="Student"
+                   asp-action="Dashboard"
+                   class="btn btn-secondary">
+
+                    Back to Dashboard
+
+                </a>
+
+                <a asp-controller="Student"
+                   asp-action="History"
+                   class="btn btn-danger">
+
+                    View History
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

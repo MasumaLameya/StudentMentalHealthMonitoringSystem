@@ -1,0 +1,396 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Student Profile";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3>Student Profile</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <!-- Profile Image and Basic Identity -->
+
+            <div class="text-center mb-4">
+
+                @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                {
+                    <img src="@Url.Content(Model.ProfileImage)"
+                         class="rounded-circle shadow mb-3"
+                         width="140"
+                         height="140"
+                         style="object-fit:cover;">
+                }
+                else
+                {
+                    <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=0d6efd&color=fff&size=140"
+                         class="rounded-circle shadow mb-3"
+                         width="140"
+                         height="140">
+                }
+
+                <h3>@Model.FullName</h3>
+
+                <p class="text-muted">
+
+                    Student ID: @Model.StudentIdNumber
+
+                </p>
+
+            </div>
+
+            <div class="row">
+
+                <!-- Personal and Academic Information -->
+
+                <div class="col-md-6">
+
+                    <div class="card shadow-sm mb-4">
+
+                        <div class="card-header bg-primary text-white">
+
+                            Personal and Academic Information
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+
+                                    <th width="40%">
+                                        Student ID
+                                    </th>
+
+                                    <td>
+                                        @Model.StudentIdNumber
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Full Name</th>
+
+                                    <td>
+                                        @Model.FullName
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Email</th>
+
+                                    <td>
+                                        @Model.Email
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Phone</th>
+
+                                    <td>
+                                        @Model.Phone
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Date of Birth</th>
+
+                                    <td>
+
+                                        @if (Model.DateOfBirth.HasValue)
+                                        {
+                                            @Model.DateOfBirth.Value.ToString("dd MMMM yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Gender</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.Gender))
+                                        {
+                                            @Model.Gender
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Department</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.Department))
+                                        {
+                                            @Model.Department
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Current Semester</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.Semester))
+                                        {
+                                            @Model.Semester
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Health, Financial and Guardian Information -->
+
+                <div class="col-md-6">
+
+                    <div class="card shadow-sm mb-4">
+
+                        <div class="card-header bg-success text-white">
+
+                            Health and Guardian Information
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+
+                                    <th width="40%">
+                                        Height
+                                    </th>
+
+                                    <td>
+
+                                        @if (Model.Height.HasValue)
+                                        {
+                                            <span>
+                                                @Model.Height.Value cm
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Weight</th>
+
+                                    <td>
+
+                                        @if (Model.Weight.HasValue)
+                                        {
+                                            <span>
+                                                @Model.Weight.Value kg
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Financial Condition</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.FinancialCondition))
+                                        {
+                                            @Model.FinancialCondition
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Guardian Name</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.GuardianName))
+                                        {
+                                            @Model.GuardianName
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Relationship</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.Relationship))
+                                        {
+                                            @Model.Relationship
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Guardian Phone</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.GuardianPhone))
+                                        {
+                                            @Model.GuardianPhone
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Guardian Email</th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrEmpty(Model.GuardianEmail))
+                                        {
+                                            @Model.GuardianEmail
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Provided
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="text-end">
+
+                <a asp-controller="Student"
+                   asp-action="Dashboard"
+                   class="btn btn-secondary">
+
+                    Back to Dashboard
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

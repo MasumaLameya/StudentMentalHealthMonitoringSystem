@@ -1,0 +1,83 @@
+﻿@{
+    ViewData["Title"] = "Student Login";
+}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-5">
+
+            <div class="card shadow-lg">
+
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Student Login</h3>
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-controller="Student"
+                          asp-action="Login"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        @if (ViewBag.Error != null)
+                        {
+                            <div class="alert alert-danger mt-3">
+                                @ViewBag.Error
+                            </div>
+                        }
+
+                        <div class="mb-3">
+
+                            <label>Email</label>
+
+                            <input type="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="Enter Email"
+                                   required>
+
+                        </div>
+
+                        <div class="mb-3">
+
+                            <label>Password</label>
+
+                            <input type="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Enter Password"
+                                   required>
+
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+
+                            Login
+
+                        </button>
+
+                    </form>
+
+                    <hr>
+
+                    <a asp-controller="Student"
+                       asp-action="Register"
+                       class="btn btn-outline-primary w-100">
+
+                        New Student? Register Here
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,273 @@
+﻿@{
+    ViewData["Title"] = "Semester Screening";
+
+    bool phqCompleted =
+        ViewBag.PHQCompleted == true;
+
+    bool cssrsCompleted =
+        ViewBag.CSSRSCompleted == true;
+
+    bool feelingsCompleted =
+        ViewBag.FeelingsCompleted == true;
+
+    bool availableTimeCompleted =
+        ViewBag.AvailableTimeCompleted == true;
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+
+            <h3>Semester Mental Health Screening</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <div class="alert alert-info">
+
+                <strong>Current Semester:</strong>
+                @ViewBag.CurrentSemester
+
+            </div>
+
+            <div class="row">
+
+                <!-- ================= PHQ-9 ================= -->
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card h-100 border-primary">
+
+                        <div class="card-body text-center">
+
+                            <h5>PHQ-9 Assessment</h5>
+
+                            @if (phqCompleted)
+                            {
+                                <span class="badge bg-success mb-3">
+                                    Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary mb-3">
+                                    Pending
+                                </span>
+                            }
+
+                            <a asp-controller="Student"
+                               asp-action="PHQ"
+                               class="btn btn-primary w-100">
+
+                                @if (phqCompleted)
+                                {
+                                    <span>View Result</span>
+                                }
+                                else
+                                {
+                                    <span>Start Assessment</span>
+                                }
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ================= C-SSRS ================= -->
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card h-100 border-danger">
+
+                        <div class="card-body text-center">
+
+                            <h5>C-SSRS Assessment</h5>
+
+                            @if (cssrsCompleted)
+                            {
+                                <span class="badge bg-success mb-3">
+                                    Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary mb-3">
+                                    Pending
+                                </span>
+                            }
+
+                            <a asp-controller="Student"
+                               asp-action="CSRRS"
+                               class="btn btn-danger w-100">
+
+                                @if (cssrsCompleted)
+                                {
+                                    <span>View Result</span>
+                                }
+                                else
+                                {
+                                    <span>Start Assessment</span>
+                                }
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ================= Feelings ================= -->
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card h-100 border-warning">
+
+                        <div class="card-body text-center">
+
+                            <h5>Share Feelings</h5>
+
+                            @if (feelingsCompleted)
+                            {
+                                <span class="badge bg-success mb-3">
+                                    Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary mb-3">
+                                    Pending
+                                </span>
+                            }
+
+                            <a href="/Student/Feelings#feelingsSection"
+                               class="btn btn-warning w-100">
+
+                                @if (feelingsCompleted)
+                                {
+                                    <span>Update Feelings</span>
+                                }
+                                else
+                                {
+                                    <span>Share Feelings</span>
+                                }
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ================= Available Time ================= -->
+
+                <div class="col-md-3 mb-3">
+
+                    <div class="card h-100 border-success">
+
+                        <div class="card-body text-center">
+
+                            <h5>Available Time</h5>
+
+                            @if (availableTimeCompleted)
+                            {
+                                <span class="badge bg-success mb-3">
+                                    Completed
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary mb-3">
+                                    Pending
+                                </span>
+                            }
+
+                            <a href="/Student/Feelings#availableTimeSection"
+                               class="btn btn-success w-100">
+
+                                @if (availableTimeCompleted)
+                                {
+                                    <span>Update Time</span>
+                                }
+                                else
+                                {
+                                    <span>Add Available Time</span>
+                                }
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ================= Overall Status ================= -->
+
+            <div class="mt-4">
+
+                @if (phqCompleted &&
+                     cssrsCompleted &&
+                     feelingsCompleted &&
+                     availableTimeCompleted)
+                {
+                    <div class="alert alert-success text-center">
+
+                        <strong>
+                            Semester screening completed successfully.
+                        </strong>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning text-center">
+
+                        Please complete all pending semester screening
+                        sections.
+
+                    </div>
+                }
+
+            </div>
+
+            <div class="text-end">
+
+                <a asp-controller="Student"
+                   asp-action="Dashboard"
+                   class="btn btn-secondary">
+
+                    Back to Dashboard
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>div>

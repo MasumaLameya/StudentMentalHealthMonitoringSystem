@@ -1,0 +1,241 @@
+﻿@{
+    ViewData["Title"] = "Department Dashboard";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- Sidebar -->
+
+        <div class="col-lg-3">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <div class="text-center">
+
+                        <img src="https://ui-avatars.com/api/?name=Department&background=198754&color=fff&size=120"
+                             class="rounded-circle mb-3">
+
+                        <h4>CSE Department</h4>
+
+                        <p class="text-muted">
+                            Department Coordinator
+                        </p>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="list-group">
+
+                        <a href="/Department/Dashboard" class="list-group-item list-group-item-action active">
+                            Dashboard
+                        </a>
+
+                        <a href="/Department/Students" class="list-group-item list-group-item-action">
+                            Student List
+                        </a>
+
+                        <a href="/Department/FollowUp" class="list-group-item list-group-item-action">
+                            Follow Up
+                        </a>
+
+                        <a href="/Department/Attendance" class="list-group-item list-group-item-action">
+                            Counseling Attendance
+                        </a>
+
+                        <a href="/Department/Reports" class="list-group-item list-group-item-action">
+                            Reports
+                        </a>
+
+                        <a href="/Department/Profile" class="list-group-item list-group-item-action">
+                            Profile
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Main -->
+
+        <div class="col-lg-9">
+
+            <h2 class="mb-4">
+                Department Dashboard
+            </h2>
+
+            <div class="row">
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-primary text-white shadow">
+
+                        <div class="card-body">
+
+                            <h6>Total Students</h6>
+
+                            <h2>350</h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-warning shadow">
+
+                        <div class="card-body">
+
+                            <h6>Pending Screening</h6>
+
+                            <h2>42</h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-danger text-white shadow">
+
+                        <div class="card-body">
+
+                            <h6>High Risk</h6>
+
+                            <h2>18</h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-success text-white shadow">
+
+                        <div class="card-body">
+
+                            <h6>Attendance</h6>
+
+                            <h2>95%</h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-success text-white">
+
+                            Students Requiring Follow-Up
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+
+                                    <th>Student</th>
+                                    <th>Risk</th>
+                                    <th>Session</th>
+                                    <th>Status</th>
+
+                                </tr>
+
+                                <tr>
+
+                                    <td>Masuma</td>
+                                    <td>Extremely Severe</td>
+                                    <td>2 of 4</td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            Ongoing
+                                        </span>
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <td>Rahim</td>
+                                    <td>Severe</td>
+                                    <td>1 of 4</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            Attended
+                                        </span>
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-dark text-white">
+
+                            Quick Actions
+
+                        </div>
+
+                        <div class="card-body d-grid gap-2">
+
+                            <a href="/Department/Students" class="btn btn-outline-primary">
+                                Student List
+                            </a>
+
+                            <a href="/Department/FollowUp" class="btn btn-outline-success">
+                                Follow Up
+                            </a>
+
+                            <a href="/Department/Attendance" class="btn btn-outline-warning">
+                                Attendance
+                            </a>
+
+                            <a href="/Department/Reports" class="btn btn-outline-danger">
+                                Reports
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

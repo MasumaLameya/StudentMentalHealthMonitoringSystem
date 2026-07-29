@@ -1,0 +1,169 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.StudentSemesterRecord
+
+@{
+    ViewData["Title"] = "Share Feelings";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-warning">
+            <h3>Share Your Feelings</h3>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-controller="Student"
+                  asp-action="Feelings"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <div class="mb-3">
+
+                    <label asp-for="FeelingText"
+                           class="form-label">
+
+                        How are you feeling today?
+
+                    </label>
+
+                    <textarea asp-for="FeelingText"
+                              rows="8"
+                              class="form-control"
+                              placeholder="Write your feelings here..."></textarea>
+
+                    <span asp-validation-for="FeelingText"
+                          class="text-danger">
+                    </span>
+
+                </div>
+
+                <h5 class="mt-4">
+                    Available Time For Counseling
+                </h5>
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label asp-for="AvailableDay"
+                               class="form-label">
+
+                            Day
+
+                        </label>
+
+                        <select asp-for="AvailableDay"
+                                class="form-select">
+
+                            <option value="">
+                                Select Day
+                            </option>
+
+                            <option value="Sunday">
+                                Sunday
+                            </option>
+
+                            <option value="Monday">
+                                Monday
+                            </option>
+
+                            <option value="Tuesday">
+                                Tuesday
+                            </option>
+
+                            <option value="Wednesday">
+                                Wednesday
+                            </option>
+
+                            <option value="Thursday">
+                                Thursday
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="AvailableDay"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label asp-for="StartTime"
+                               class="form-label">
+
+                            Start Time
+
+                        </label>
+
+                        <input asp-for="StartTime"
+                               type="time"
+                               class="form-control">
+
+                        <span asp-validation-for="StartTime"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <div class="col-md-4">
+
+                        <label asp-for="EndTime"
+                               class="form-label">
+
+                            End Time
+
+                        </label>
+
+                        <input asp-for="EndTime"
+                               type="time"
+                               class="form-control">
+
+                        <span asp-validation-for="EndTime"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+
+                    <a asp-controller="Student"
+                       asp-action="SemesterScreening"
+                       class="btn btn-secondary">
+
+                        Back
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-warning float-end">
+
+                        Save Information
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

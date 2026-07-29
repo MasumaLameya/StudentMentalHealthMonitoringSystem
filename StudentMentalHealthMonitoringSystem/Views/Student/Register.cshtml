@@ -1,0 +1,220 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Student Registration";
+}
+
+<div class="container my-5">
+
+    <div class="card shadow-lg border-0">
+
+        <div class="card-header bg-success text-white text-center py-3">
+            <h2>Student Registration Form</h2>
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Register" method="post" enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <h4 class="text-primary mb-3">Basic Information</h4>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="StudentIdNumber"></label>
+                        <input asp-for="StudentIdNumber" class="form-control" />
+                        <span asp-validation-for="StudentIdNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Password"></label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Phone"></label>
+                        <input asp-for="Phone" class="form-control" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DateOfBirth"></label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Gender"></label>
+                        <select asp-for="Gender" class="form-select">
+                            <option value="">-- Select Gender --</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ImageFile" class="form-label">
+                            Profile Image
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,image/*" />
+
+                        <span asp-validation-for="ImageFile" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <h4 class="text-primary mb-3">Academic Information</h4>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Department"></label>
+                        <input asp-for="Department" class="form-control" />
+                        <span asp-validation-for="Department" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Semester"></label>
+                        <select asp-for="Semester" class="form-select">
+                            <option value="">-- Select Semester --</option>
+                            <option>Semester 1</option>
+                            <option>Semester 2</option>
+                            <option>Semester 3</option>
+                            <option>Semester 4</option>
+                            <option>Semester 5</option>
+                            <option>Semester 6</option>
+                            <option>Semester 7</option>
+                            <option>Semester 8</option>
+                            <option>Semester 9</option>
+                            <option>Semester 10</option>
+                            <option>Semester 11</option>
+                            <option>Semester 12</option>
+                        </select>
+                        <span asp-validation-for="Semester" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <h4 class="text-primary mb-3">Physical Information</h4>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Height"></label>
+                        <input asp-for="Height" class="form-control" />
+                        <span asp-validation-for="Height" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Weight"></label>
+                        <input asp-for="Weight" class="form-control" />
+                        <span asp-validation-for="Weight" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <h4 class="text-primary mb-3">Financial Condition</h4>
+
+                <div class="mb-3">
+
+                    <select asp-for="FinancialCondition" class="form-select">
+                        <option value="">-- Select Financial Condition --</option>
+                        <option>Excellent</option>
+                        <option>Good</option>
+                        <option>Average</option>
+                        <option>Poor</option>
+                    </select>
+
+                    <span asp-validation-for="FinancialCondition" class="text-danger"></span>
+
+                </div>
+
+                <hr>
+
+                <h4 class="text-primary mb-3">Guardian Information</h4>
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="GuardianName"></label>
+                        <input asp-for="GuardianName" class="form-control" />
+                        <span asp-validation-for="GuardianName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Relationship"></label>
+                        <input asp-for="Relationship" class="form-control" />
+                        <span asp-validation-for="Relationship" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="GuardianPhone"></label>
+                        <input asp-for="GuardianPhone" class="form-control" />
+                        <span asp-validation-for="GuardianPhone" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="GuardianEmail"></label>
+                        <input asp-for="GuardianEmail" class="form-control" />
+                        <span asp-validation-for="GuardianEmail" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="form-check mt-4">
+
+                    <input class="form-check-input" type="checkbox" required>
+
+                    <label class="form-check-label">
+                        I agree with the university mental health policy.
+                    </label>
+
+                </div>
+
+                <button type="submit" class="btn btn-success mt-4 w-100">
+                    Register
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

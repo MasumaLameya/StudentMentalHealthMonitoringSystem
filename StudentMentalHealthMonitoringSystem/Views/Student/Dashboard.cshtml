@@ -1,0 +1,468 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+
+@{
+    ViewData["Title"] = "Student Dashboard";
+
+    bool phqCompleted =
+        ViewBag.PHQCompleted == true;
+
+    bool cssrsCompleted =
+        ViewBag.CSSRSCompleted == true;
+
+    bool feelingsCompleted =
+        ViewBag.FeelingsCompleted == true;
+
+    bool availableTimeCompleted =
+        ViewBag.AvailableTimeCompleted == true;
+
+    bool screeningCompleted =
+        ViewBag.ScreeningCompleted == true;
+
+    string riskLevel =
+        ViewBag.RiskLevel?.ToString() ?? "Not Assessed";
+
+    string riskCardClass = "bg-secondary text-white";
+
+    if (riskLevel == "No Risk Identified")
+    {
+        riskCardClass = "bg-success text-white";
+    }
+    else if (riskLevel == "Low")
+    {
+        riskCardClass = "bg-info text-dark";
+    }
+    else if (riskLevel == "Moderate")
+    {
+        riskCardClass = "bg-warning text-dark";
+    }
+    else if (riskLevel == "High")
+    {
+        riskCardClass = "bg-danger text-white";
+    }
+
+    string screeningCardClass =
+        screeningCompleted
+            ? "bg-success text-white"
+            : "bg-warning";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- Sidebar -->
+
+        <div class="col-lg-3">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <div class="text-center">
+
+                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                        {
+                            <img src="@Url.Content(Model.ProfileImage)"
+                                 class="rounded-circle mb-3"
+                                 width="120"
+                                 height="120"
+                                 style="object-fit:cover;">
+                        }
+                        else
+                        {
+                            <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=0d6efd&color=fff&size=120"
+                                 class="rounded-circle mb-3"
+                                 width="120"
+                                 height="120">
+                        }
+
+                        <h4>@Model.FullName</h4>
+
+                        <p class="text-muted">
+                            ID : @Model.StudentIdNumber
+                        </p>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="list-group">
+
+                        <a href="/Student/Dashboard"
+                           class="list-group-item list-group-item-action active">
+                            Dashboard
+                        </a>
+
+                        <a href="/Student/Profile"
+                           class="list-group-item list-group-item-action">
+                            Profile
+                        </a>
+
+                        <a href="/Student/SemesterScreening"
+                           class="list-group-item list-group-item-action">
+                            Semester Screening
+                        </a>
+
+                        <a href="/Student/PHQ"
+                           class="list-group-item list-group-item-action">
+                            PHQ-9 Assessment
+                        </a>
+
+                        <a href="/Student/CSRRS"
+                           class="list-group-item list-group-item-action">
+                            C-SSRS Assessment
+                        </a>
+
+                        <a href="/Student/Feelings"
+                           class="list-group-item list-group-item-action">
+                            Feelings
+                        </a>
+
+                        <a href="/Student/AIChat"
+                           class="list-group-item list-group-item-action">
+                            AI Chat
+                        </a>
+
+                        <a href="/Student/Appointment"
+                           class="list-group-item list-group-item-action">
+                            Counseling Appointment
+                        </a>
+
+                        <a href="/Student/History"
+                           class="list-group-item list-group-item-action">
+                            History
+                        </a>
+
+                        <a href="/Student/Progress"
+                           class="list-group-item list-group-item-action">
+                            Progress
+                        </a>
+
+                        <a href="/Student/Reports"
+                           class="list-group-item list-group-item-action">
+                            Reports
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Main -->
+
+        <div class="col-lg-9">
+
+            <h2 class="mb-4">
+                Student Dashboard
+            </h2>
+
+            <div class="row">
+
+                <!-- Current Semester -->
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-primary text-white shadow">
+
+                        <div class="card-body">
+
+                            <h6>Current Semester</h6>
+
+                            <h3>@Model.Semester</h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Risk Level -->
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card @riskCardClass shadow">
+
+                        <div class="card-body">
+
+                            <h6>Risk Level</h6>
+
+                            <h3>@riskLevel</h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Screening -->
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card @screeningCardClass shadow">
+
+                        <div class="card-body">
+
+                            <h6>Screening</h6>
+
+                            @if (screeningCompleted)
+                            {
+                                <h3>Completed</h3>
+                            }
+                            else
+                            {
+                                <h3>Pending</h3>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Counseling -->
+
+                <div class="col-md-3 mb-4">
+
+                    <div class="card bg-danger text-white shadow">
+
+                        <div class="card-body">
+
+                            <h6>Counseling</h6>
+
+                            <h3>0</h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <!-- Screening Status -->
+
+                    <div class="card shadow mb-4">
+
+                        <div class="card-header bg-primary text-white">
+                            Screening Status
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+
+                                    <th>PHQ-9</th>
+
+                                    <td>
+
+                                        @if (phqCompleted)
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Pending
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>C-SSRS</th>
+
+                                    <td>
+
+                                        @if (cssrsCompleted)
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Pending
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Feelings Submission</th>
+
+                                    <td>
+
+                                        @if (feelingsCompleted)
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Pending
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>Available Time</th>
+
+                                    <td>
+
+                                        @if (availableTimeCompleted)
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Pending
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Recent Activity -->
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-success text-white">
+                            Recent Activity
+                        </div>
+
+                        <div class="card-body">
+
+                            <ul>
+
+                                <li>Registration Completed</li>
+
+                                <li>
+                                    PHQ-9:
+                                    @(phqCompleted ? "Completed" : "Pending")
+                                </li>
+
+                                <li>
+                                    C-SSRS:
+                                    @(cssrsCompleted ? "Completed" : "Pending")
+                                </li>
+
+                                <li>
+                                    Feelings:
+                                    @(feelingsCompleted ? "Submitted" : "Pending")
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <!-- Quick Actions -->
+
+                    <div class="card shadow mb-4">
+
+                        <div class="card-header bg-danger text-white">
+                            Quick Actions
+                        </div>
+
+                        <div class="card-body d-grid gap-2">
+
+                            <a href="/Student/PHQ"
+                               class="btn btn-outline-primary">
+
+                                @(phqCompleted
+                                    ? "View PHQ Result"
+                                    : "Start PHQ")
+
+                            </a>
+
+                            <a href="/Student/CSRRS"
+                               class="btn btn-outline-danger">
+
+                                @(cssrsCompleted
+                                    ? "View C-SSRS Result"
+                                    : "Start C-SSRS")
+
+                            </a>
+
+                            <a href="/Student/AIChat"
+                               class="btn btn-outline-dark">
+
+                                AI Chat
+
+                            </a>
+
+                            <a href="/Student/Appointment"
+                               class="btn btn-outline-success">
+
+                                Counseling Appointment
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Next Counseling -->
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-info text-white">
+                            Next Counseling
+                        </div>
+
+                        <div class="card-body">
+
+                            No Appointment Scheduled
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

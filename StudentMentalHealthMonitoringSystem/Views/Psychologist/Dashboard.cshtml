@@ -1,0 +1,197 @@
+﻿@{
+    ViewData["Title"] = "Psychologist Dashboard";
+}
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- Sidebar -->
+
+        <div class="col-lg-3">
+
+            <div class="card shadow">
+
+                <div class="card-body">
+
+                    <div class="text-center">
+
+                        <img src="https://ui-avatars.com/api/?name=Psychologist&background=dc3545&color=fff&size=120"
+                             class="rounded-circle mb-3">
+
+                        <h4>Dr. Sarah Ahmed</h4>
+
+                        <p class="text-muted">
+                            Clinical Psychologist
+                        </p>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="list-group">
+
+                        <a href="/Psychologist/Dashboard" class="list-group-item list-group-item-action active">
+                            Dashboard
+                        </a>
+
+                        <a href="/Psychologist/Students" class="list-group-item list-group-item-action">
+                            High Risk Students
+                        </a>
+
+                        <a href="/Psychologist/Appointment" class="list-group-item list-group-item-action">
+                            Counseling Schedule
+                        </a>
+
+                        <a href="/Psychologist/Counseling" class="list-group-item list-group-item-action">
+                            Counseling Notes
+                        </a>
+
+                        <a href="/Psychologist/Reports" class="list-group-item list-group-item-action">
+                            Reports
+                        </a>
+
+                        <a href="/Psychologist/Profile" class="list-group-item list-group-item-action">
+                            Profile
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Main -->
+
+        <div class="col-lg-9">
+
+            <h2 class="mb-4">Psychologist Dashboard</h2>
+
+            <div class="row">
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-danger text-white shadow">
+                        <div class="card-body">
+                            <h6>High Risk Students</h6>
+                            <h2>25</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-primary text-white shadow">
+                        <div class="card-body">
+                            <h6>Today's Sessions</h6>
+                            <h2>8</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-success text-white shadow">
+                        <div class="card-body">
+                            <h6>Completed</h6>
+                            <h2>54</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <div class="card bg-warning shadow">
+                        <div class="card-body">
+                            <h6>Pending Reports</h6>
+                            <h2>5</h2>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-danger text-white">
+
+                            Today's Counseling Schedule
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Time</th>
+                                    <th>Room</th>
+                                    <th>Status</th>
+                                </tr>
+
+                                <tr>
+                                    <td>Masuma</td>
+                                    <td>10:00 AM</td>
+                                    <td>MH-302</td>
+                                    <td><span class="badge bg-success">Scheduled</span></td>
+                                </tr>
+
+                                <tr>
+                                    <td>Rahim</td>
+                                    <td>11:30 AM</td>
+                                    <td>MH-302</td>
+                                    <td><span class="badge bg-warning">Pending</span></td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="card shadow">
+
+                        <div class="card-header bg-dark text-white">
+
+                            Quick Actions
+
+                        </div>
+
+                        <div class="card-body d-grid gap-2">
+
+                            <a href="/Psychologist/Students" class="btn btn-outline-danger">
+                                High Risk Students
+                            </a>
+
+                            <a href="/Psychologist/Counseling" class="btn btn-outline-success">
+                                Counseling Notes
+                            </a>
+
+                            <a href="/Psychologist/Appointment" class="btn btn-outline-primary">
+                                Counseling Schedule
+                            </a>
+
+                            <a href="/Psychologist/Reports" class="btn btn-outline-dark">
+                                Reports
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

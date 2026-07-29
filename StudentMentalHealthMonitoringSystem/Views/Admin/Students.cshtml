@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Students";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3>Student List</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered table-striped">
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+
+                        <th>Name</th>
+
+                        <th>Department</th>
+
+                        <th>Semester</th>
+
+                        <th>Risk Level</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+
+                        <td>221031001</td>
+
+                        <td>Masuma</td>
+
+                        <td>CSE</td>
+
+                        <td>3</td>
+
+                        <td>
+
+                            <span class="badge bg-success">
+
+                                Normal
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <a href="/Admin/StudentDetails" class="btn btn-primary btn-sm">
+
+                                View
+
+                            </a>
+
+                            <button class="btn btn-warning btn-sm">
+
+                                Edit
+
+                            </button>
+
+                            <button class="btn btn-danger btn-sm">
+
+                                Delete
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>

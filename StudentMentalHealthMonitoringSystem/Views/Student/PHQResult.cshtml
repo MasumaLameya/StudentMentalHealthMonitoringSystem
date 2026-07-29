@@ -1,0 +1,221 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.PHQAssessment
+
+@{
+    ViewData["Title"] = "PHQ-9 Result";
+
+    string badgeClass = "bg-success";
+
+    if (Model.SeverityLevel == "Mild")
+    {
+        badgeClass = "bg-info text-dark";
+    }
+    else if (Model.SeverityLevel == "Moderate")
+    {
+        badgeClass = "bg-warning text-dark";
+    }
+    else if (Model.SeverityLevel == "Moderately Severe")
+    {
+        badgeClass = "bg-danger";
+    }
+    else if (Model.SeverityLevel == "Severe")
+    {
+        badgeClass = "bg-dark";
+    }
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h3>PHQ-9 Assessment Result</h3>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+
+                    @TempData["Success"]
+
+                </div>
+            }
+
+            <div class="row">
+
+                <div class="col-md-6 mb-4">
+
+                    <div class="card shadow-sm text-center">
+
+                        <div class="card-body">
+
+                            <h5>Total PHQ-9 Score</h5>
+
+                            <h1 class="display-4 text-primary">
+
+                                @Model.TotalScore
+
+                            </h1>
+
+                            <p class="text-muted">
+
+                                Maximum Score: 27
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6 mb-4">
+
+                    <div class="card shadow-sm text-center">
+
+                        <div class="card-body">
+
+                            <h5>Depression Severity</h5>
+
+                            <h3 class="mt-4">
+
+                                <span class="badge @badgeClass">
+
+                                    @Model.SeverityLevel
+
+                                </span>
+
+                            </h3>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <table class="table table-bordered">
+
+                <tr>
+
+                    <th width="35%">Semester</th>
+
+                    <td>@Model.Semester</td>
+
+                </tr>
+
+                <tr>
+
+                    <th>Assessment Date</th>
+
+                    <td>
+                        @Model.AssessmentDate.ToString("dd MMMM yyyy, hh:mm tt")
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <th>Functional Difficulty</th>
+
+                    <td>
+
+                        @if (string.IsNullOrEmpty(Model.FunctionalDifficulty))
+                        {
+                            <span>Not Provided</span>
+                        }
+                        else
+                        {
+                            <span>@Model.FunctionalDifficulty</span>
+                        }
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <th>Additional Comments</th>
+
+                    <td>
+
+                        @if (string.IsNullOrEmpty(Model.AdditionalComments))
+                        {
+                            <span>No Additional Comments</span>
+                        }
+                        else
+                        {
+                            <span>@Model.AdditionalComments</span>
+                        }
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+            @if (Model.RequiresImmediateReview)
+            {
+                <div class="alert alert-danger mt-4">
+
+                    <h5>Additional Support Required</h5>
+
+                    <p class="mb-0">
+
+                        One of your responses indicates that this assessment
+                        should be reviewed promptly by an authorized mental
+                        health professional.
+
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mt-4">
+
+                    Your PHQ-9 assessment has been saved successfully
+                    in your semester mental health record.
+
+                </div>
+            }
+
+            <div class="alert alert-secondary">
+
+                <strong>Note:</strong>
+
+                This screening result is not a medical diagnosis.
+                A qualified mental health professional should review
+                the result when necessary.
+
+            </div>
+
+            <div class="text-end">
+
+                <a asp-controller="Student"
+                   asp-action="Dashboard"
+                   class="btn btn-secondary">
+
+                    Back to Dashboard
+
+                </a>
+
+                <a asp-controller="Student"
+                   asp-action="History"
+                   class="btn btn-primary">
+
+                    View History
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
