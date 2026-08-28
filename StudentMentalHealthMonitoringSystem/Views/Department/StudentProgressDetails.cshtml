@@ -1,0 +1,283 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentProgressReportDetailViewModel
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = $"{Model.StudentName} - Progress Details";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a asp-controller="Department" asp-action="StudentProgressReports" class="btn btn-sm btn-outline-secondary rounded-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Department Progress Reports
+        </a>
+    </div>
+
+    <!-- Student Header -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@(string.IsNullOrEmpty(Model.ProfileImage) ? "/images/default-avatar.png" : Model.ProfileImage)"
+                         class="rounded-circle shadow-sm border border-2 border-primary" style="width: 70px; height: 70px; object-fit: cover;" alt="Avatar" />
+                    <div>
+                        <h4 class="fw-bold text-dark mb-1">@Model.StudentName</h4>
+                        <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
+                            <span><i class="bi bi-card-text me-1"></i> ID: <strong>@Model.StudentIdNumber</strong></span>
+                            <span>•</span>
+                            <span><i class="bi bi-building me-1"></i> Dept: <strong>@Model.Department</strong></span>
+                            <span>•</span>
+                            <span><i class="bi bi-person-badge me-1"></i> Psychologist: <strong>@Model.PsychologistName</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    @if (Model.IsFinal)
+                    {
+                        <span class="badge bg-success-subtle text-success border border-success fs-6 px-4 py-2 rounded-pill">
+                            <i class="bi bi-check-circle-fill me-1"></i> Follow-up Completed (Finished)
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning-subtle text-warning border border-warning fs-6 px-4 py-2 rounded-pill">
+                            <i class="bi bi-arrow-repeat me-1"></i> Continuous Follow-up (In Progress)
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Total Sessions</div>
+                    <h3 class="fw-bold text-dark mb-0">@Model.TotalSessions</h3>
+                    <small class="text-muted">@Model.FirstSessionDate.ToString("MMM dd, yyyy") - @Model.LatestSessionDate.ToString("MMM dd, yyyy")</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Initial Baseline Score</div>
+                    <h3 class="fw-bold text-secondary mb-0">@Model.InitialScore / 100</h3>
+                    <small class="text-muted">Session 1 Baseline</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Latest Follow-up Score</div>
+                    <h3 class="fw-bold text-primary mb-0">@Model.LatestScore / 100</h3>
+                    <small class="text-muted">Score Diff: <strong>@(Model.ScoreDifference >= 0 ? "+" + Model.ScoreDifference : Model.ScoreDifference.ToString())</strong> pts</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-3 text-center">
+                    <div class="text-muted small fw-bold text-uppercase mb-1">Overall Progress</div>
+                    <div class="mt-2">
+                        @if (Model.OverallImprovementStatus == "Improved")
+                        {
+                            <span class="badge bg-success fs-6 px-4 py-2 rounded-pill">
+                                <i class="bi bi-arrow-up-right-circle me-1"></i> Overall Improved
+                            </span>
+                        }
+                        else if (Model.OverallImprovementStatus == "Deteriorated")
+                        {
+                            <span class="badge bg-danger fs-6 px-4 py-2 rounded-pill">
+                                <i class="bi bi-arrow-down-right-circle me-1"></i> Needs Attention
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark fs-6 px-4 py-2 rounded-pill">
+                                <i class="bi bi-dash-circle me-1"></i> Stable Progress
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Line Chart -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="bi bi-activity me-2 text-primary"></i>
+                Student Progress Line Graph
+            </h5>
+            <small class="text-muted">Threshold score trajectory across all counseling sessions (X-axis: Sessions, Y-axis: Score 0-100)</small>
+        </div>
+        <div class="card-body p-4" style="min-height: 350px;">
+            <canvas id="deptStudentProgressLineChart" style="max-height: 320px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Sessions Breakdown Table -->
+    <div class="card border-0 shadow-sm rounded-4 bg-white">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-2">
+            <h5 class="fw-bold text-dark mb-0">
+                <i class="bi bi-journal-check me-2 text-primary"></i>
+                Follow-up Sessions History
+            </h5>
+            <small class="text-muted">Session observation stages, threshold scores, and improvement indicators</small>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Session</th>
+                            <th>Date & Time</th>
+                            <th class="text-center">Mental Health</th>
+                            <th class="text-center">Safety Risk</th>
+                            <th class="text-center">Threshold Score</th>
+                            <th class="text-center">Session Progress</th>
+                            <th>Clinical Observation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Sessions != null && Model.Sessions.Any())
+                        {
+                            @foreach (var s in Model.Sessions)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-primary">Session @s.SessionNumber</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@s.SessionDate.ToString("MMM dd, yyyy")</div>
+                                        <small class="text-muted">@s.CounselingTime</small>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">@s.MentalHealthStatus</span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">@s.SafetyRisk</span></td>
+                                    <td class="text-center fs-6 fw-bold text-primary">@s.SessionScore / 100</td>
+                                    <td class="text-center">
+                                        @if (s.SessionImprovementStatus == "Improved")
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3">
+                                                <i class="bi bi-arrow-up-right me-1"></i> Improved
+                                            </span>
+                                        }
+                                        else if (s.SessionImprovementStatus == "Deteriorated")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3">
+                                                <i class="bi bi-arrow-down-right me-1"></i> Deteriorated
+                                            </span>
+                                        }
+                                        else if (s.SessionImprovementStatus == "Stable")
+                                        {
+                                            <span class="badge bg-info text-dark rounded-pill px-3">
+                                                <i class="bi bi-dash me-1"></i> Stable
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3">Baseline</span>
+                                        }
+                                    </td>
+                                    <td class="small text-secondary" style="max-width: 300px;">
+                                        @(string.IsNullOrEmpty(s.ClinicalObservation) ? "-" : s.ClinicalObservation)
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No follow-up observations recorded.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sessionLabels = [
+                @Html.Raw(string.Join(",", Model.Sessions.Select(s => $"'Session {s.SessionNumber} ({s.SessionDate:MMM dd})'")))
+            ];
+
+            const scoresData = [@string.Join(",", Model.Sessions.Select(s => s.SessionScore))];
+
+            const ctx = document.getElementById('deptStudentProgressLineChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sessionLabels,
+                    datasets: [{
+                        label: 'Student Progress Score',
+                        data: scoresData,
+                        fill: false,
+                        borderColor: '#a53838',
+                        borderWidth: 3,
+                        pointStyle: 'rect',
+                        pointRadius: 9,
+                        pointHoverRadius: 12,
+                        pointBackgroundColor: '#a53838',
+                        pointBorderColor: '#7a1f1f',
+                        pointBorderWidth: 2,
+                        tension: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { display: true, color: '#e2e8f0' },
+                            ticks: { font: { size: 13, weight: 'bold' }, color: '#1e293b' },
+                            title: { display: true, text: 'Follow-up Sessions (Time / Date)', font: { size: 14, weight: 'bold' }, color: '#0f172a' }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                font: { size: 13, weight: 'bold' },
+                                color: '#1e293b',
+                                callback: function(value) { return value + ' pts'; }
+                            },
+                            grid: { color: '#cbd5e1' },
+                            title: { display: true, text: 'Scoring Scale (0 - 100)', font: { size: 14, weight: 'bold' }, color: '#0f172a' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 14, weight: 'bold' },
+                                color: '#0f172a',
+                                usePointStyle: true,
+                                pointStyle: 'rect'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    return ` Progress Score: ${ctx.raw} / 100`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

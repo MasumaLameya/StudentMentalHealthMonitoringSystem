@@ -1,421 +1,253 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.CSSRSAssessment
+@model StudentMentalHealthMonitoringSystem.Models.CSSRSAssessment
 
 @{
     ViewData["Title"] = "C-SSRS Assessment";
 }
 
-<div class="container mt-4">
+<style>
+    .student-app-bg {
+        background: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
 
-    <div class="card shadow">
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
 
-        <div class="card-header bg-danger text-white">
+    .student-sidebar .list-group-item {
+        border: none;
+        border-radius: 0.75rem;
+        margin-bottom: 0.35rem;
+        padding: 0.8rem 1.1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #1E293B;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
 
-            <h3>
-                Columbia Suicide Severity Rating Scale
-            </h3>
+    .student-sidebar .list-group-item i {
+        font-size: 1.25rem;
+        color: #2563EB;
+        width: 26px;
+        text-align: center;
+    }
 
-            <small>
-                Please answer all questions honestly.
-            </small>
+    .student-sidebar .list-group-item:hover {
+        background: #EFF6FF;
+        color: #1E3A8A;
+        transform: translateX(4px);
+    }
 
-        </div>
+    .student-sidebar .list-group-item.active {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
 
-        <div class="card-body">
+    .student-sidebar .list-group-item.active i {
+        color: #ffffff;
+    }
 
-            <div class="alert alert-warning">
+    .cssrs-table th {
+        background-color: #F4EEE8;
+        color: #5F5146;
+        font-weight: 600;
+    }
 
-                Your responses will remain confidential and may be
-                reviewed by authorised university personnel.
+    .cssrs-table td {
+        vertical-align: middle;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 text-center student-sidebar">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="https://ui-avatars.com/api/?name=Student&background=8A7563&color=fff&size=110" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" alt="Avatar" />
+                    </div>
+
+                    <h5 class="fw-bold mb-1" style="color: #5F5146;">Student Portal</h5>
+                    <p class="text-muted small mb-3"><i class="bi bi-shield-check me-1"></i>Mental Health Monitoring</p>
+                    
+                    <hr class="my-3 opacity-25" />
+
+                    <div class="list-group list-group-flush text-start">
+                        <a href="/Student/Dashboard" class="list-group-item">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/Student/Profile" class="list-group-item">
+                            <i class="bi bi-person-badge"></i> My Profile
+                        </a>
+                        <a href="/Student/SemesterScreening" class="list-group-item">
+                            <i class="bi bi-journal-check"></i> Semester Screening
+                        </a>
+                        <a href="/Student/PHQ" class="list-group-item">
+                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
+                        </a>
+                        <a href="/Student/CSRRS" class="list-group-item active">
+                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
+                        </a>
+                        <a href="/Student/Feelings" class="list-group-item">
+                            <i class="bi bi-emoji-smile"></i> Daily Feelings
+                        </a>
+                        <a href="/Student/AIChat" class="list-group-item">
+                            <i class="bi bi-robot"></i> AI Companion Chat
+                        </a>
+                        <a href="/VoiceBot/Index" class="list-group-item">
+                            <i class="bi bi-mic"></i> Live Voice Bot
+                        </a>
+                        <a href="/Student/Appointment" class="list-group-item">
+                            <i class="bi bi-calendar-event"></i> Counseling Session
+                        </a>
+                        <a href="/Student/History" class="list-group-item">
+                            <i class="bi bi-clock-history"></i> History Records
+                        </a>
+                        <a href="/Student/Progress" class="list-group-item">
+                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
+                        </a>
+                        <a href="/Student/Reports" class="list-group-item">
+                            <i class="bi bi-file-earmark-medical"></i> Official Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); color: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-shield-check me-2 text-warning"></i>Columbia Suicide Severity Rating Scale (C-SSRS)
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Please answer all questions honestly for safety screening.</p>
+                        </div>
+                        <a href="/Student/SemesterScreening" class="btn btn-light text-primary btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Screening Modules
+                        </a>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4">
+                    <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4">
+                        <i class="bi bi-shield-lock-fill me-2"></i><strong>Confidentiality Notice:</strong> Your responses will remain strictly confidential and may be reviewed by authorized university healthcare personnel.
+                    </div>
+
+                    <form asp-controller="Student" asp-action="CSRRS" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-3 mb-3"></div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle cssrs-table mb-4">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70%;">Question Description</th>
+                                        <th class="text-center" style="width: 15%;">Yes</th>
+                                        <th class="text-center" style="width: 15%;">No</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Q1 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">1. Wish to be Dead</strong>
+                                            <p class="text-muted small mb-0">Have you wished you were dead or wished you could go to sleep and not wake up?</p>
+                                            <span asp-validation-for="Question1Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question1Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question1Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                    <!-- Q2 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">2. Non-Specific Active Suicidal Thoughts</strong>
+                                            <p class="text-muted small mb-0">Have you actually had any thoughts of killing yourself?</p>
+                                            <span asp-validation-for="Question2Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question2Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question2Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                    <!-- Q3 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">3. Active Suicidal Thoughts with Any Methods (Not Plan)</strong>
+                                            <p class="text-muted small mb-0">Have you been thinking about how you might do this?</p>
+                                            <span asp-validation-for="Question3Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question3Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question3Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                    <!-- Q4 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">4. Active Suicidal Thoughts with Some Intent to Act</strong>
+                                            <p class="text-muted small mb-0">Have you had these thoughts and had some intention of acting on them?</p>
+                                            <span asp-validation-for="Question4Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question4Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question4Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                    <!-- Q5 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">5. Active Suicidal Thoughts with Specific Plan and Intent</strong>
+                                            <p class="text-muted small mb-0">Have you started to work out or worked out the details of how to kill yourself?</p>
+                                            <span asp-validation-for="Question5Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question5Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question5Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                    <!-- Q6 -->
+                                    <tr>
+                                        <td>
+                                            <strong class="text-dark">6. Suicidal Behavior / Preparatory Acts</strong>
+                                            <p class="text-muted small mb-0">Have you done anything, started to do anything, or prepared to do anything to end your life?</p>
+                                            <span asp-validation-for="Question6Answer" class="text-danger small d-block"></span>
+                                        </td>
+                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="true" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="false" class="form-check-input" /></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="AdditionalInformation" class="form-label fw-bold text-dark">
+                                Additional Details / Context (Optional)
+                            </label>
+                            <textarea asp-for="AdditionalInformation" class="form-control rounded-3" rows="4" placeholder="Write anything you would like to share..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="/Student/Dashboard" class="btn border bg-white text-dark rounded-3 px-4 py-2">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-danger text-white rounded-3 px-4 py-2 shadow-sm">
+                                <i class="bi bi-send-fill me-1"></i> Submit C-SSRS Assessment
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
             </div>
 
-            <form asp-controller="Student"
-                  asp-action="CSRRS"
-                  method="post">
-
-                @Html.AntiForgeryToken()
-
-                <div asp-validation-summary="ModelOnly"
-                     class="alert alert-danger">
-                </div>
-
-                <div class="table-responsive">
-
-                    <table class="table table-bordered table-hover">
-
-                        <thead class="table-danger">
-
-                            <tr>
-
-                                <th width="70%">
-                                    Question
-                                </th>
-
-                                <th class="text-center">
-                                    Yes
-                                </th>
-
-                                <th class="text-center">
-                                    No
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            <!-- Question 1 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong>Question 1</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you wished you were dead or
-                                        wished you could go to sleep and not wake up?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question1Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question1Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question1Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                            <!-- Question 2 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong>Question 2</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you had thoughts of killing yourself?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question2Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question2Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question2Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                            <!-- Question 3 -->
-
-                            <tr>
-
-                                <td>
-
-                                    <strong>Question 3</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you been thinking about how
-                                        you might do this?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question3Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question3Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question3Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                            <!-- Question 4 -->
-
-                            <tr class="table-warning">
-
-                                <td>
-
-                                    <strong>Question 4</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you had these thoughts and
-                                        had some intention of acting on them?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question4Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question4Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question4Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                            <!-- Question 5 -->
-
-                            <tr class="table-warning">
-
-                                <td>
-
-                                    <strong>Question 5</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you started to work out the
-                                        details of how to kill yourself?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question5Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question5Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question5Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                            <!-- Question 6 -->
-
-                            <tr class="table-danger">
-
-                                <td>
-
-                                    <strong>Question 6</strong>
-
-                                    <br>
-
-                                    <small class="text-muted">
-                                        Have you ever done anything,
-                                        started to do anything, or prepared
-                                        to do anything to end your life?
-                                    </small>
-
-                                    <br>
-
-                                    <span asp-validation-for="Question6Answer"
-                                          class="text-danger">
-                                    </span>
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question6Answer"
-                                           type="radio"
-                                           value="true"
-                                           class="form-check-input">
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    <input asp-for="Question6Answer"
-                                           type="radio"
-                                           value="false"
-                                           class="form-check-input">
-
-                                </td>
-
-                            </tr>
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-                <div class="card mt-4">
-
-                    <div class="card-body">
-
-                        <label class="form-label">
-
-                            If Question 6 is Yes, did this happen
-                            within the past three months?
-
-                        </label>
-
-                        <div>
-
-                            <input asp-for="RecentBehavior"
-                                   type="radio"
-                                   value="true"
-                                   class="form-check-input">
-
-                            <label class="me-4">
-                                Yes
-                            </label>
-
-                            <input asp-for="RecentBehavior"
-                                   type="radio"
-                                   value="false"
-                                   class="form-check-input">
-
-                            <label>
-                                No
-                            </label>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="mt-4">
-
-                    <label asp-for="AdditionalInformation"
-                           class="form-label">
-
-                        Additional Information (Optional)
-
-                    </label>
-
-                    <textarea asp-for="AdditionalInformation"
-                              class="form-control"
-                              rows="5"
-                              placeholder="Write any additional information..."></textarea>
-
-                    <span asp-validation-for="AdditionalInformation"
-                          class="text-danger">
-                    </span>
-
-                </div>
-
-                <div class="text-end mt-4">
-
-                    <a asp-controller="Student"
-                       asp-action="Dashboard"
-                       class="btn btn-secondary">
-
-                        Back to Dashboard
-
-                    </a>
-
-                    <button type="submit"
-                            class="btn btn-danger">
-
-                        Submit Assessment
-
-                    </button>
-
-                </div>
-
-            </form>
-
         </div>
-
     </div>
-
 </div>
 
-@section Scripts
-{
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

@@ -1,85 +1,605 @@
-﻿@{
+@model StudentMentalHealthMonitoringSystem.ViewModels.AppointmentViewModel
+
+@{
+    Layout = "_Layout";
     ViewData["Title"] = "Counseling Appointment";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-success text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
 
-            <h3>On-Campus Counseling Appointment</h3>
+        <div class="card-body p-4">
+
+            <h2 class="fw-bold mb-1"
+                style="color:#5F5146;">
+
+                <i class="bi bi-calendar-event me-2"></i>Counseling Appointment
+
+            </h2>
+
+            <p class="text-muted mb-0">
+
+                Choose your preferred counseling date and time.
+
+            </p>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered">
 
-                <tr>
-                    <th>Appointment ID</th>
-                    <td>APT-001</td>
-                </tr>
+    <!-- ================= Success Message ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-4">
 
-                <tr>
-                    <th>Date</th>
-                    <td>15 July 2026</td>
-                </tr>
+            <i class="bi bi-check-circle-fill me-2"></i>
 
-                <tr>
-                    <th>Time</th>
-                    <td>10:00 AM</td>
-                </tr>
+            @TempData["Success"]
 
-                <tr>
-                    <th>Psychologist</th>
-                    <td>Dr. Sarah Ahmed</td>
-                </tr>
+        </div>
+    }
 
-                <tr>
-                    <th>Counseling Room</th>
-                    <td>Room MH-302</td>
-                </tr>
 
-                <tr>
-                    <th>Building</th>
-                    <td>Student Counseling Center</td>
-                </tr>
+    <!-- ================= Error Message ================= -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-4">
 
-                <tr>
-                    <th>Status</th>
-                    <td>
-                        <span class="badge bg-success">
-                            Scheduled
-                        </span>
-                    </td>
-                </tr>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-            </table>
+            @TempData["Error"]
 
-            <div class="alert alert-info mt-4">
+        </div>
+    }
 
-                <h5>Instructions</h5>
 
-                <ul>
+    <!-- ================= Suggested Time Message ================= -->
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert rounded-4"
+             style="
+            background:#FFF8E7;
+            border:1px solid #E8D5A5;
+            color:#6B5735;">
 
-                    <li>Arrive at least 10 minutes before your appointment.</li>
+            <i class="bi bi-info-circle-fill me-2"></i>
 
-                    <li>Bring your University ID card.</li>
+            @Model.Message
 
-                    <li>If you are unable to attend, inform the department beforehand.</li>
+        </div>
+    }
 
-                </ul>
+
+    <!-- ================= Validation ================= -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All"
+             class="alert alert-danger rounded-4"
+             role="alert">
+        </div>
+    }
+
+
+    <div class="row">
+
+        <!-- ================= Appointment Form ================= -->
+
+        <div class="col-lg-7 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h5 class="mb-0"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-calendar-plus me-2"></i>
+
+                        Request Counseling
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <form asp-controller="Student"
+                          asp-action="Appointment"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ================= Preferred Date ================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="PreferredDate"
+                                   class="form-label fw-semibold">
+
+                                Preferred Date
+
+                            </label>
+
+                            <input asp-for="PreferredDate"
+                                   type="date"
+                                   class="form-control rounded-3" />
+
+                            <span asp-validation-for="PreferredDate"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================= Preferred Time ================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="StartTime"
+                                   class="form-label fw-semibold">
+
+                                Preferred Time
+
+                            </label>
+
+
+                            <select asp-for="StartTime"
+                                    id="StartTime"
+                                    class="form-select rounded-3">
+
+                                <option value="">Select Counseling Time</option>
+                                <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                <option value="16:25:00">4:25 PM - 5:25 PM</option>
+
+                            </select>
+
+
+                            <span asp-validation-for="StartTime"
+                                  class="text-danger">
+                            </span>
+
+
+                            <small class="text-muted">
+
+                                You only select the starting time.
+                                The counseling session will automatically
+                                be scheduled for 1 hour.
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- Suggested Available Times -->
+                        <!-- ================================================= -->
+                        @if (Model.SuggestedTimes != null &&
+                                                     Model.SuggestedTimes.Any())
+                        {
+                            <div class="mb-4">
+
+                                <div class="card rounded-4"
+                                     style="
+                                    background:#F7F2ED;
+                                    border:1px solid #E8DDD2;">
+
+                                    <div class="card-body">
+
+                                        <h6 class="fw-bold mb-2"
+                                            style="color:#5F5146;">
+
+                                            <i class="bi bi-clock-history me-2"></i>
+
+                                            Available Time Suggestions
+
+                                        </h6>
+
+
+                                        <p class="text-muted mb-3">
+
+                                            All psychologists are busy at your
+                                            selected time. You can choose one of
+                                            these available time slots.
+
+                                        </p>
+
+
+                                        <div class="d-flex flex-wrap gap-2">
+
+                                            @foreach (var time in Model.SuggestedTimes)
+                                            {
+                                                var suggestedEndTime =
+                                                    time.Add(
+                                                        TimeSpan.FromHours(1)
+                                                    );
+
+                                                var startTimeText =
+                                                    DateTime.Today
+                                                        .Add(time)
+                                                        .ToString("h:mm tt");
+
+                                                var endTimeText =
+                                                    DateTime.Today
+                                                        .Add(suggestedEndTime)
+                                                        .ToString("h:mm tt");
+
+
+                                                <button type="button"
+                                                        class="btn rounded-3"
+                                                        style="
+                                                    background:#E8DDD2;
+                                                    color:#5F5146;"
+                                                        onclick="selectSuggestedTime('@time.ToString(@"hh\:mm\:ss")')">
+
+                                                    <i class="bi bi-clock me-1"></i>
+
+                                                    @startTimeText - @endTimeText
+
+                                                </button>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        }
+
+
+                        <!-- ================= Appointment Rules ================= -->
+
+                        <div class="alert rounded-3 mb-4"
+                             style="
+                            background:#F7F2ED;
+                            border:1px solid #E5D8CC;
+                            color:#5F5146;">
+
+                            <div class="d-flex align-items-start">
+
+                                <i class="bi bi-info-circle-fill me-2 mt-1"
+                                   style="color:#A67C52;">
+                                </i>
+
+
+                                <div>
+
+                                    <strong>
+                                        Appointment Rules
+                                    </strong>
+
+
+                                    <ul class="mb-0 mt-2">
+
+                                        <li>
+                                            Counseling days are Saturday
+                                            to Wednesday.
+                                        </li>
+
+                                        <li>
+                                            Each counseling session is
+                                            automatically 1 hour.
+                                        </li>
+
+                                        <li>
+                                            Only fixed hourly slots
+                                            can be selected.
+                                        </li>
+
+                                        <li>
+                                            Times such as 9:15 AM,
+                                            10:30 AM or 3:45 PM
+                                            cannot be selected.
+                                        </li>
+
+                                        <li>
+                                            Choose a date and time when
+                                            you are free to attend counseling.
+                                        </li>
+
+                                        <li>
+                                            Psychologists are considered
+                                            available during counseling hours
+                                            unless they already have another
+                                            appointment at that time.
+                                        </li>
+
+                                        <li>
+                                            If all psychologists are busy
+                                            at your selected time, another
+                                            free time will be suggested.
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================= Submit Button ================= -->
+
+                        <button type="submit"
+                                class="btn rounded-3 px-4 py-2"
+                                style="
+                            background:#A67C52;
+                            color:white;">
+
+                            <i class="bi bi-calendar-check me-1"></i>
+
+                            Request Appointment
+
+                        </button>
+
+                    </form>
+
+                </div>
 
             </div>
 
-            <div class="text-center">
+        </div>
 
-                <button class="btn btn-success">
 
-                    View Appointment Details
+        <!-- ================= Right Side ================= -->
 
-                </button>
+        <div class="col-lg-5 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h5 class="mb-0"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-diagram-3 me-2"></i>
+
+                        How Assignment Works
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <!-- ================= Step 1 ================= -->
+
+                    <div class="d-flex mb-4">
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center
+                            me-3"
+                             style="
+                            width:42px;
+                            height:42px;
+                            min-width:42px;
+                            background:#EEE4DA;">
+
+                            <strong style="color:#806C5D;">
+                                1
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <h6 class="fw-bold mb-1"
+                                style="color:#5F5146;">
+
+                                Choose Date and Time
+
+                            </h6>
+
+                            <p class="text-muted mb-0">
+
+                                Select your preferred date
+                                and one fixed hourly slot.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= Step 2 ================= -->
+
+                    <div class="d-flex mb-4">
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center
+                            me-3"
+                             style="
+                            width:42px;
+                            height:42px;
+                            min-width:42px;
+                            background:#EEE4DA;">
+
+                            <strong style="color:#806C5D;">
+                                2
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <h6 class="fw-bold mb-1"
+                                style="color:#5F5146;">
+
+                                Check Psychologist Availability
+
+                            </h6>
+
+                            <p class="text-muted mb-0">
+
+                                The system checks which psychologists
+                                are free at your selected date and time.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= Step 3 ================= -->
+
+                    <div class="d-flex mb-4">
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center
+                            me-3"
+                             style="
+                            width:42px;
+                            height:42px;
+                            min-width:42px;
+                            background:#EEE4DA;">
+
+                            <strong style="color:#806C5D;">
+                                3
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <h6 class="fw-bold mb-1"
+                                style="color:#5F5146;">
+
+                                Suggest Available Time
+
+                            </h6>
+
+                            <p class="text-muted mb-0">
+
+                                If all psychologists are busy
+                                at the selected time, the system
+                                suggests another free time.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= Step 4 ================= -->
+
+                    <div class="d-flex">
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center
+                            me-3"
+                             style="
+                            width:42px;
+                            height:42px;
+                            min-width:42px;
+                            background:#EEE4DA;">
+
+                            <strong style="color:#806C5D;">
+                                4
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <h6 class="fw-bold mb-1"
+                                style="color:#5F5146;">
+
+                                Psychologist Assigned
+
+                            </h6>
+
+                            <p class="text-muted mb-0">
+
+                                Among the available psychologists,
+                                the psychologist with fewer appointments
+                                receives priority.
+
+                                If appointment counts are equal,
+                                alphabetical order is used.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= Automatic Time Notice ================= -->
+
+            <div class="card border-0 shadow-sm rounded-4 mt-4"
+                 style="background:#F7F2ED;">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex align-items-start">
+
+                        <i class="bi bi-clock-fill fs-4 me-3"
+                           style="color:#A67C52;">
+                        </i>
+
+
+                        <div>
+
+                            <h6 class="fw-bold"
+                                style="color:#5F5146;">
+
+                                Automatic 1 Hour Session
+
+                            </h6>
+
+                            <p class="text-muted mb-0">
+
+                                You only select the starting time.
+
+                                For example, if you select
+                                10:00 AM, the system automatically
+                                schedules the session from
+                                10:00 AM to 11:00 AM.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -88,3 +608,32 @@
     </div>
 
 </div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+
+    <script>
+
+        // ================= Select Suggested Time =================
+
+        function selectSuggestedTime(time) {
+            document.getElementById(
+                "StartTime"
+            ).value = time;
+
+
+            document.getElementById(
+                "StartTime"
+            ).scrollIntoView(
+                {
+                    behavior: "smooth",
+                    block: "center"
+                }
+            );
+        }
+
+    </script>
+}

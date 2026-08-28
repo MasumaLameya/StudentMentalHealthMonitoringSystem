@@ -1,10 +1,14 @@
-﻿@{
+﻿@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel
+
+@{
     ViewData["Title"] = "Student Details";
 }
 
 <div class="container mt-4">
 
     <div class="card shadow">
+
+        <!-- ================= Header ================= -->
 
         <div class="card-header bg-info text-white">
 
@@ -14,20 +18,151 @@
 
         <div class="card-body">
 
-            <table class="table table-bordered">
+            <div class="row">
 
-                <tr><th>Name</th><td>Masuma</td></tr>
-                <tr><th>ID</th><td>221031001</td></tr>
-                <tr><th>Department</th><td>CSE</td></tr>
-                <tr><th>Semester</th><td>3</td></tr>
-                <tr><th>Current Risk</th><td>Extremely Severe</td></tr>
+                <!-- ================= Student Image ================= -->
 
-            </table>
+                <div class="col-md-3 text-center">
 
-            <div class="mt-4">
+                    @if (!string.IsNullOrEmpty(Model.Student.ProfileImage))
+                    {
+                        <img src="@Model.Student.ProfileImage"
+                             class="rounded-circle border shadow"
+                             width="180"
+                             height="180"
+                             style="object-fit:cover;">
+                    }
+                    else
+                    {
+                        <img src="https://ui-avatars.com/api/?name=@Model.Student.FullName&background=0d6efd&color=fff&size=180"
+                             class="rounded-circle border shadow">
+                    }
 
-                <a href="/Psychologist/Counseling" class="btn btn-success">
+                </div>
+
+                <!-- ================= Student Information ================= -->
+
+                <div class="col-md-9">
+
+                    <table class="table table-bordered">
+
+                        <tr>
+                            <th width="30%">Student ID</th>
+                            <td>@Model.Student.StudentIdNumber</td>
+                        </tr>
+
+                        <tr>
+                            <th>Full Name</th>
+                            <td>@Model.Student.FullName</td>
+                        </tr>
+
+                        <tr>
+                            <th>Email</th>
+                            <td>@Model.Student.Email</td>
+                        </tr>
+
+                        <tr>
+                            <th>Phone</th>
+                            <td>@Model.Student.Phone</td>
+                        </tr>
+
+                        <tr>
+                            <th>Department</th>
+                            <td>@Model.Student.Department</td>
+                        </tr>
+
+                        <tr>
+                            <th>Semester</th>
+                            <td>@Model.Student.Semester</td>
+                        </tr>
+
+                        <tr>
+                            <th>Current PHQ Score</th>
+                            <td>@(Model.PHQAssessment?.TotalScore ?? 0)</td>
+                        </tr>
+
+                        <tr>
+                            <th>Depression Severity</th>
+                            <td>@(Model.PHQAssessment?.SeverityLevel ?? "N/A")</td>
+                        </tr>
+
+                        <tr>
+                            <th>C-SSRS Risk Level</th>
+                            <td>@(Model.CSSRSAssessment?.RiskLevel ?? "N/A")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Shared Feelings</th>
+                            <td>@(Model.SemesterRecord?.FeelingText ?? "No Information")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Available Day</th>
+                            <td>@(Model.SemesterRecord?.AvailableDay ?? "N/A")</td>
+                        </tr>
+
+                        <tr>
+                            <th>Available Time</th>
+                            <td>
+
+                                @if (Model.SemesterRecord != null)
+                                {
+                                    @(Model.SemesterRecord.StartTime?.ToString(@"hh\:mm"))
+                                    @: -
+                                    @(Model.SemesterRecord.EndTime?.ToString(@"hh\:mm"))
+                                }
+                                else
+                                {
+                                    @:N/A
+                                }
+
+                            </td>
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <!-- ================= Action Buttons ================= -->
+
+            <div class="text-end">
+
+                <a asp-controller="Psychologist"
+                   asp-action="Students"
+                   class="btn btn-secondary">
+
+                    Back
+
+                </a>
+
+                <a asp-controller="Psychologist"
+                   asp-action="CounselingHistory"
+                   asp-route-id="@Model.Student.StudentId"
+                   class="btn btn-info">
+
+                    Counseling History
+
+                </a>
+
+                <a asp-controller="Psychologist"
+                   asp-action="Counseling"
+                   asp-route-id="@Model.Student.StudentId"
+                   class="btn btn-success">
+
                     Start Counseling
+
+                </a>
+
+                <a asp-controller="Psychologist"
+                   asp-action="Appointment"
+                   class="btn btn-warning text-dark">
+
+                    Appointments
+
                 </a>
 
             </div>
@@ -36,4 +171,3 @@
 
     </div>
 
-</div>

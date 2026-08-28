@@ -1,46 +1,601 @@
-﻿@{
-    ViewData["Title"] = "Appointments";
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Counseling Appointments";
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-3">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-warning">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
 
-            <h3>Today's Appointments</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-calendar-check me-2"></i>
+
+                        Counseling Appointments
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        View students assigned to you for counseling.
+
+                    </p>
+
+                </div>
+
+
+                @if (ViewBag.PsychologistName != null)
+                {
+                    <div class="text-end">
+
+                        <small class="text-muted d-block">
+                            Psychologist
+                        </small>
+
+                        <strong style="color:#5F5146;">
+
+                            @ViewBag.PsychologistName
+
+                        </strong>
+
+
+                        <!-- ================= Reports ================= -->
+
+                        <div class="mt-2 d-flex gap-2 justify-content-end flex-wrap">
+
+                            <a asp-controller="Psychologist"
+                               asp-action="ScreeningReports"
+                               class="btn btn-sm rounded-3 px-3"
+                               style="
+                                background:#806C5D;
+                                color:white;">
+
+                                <i class="bi bi-file-earmark-medical me-1"></i>
+
+                                Screening Reports
+
+                            </a>
+
+
+                            <a asp-controller="Psychologist"
+                               asp-action="ObservationReports"
+                               class="btn btn-sm rounded-3 px-3"
+                               style="
+                                background:#A67C52;
+                                color:white;">
+
+                                <i class="bi bi-journal-medical me-1"></i>
+
+                                Observation Reports
+
+                            </a>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered">
 
-                <tr>
+    <!-- ================= Messages ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-4">
 
-                    <th>Student</th>
+            <i class="bi bi-check-circle-fill me-2"></i>
 
-                    <th>Date</th>
+            @TempData["Success"]
 
-                    <th>Time</th>
+        </div>
+    }
 
-                    <th>Status</th>
 
-                </tr>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-4">
 
-                <tr>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-                    <td>Masuma</td>
+            @TempData["Error"]
 
-                    <td>15 July</td>
+        </div>
+    }
 
-                    <td>10:00 AM</td>
 
-                    <td><span class="badge bg-success">Scheduled</span></td>
+    <!-- ================= Summary Cards ================= -->
 
-                </tr>
+    <div class="row g-4 mb-4">
 
-            </table>
+        <!-- Total -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Total Appointments
+                            </p>
+
+                            <h2 class="fw-bold mb-0"
+                                style="color:#5F5146;">
+
+                                @Model.Count()
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#EEE4DA;">
+
+                            <i class="bi bi-calendar3 fs-4"
+                               style="color:#A67C52;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Confirmed -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Confirmed
+                            </p>
+
+                            <h2 class="fw-bold mb-0"
+                                style="color:#5F5146;">
+
+                                @Model.Count(c => c.Status == "Confirmed")
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#EEE4DA;">
+
+                            <i class="bi bi-clock fs-4"
+                               style="color:#A67C52;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Completed -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <p class="text-muted mb-1">
+                                Completed
+                            </p>
+
+                            <h2 class="fw-bold mb-0"
+                                style="color:#5F5146;">
+
+                                @Model.Count(c => c.Status == "Completed")
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#EEE4DA;">
+
+                            <i class="bi bi-check-circle fs-4"
+                               style="color:#A67C52;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Assigned Students ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-list-check me-2"></i>
+
+                Assigned Students
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead style="background:#F7F2ED;">
+
+                            <tr>
+
+                                <th class="px-4 py-3">
+                                    Student
+                                </th>
+
+                                <th class="py-3">
+                                    Student ID
+                                </th>
+
+                                <th class="py-3">
+                                    Department
+                                </th>
+
+                                <th class="py-3">
+                                    Date
+                                </th>
+
+                                <th class="py-3">
+                                    Time
+                                </th>
+
+                                <th class="py-3">
+                                    Status
+                                </th>
+
+                                <th class="py-3 text-center">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                // ==========================================
+                                // Prepare Display Values
+                                // ==========================================
+
+                                var dateText =
+                                    item.CounselingDate.ToString(
+                                        "dd MMM yyyy"
+                                    );
+
+                                var dayText =
+                                    item.CounselingDate.ToString(
+                                        "dddd"
+                                    );
+
+                                var startTimeText =
+                                    DateTime.Today
+                                        .Add(item.AppointmentTime)
+                                        .ToString("h:mm tt");
+
+                                var endTimeText =
+                                    DateTime.Today
+                                        .Add(item.AppointmentEndTime)
+                                        .ToString("h:mm tt");
+
+
+                                <tr>
+
+                                    <!-- ================= Student ================= -->
+
+                                    <td class="px-4 py-3"
+                                        style="min-width:220px;">
+
+                                        <div class="d-flex align-items-center">
+
+                                            @if (item.Student != null &&
+                                                 !string.IsNullOrWhiteSpace(
+                                                     item.Student.ProfileImage))
+                                            {
+                                                <img src="@item.Student.ProfileImage"
+                                                     alt="Student"
+                                                     class="rounded-circle me-3"
+                                                     style="
+                                                width:45px;
+                                                height:45px;
+                                                min-width:45px;
+                                                object-fit:cover;" />
+                                            }
+                                            else
+                                            {
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                                     style="
+                                                    width:45px;
+                                                    height:45px;
+                                                    min-width:45px;
+                                                    background:#EEE4DA;">
+
+                                                    <i class="bi bi-person"
+                                                       style="color:#806C5D;">
+                                                    </i>
+
+                                                </div>
+                                            }
+
+
+                                            <div>
+
+                                                <div class="fw-semibold"
+                                                     style="color:#5F5146;">
+
+                                                    @(item.Student?.FullName ?? "Student")
+
+                                                </div>
+
+
+                                                <small class="text-muted">
+
+                                                    @(item.Student?.Email ?? "-")
+
+                                                </small>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- ================= Student ID ================= -->
+
+                                    <td class="py-3">
+
+                                        @(item.Student?.StudentIdNumber ?? "-")
+
+                                    </td>
+
+
+                                    <!-- ================= Department ================= -->
+
+                                    <td class="py-3">
+
+                                        @(item.Student?.Department ?? "-")
+
+                                    </td>
+
+
+                                    <!-- ================= Date ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:140px;">
+
+                                        <div class="fw-semibold"
+                                             style="color:#5F5146;">
+
+                                            @dateText
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @dayText
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================= Time ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:180px;">
+
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              style="
+                                            background:#EEE4DA;
+                                            color:#705F50;
+                                            font-size:13px;">
+
+                                            <i class="bi bi-clock me-1"></i>
+
+                                            @startTimeText - @endTimeText
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================= Status ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:120px;">
+
+                                        @if (item.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Completed
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Cancelled
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Confirmed")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="
+                                                background:#FFF3CD;
+                                                color:#795F00;">
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                Confirmed
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                @item.Status
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Action ================= -->
+
+                                    <td class="py-3 text-center"
+                                        style="min-width:160px;">
+
+                                        <a asp-controller="Psychologist"
+                                           asp-action="CounselingDetails"
+                                           asp-route-id="@item.CounselingId"
+                                           class="btn btn-sm rounded-3 px-3"
+                                           style="
+                                            background:#A67C52;
+                                            color:white;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View Counseling
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- ================= Empty State ================= -->
+
+                <div class="text-center py-5">
+
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="
+                        width:70px;
+                        height:70px;
+                        background:#EEE4DA;">
+
+                        <i class="bi bi-calendar-x fs-2"
+                           style="color:#806C5D;">
+                        </i>
+
+                    </div>
+
+
+                    <h5 class="fw-bold"
+                        style="color:#5F5146;">
+
+                        No Counseling Appointments
+
+                    </h5>
+
+
+                    <p class="text-muted mb-0">
+
+                        Students assigned to you for counseling
+                        will appear here.
+
+                    </p>
+
+                </div>
+            }
 
         </div>
 

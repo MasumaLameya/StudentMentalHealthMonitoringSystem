@@ -2,52 +2,275 @@
     ViewData["Title"] = "Department Login";
 }
 
-<div class="container mt-5">
+<!-- =========================================================
+     DEPARTMENT LOGIN PAGE
+     ========================================================= -->
+
+<div class="container py-5">
 
     <div class="row justify-content-center">
 
-        <div class="col-md-5">
+        <div class="col-lg-5 col-md-7 col-sm-10">
 
-            <div class="card shadow-lg">
+            <!-- =================================================
+                 LOGIN CARD
+                 ================================================= -->
 
-                <div class="card-header bg-success text-white text-center">
+            <div class="card border-0 shadow-lg"
+                 style="
+                border-radius:24px;
+                overflow:hidden;
+                background:#FFFFFF;
+                ">
 
-                    <h3>Department Login</h3>
+                <!-- =============================================
+                     CARD HEADER
+                     ============================================= -->
+
+                <div class="text-center p-4"
+                     style="
+                    background:linear-gradient(
+                    135deg,
+                    #A9D8F0,
+                    #BFDDF0,
+                    #D8D0E8
+                    );
+                    ">
+
+                    <!-- Department Icon -->
+
+                    <div class="mb-3"
+                         style="
+                        width:70px;
+                        height:70px;
+                        margin:0 auto;
+                        border-radius:50%;
+                        background:rgba(255,255,255,0.65);
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:#45677D;
+                        font-size:30px;
+                        ">
+
+                        <i class="bi bi-building"></i>
+
+                    </div>
+
+
+                    <!-- Title -->
+
+                    <h3 class="mb-1"
+                        style="
+                        color:#405B6B;
+                        font-weight:700;
+                        ">
+
+                        Department Login
+
+                    </h3>
+
+
+                    <!-- Subtitle -->
+
+                    <p class="mb-0"
+                       style="
+                        color:#607889;
+                        font-size:14px;
+                        ">
+
+                        Student Mental Health Monitoring System
+
+                    </p>
 
                 </div>
 
-                <div class="card-body">
+
+                <!-- =============================================
+                     LOGIN FORM BODY
+                     ============================================= -->
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <!-- =========================================
+                         VALIDATION / ERROR MESSAGE
+                         ========================================= -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger"
+                             style="
+                            border-radius:12px;
+                            font-size:14px;
+                            ">
+
+                            <div asp-validation-summary="All"></div>
+
+                        </div>
+                    }
+
+
+                    <!-- =========================================
+                         SUCCESS MESSAGE
+                         ========================================= -->
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success"
+                             style="
+                            border-radius:12px;
+                            font-size:14px;
+                            ">
+
+                            @TempData["Success"]
+
+                        </div>
+                    }
+
+
+                    <!-- =========================================
+                         LOGIN FORM
+                         IMPORTANT:
+                         This MUST submit to Department/Login POST
+                         ========================================= -->
 
                     <form asp-controller="Department"
-                          asp-action="Dashboard"
-                          method="get">
+                          asp-action="Login"
+                          method="post">
 
-                        <div class="mb-3">
+                        <!-- Anti-forgery protection -->
+                        @Html.AntiForgeryToken()
 
-                            <label>Email</label>
 
-                            <input type="email"
-                                   class="form-control">
+                        <!-- =====================================
+                             EMAIL
+                             ===================================== -->
+
+                        <div class="mb-4">
+
+                            <label for="email"
+                                   class="form-label fw-semibold"
+                                   style="color:#526A79;">
+
+                                Department Email
+
+                            </label>
+
+
+                            <div class="input-group">
+
+                                <span class="input-group-text"
+                                      style="
+                                    background:#F2F7FA;
+                                    border-color:#D5E3EB;
+                                    color:#648195;
+                                    ">
+
+                                    <i class="bi bi-envelope"></i>
+
+                                </span>
+
+
+                                <input type="email"
+                                       id="email"
+                                       name="email"
+                                       class="form-control"
+                                       placeholder="Enter department email"
+                                       autocomplete="email"
+                                       required
+                                       style="
+                                border-color:#D5E3EB;
+                                padding:12px;
+                                " />
+
+                            </div>
 
                         </div>
 
-                        <div class="mb-3">
 
-                            <label>Password</label>
+                        <!-- =====================================
+                             PASSWORD
+                             ===================================== -->
 
-                            <input type="password"
-                                   class="form-control">
+                        <div class="mb-4">
+
+                            <label for="password"
+                                   class="form-label fw-semibold"
+                                   style="color:#526A79;">
+
+                                Password
+
+                            </label>
+
+
+                            <div class="input-group">
+
+                                <span class="input-group-text"
+                                      style="
+                                    background:#F2F7FA;
+                                    border-color:#D5E3EB;
+                                    color:#648195;
+                                    ">
+
+                                    <i class="bi bi-lock"></i>
+
+                                </span>
+
+
+                                <input type="password"
+                                       id="password"
+                                       name="password"
+                                       class="form-control"
+                                       placeholder="Enter password"
+                                       autocomplete="current-password"
+                                       required
+                                       style="
+                                border-color:#D5E3EB;
+                                padding:12px;
+                                " />
+
+                            </div>
 
                         </div>
+
+
+                        <!-- =====================================
+                             LOGIN BUTTON
+                             ===================================== -->
 
                         <button type="submit"
-                                class="btn btn-success w-100">
+                                class="btn w-100 py-3"
+                                style="
+                            background:#78B9D8;
+                            color:white;
+                            border:none;
+                            border-radius:12px;
+                            font-weight:600;
+                            font-size:16px;
+                            ">
+
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
 
                             Login
 
                         </button>
 
                     </form>
+
+
+                    <!-- =========================================
+                         LOGIN INFORMATION
+                         ========================================= -->
+
+                    <div class="text-center mt-4">
+
+                        <small style="
+                            color:#8294A0;
+                            ">
+
+                            Authorized department access only.
+
+                        </small>
+
+                    </div>
 
                 </div>
 

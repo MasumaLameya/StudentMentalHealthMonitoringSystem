@@ -1,70 +1,96 @@
-﻿@{
+@model StudentMentalHealthMonitoringSystem.ViewModels.AdminDashboardViewModel
+
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container-fluid">
+<div class="container-fluid py-4" style="background:#F8F5F2; min-height:100vh;">
 
     <div class="row">
 
-        <!-- Sidebar -->
+        <!-- ================= Sidebar ================= -->
 
-        <div class="col-lg-3">
+        <div class="col-lg-3 mb-4">
 
-            <div class="card shadow">
+            <div class="card border-0 shadow rounded-4">
 
-                <div class="card-body">
+                <div class="card-body text-center">
 
-                    <div class="text-center">
+                    @if (!string.IsNullOrEmpty(Model.Admin?.ProfileImage))
+                    {
+                        <img src="@Model.Admin.ProfileImage"
+                             class="rounded-circle shadow mb-3"
+                             width="120"
+                             height="120"
+                             style="object-fit:cover;">
+                    }
+                    else
+                    {
+                        <img src="https://ui-avatars.com/api/?name=@Model.Admin?.FullName&background=A67C52&color=fff&size=120"
+                             class="rounded-circle shadow mb-3">
+                    }
 
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=212529&color=fff&size=120"
-                             class="rounded-circle mb-3">
+                    <h4 class="fw-bold" style="color:#4A3F35;">
+                        @Model.Admin?.FullName
+                    </h4>
 
-                        <h4>Administrator</h4>
-
-                        <p class="text-muted">
-
-                            System Administrator
-
-                        </p>
-
-                    </div>
+                    <p style="color:#8B6B4A;">
+                        System Administrator
+                    </p>
 
                     <hr>
 
-                    <div class="list-group">
-
-                        <a href="/Admin/Dashboard" class="list-group-item list-group-item-action active">
-                            Dashboard
+                    <div class="list-group text-start">
+                        <a asp-action="Dashboard"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2 fw-semibold"
+                           style="background:#8A7563;color:white;">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
                         </a>
 
-                        <a href="/Admin/Students" class="list-group-item list-group-item-action">
-                            Students
+                        <a asp-action="Students"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-people-fill me-2 text-secondary"></i> Students
                         </a>
 
-                        <a href="/Admin/Psychologists" class="list-group-item list-group-item-action">
-                            Psychologists
+                        <a asp-action="Psychologists"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-person-workspace me-2 text-secondary"></i> Psychologists
                         </a>
 
-                        <a href="/Admin/Departments" class="list-group-item list-group-item-action">
-                            Departments
+                        <a asp-action="Departments"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-building me-2 text-secondary"></i> Departments
                         </a>
 
-                        <a href="/Admin/Reports" class="list-group-item list-group-item-action">
-                            Reports
+                        <a asp-action="StudentProgressReports"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-graph-up-arrow me-2 text-secondary"></i> Patient Progress & Graphs
                         </a>
 
-                        <a href="/Admin/Analytics" class="list-group-item list-group-item-action">
-                            Analytics
+                        <a asp-action="Reports"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-file-earmark-bar-graph me-2 text-secondary"></i> Reports
                         </a>
 
-                        <a href="/Admin/Settings" class="list-group-item list-group-item-action">
-                            Settings
+                        <a asp-action="Analytics"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-pie-chart-fill me-2 text-secondary"></i> Analytics
                         </a>
 
-                        <a href="/Admin/Profile" class="list-group-item list-group-item-action">
-                            Profile
+                        <a asp-action="Settings"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-gear me-2 text-secondary"></i> Settings
                         </a>
 
+                        <a asp-action="Profile"
+                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
+                            <i class="bi bi-person-badge me-2 text-secondary"></i> Profile
+                        </a>
+
+                        <a asp-action="Logout"
+                           class="list-group-item list-group-item-action border-0 rounded-3 text-danger">
+                            <i class="bi bi-box-arrow-right me-2 text-danger"></i> Logout
+                        </a>
                     </div>
 
                 </div>
@@ -73,27 +99,58 @@
 
         </div>
 
-        <!-- Main -->
+        <!-- ================= Main ================= -->
 
         <div class="col-lg-9">
 
-            <h2 class="mb-4">
+            <div class="mb-4">
 
-                Admin Dashboard
+                <h2 class="fw-bold" style="color:#4A3F35;">
 
-            </h2>
+                    Welcome Back,
+                    @Model.Admin?.FullName 👋
+
+                </h2>
+
+                <p class="text-muted">
+
+                    Manage students, psychologists, departments and reports from one place.
+
+                </p>
+
+            </div>
+
+            <!-- ================= Semester Transition Callout ================= -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #002147 0%, #004D25 100%); color: white;">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <h4 class="fw-bold mb-1 text-white">
+                            <i class="bi bi-arrow-repeat me-2"></i>Semester Transition & Governance
+                        </h4>
+                        <p class="text-white-50 mb-0">End current 4-month semester term, advance compliant students, and reset screening requirements for the new term.</p>
+                    </div>
+                    <a href="/Admin/SemesterManagement" class="btn btn-warning rounded-3 text-dark fw-bold px-4 py-2.5 shadow-sm">
+                        <i class="bi bi-rocket-takeoff me-1"></i> End & Start Semester
+                    </a>
+                </div>
+            </div>
+
+            <!-- ================= Statistics ================= -->
 
             <div class="row">
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-4 mb-4">
 
-                    <div class="card bg-primary text-white shadow">
+                    <div class="card border-0 shadow rounded-4">
 
                         <div class="card-body">
+                            <h6 style="color:#8B6B4A;">
+                                <i class="bi bi-mortarboard me-1"></i> Total Students
+                            </h6>
 
-                            <h6>Total Students</h6>
-
-                            <h2>1245</h2>
+                            <h2 class="fw-bold" style="color:#A67C52;">
+                                @Model.TotalStudents
+                            </h2>
 
                         </div>
 
@@ -101,15 +158,19 @@
 
                 </div>
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-4 mb-4">
 
-                    <div class="card bg-success text-white shadow">
+                    <div class="card border-0 shadow rounded-4">
 
                         <div class="card-body">
 
-                            <h6>Psychologists</h6>
+                            <h6 style="color:#8B6B4A;">
+                                <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> High Risk Students
+                            </h6>
 
-                            <h2>12</h2>
+                            <h2 class="fw-bold" style="color:#A67C52;">
+                                @Model.HighRiskStudents
+                            </h2>
 
                         </div>
 
@@ -117,15 +178,19 @@
 
                 </div>
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-4 mb-4">
 
-                    <div class="card bg-warning shadow">
+                    <div class="card border-0 shadow rounded-4">
 
                         <div class="card-body">
 
-                            <h6>Departments</h6>
+                            <h6 style="color:#8B6B4A;">
+                                <i class="bi bi-person-workspace me-1"></i> Psychologists
+                            </h6>
 
-                            <h2>8</h2>
+                            <h2 class="fw-bold" style="color:#A67C52;">
+                                @Model.TotalPsychologists
+                            </h2>
 
                         </div>
 
@@ -133,15 +198,39 @@
 
                 </div>
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-6 mb-4">
 
-                    <div class="card bg-danger text-white shadow">
+                    <div class="card border-0 shadow rounded-4">
 
                         <div class="card-body">
 
-                            <h6>High Risk</h6>
+                            <h6 style="color:#8B6B4A;">
+                                <i class="bi bi-building me-1"></i> Departments
+                            </h6>
 
-                            <h2>24</h2>
+                            <h2 class="fw-bold" style="color:#A67C52;">
+                                @Model.TotalDepartments
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6 mb-4">
+
+                    <div class="card border-0 shadow rounded-4">
+
+                        <div class="card-body">
+
+                            <h6 style="color:#8B6B4A;">
+                                <i class="bi bi-journal-check me-1"></i> Counseling Sessions
+                            </h6>
+
+                            <h2 class="fw-bold" style="color:#A67C52;">
+                                @Model.TotalCounselingSessions
+                            </h2>
 
                         </div>
 
@@ -151,63 +240,34 @@
 
             </div>
 
+            <!-- ================= Bottom Section ================= -->
+
             <div class="row">
 
-                <div class="col-md-7">
+                <div class="col-md-6 mb-4">
 
-                    <div class="card shadow">
+                    <div class="card border-0 shadow rounded-4">
 
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header border-0"
+                             style="background:#D8C3A5;">
 
-                            Recent System Activities
+                            Pending Counseling
 
                         </div>
 
                         <div class="card-body">
 
-                            <table class="table table-bordered">
+                            <h1 style="color:#A67C52;">
 
-                                <tr>
+                                @Model.PendingCounselingSessions
 
-                                    <th>Activity</th>
+                            </h1>
 
-                                    <th>Status</th>
+                            <p class="text-muted">
 
-                                </tr>
+                                Sessions waiting for psychologist follow-up.
 
-                                <tr>
-
-                                    <td>Student Registration</td>
-
-                                    <td>Completed</td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <td>Semester Screening</td>
-
-                                    <td>Running</td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <td>Counseling Session</td>
-
-                                    <td>Scheduled</td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <td>Guardian Notification</td>
-
-                                    <td>Pending</td>
-
-                                </tr>
-
-                            </table>
+                            </p>
 
                         </div>
 
@@ -215,45 +275,40 @@
 
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-6 mb-4">
 
-                    <div class="card shadow">
+                    <div class="card border-0 shadow rounded-4">
 
-                        <div class="card-header bg-dark text-white">
+                        <div class="card-header border-0"
+                             style="background:#D8C3A5;">
 
-                            Quick Management
+                            Quick Actions
 
                         </div>
 
                         <div class="card-body d-grid gap-2">
 
-                            <a href="/Admin/Students" class="btn btn-outline-primary">
+                            <a asp-action="Students"
+                               class="btn"
+                               style="background:#A67C52;color:white;">
 
-                                Manage Students
-
-                            </a>
-
-                            <a href="/Admin/Psychologists" class="btn btn-outline-success">
-
-                                Manage Psychologists
+                                <i class="bi bi-mortarboard me-2"></i> Manage Students
 
                             </a>
 
-                            <a href="/Admin/Departments" class="btn btn-outline-warning">
+                            <a asp-action="Psychologists"
+                               class="btn"
+                               style="background:#A67C52;color:white;">
 
-                                Manage Departments
-
-                            </a>
-
-                            <a href="/Admin/Reports" class="btn btn-outline-danger">
-
-                                View Reports
+                                <i class="bi bi-person-workspace me-2"></i> Manage Psychologists
 
                             </a>
 
-                            <a href="/Admin/Analytics" class="btn btn-outline-info">
+                            <a asp-action="Reports"
+                               class="btn"
+                               style="background:#A67C52;color:white;">
 
-                                Analytics
+                                <i class="bi bi-bar-chart me-2"></i> View Reports
 
                             </a>
 

@@ -28,6 +28,33 @@ namespace StudentMentalHealthMonitoringSystem.Models
         )]
         public string? FeelingText { get; set; }
 
+
+        // ================= Feelings Analysis =================
+        //
+        // Unified project-level values:
+        //
+        // Normal
+        // Moderate
+        // Severe
+        // Extremely Severe
+        //
+
+        [StringLength(50)]
+        public string? FeelingRiskLevel { get; set; }
+
+
+        // Short generated summary of the student's
+        // feelings analysis.
+        //
+        // If Severe or Extremely Severe is detected,
+        // this summary will be included in the
+        // Screening Report for the psychologist
+        // assigned to the automatic appointment.
+
+        [Column(TypeName = "text")]
+        public string? FeelingSummary { get; set; }
+
+
         // ================= Available Time =================
 
         [StringLength(20)]

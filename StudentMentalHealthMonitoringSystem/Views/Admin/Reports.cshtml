@@ -1,30 +1,47 @@
 ﻿@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Reports";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-dark text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F3EAE2;">
 
-            <h3>System Reports</h3>
+        <div class="card-body p-4">
 
-        </div>
+            <div class="d-flex justify-content-between align-items-center">
 
-        <div class="card-body">
+                <div>
 
-            <div class="d-grid gap-3">
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5C5148;">
 
-                <button class="btn btn-primary">Student Report</button>
+                        📊 Reports
 
-                <button class="btn btn-success">Department Report</button>
+                    </h2>
 
-                <button class="btn btn-warning">Psychologist Report</button>
+                    <p class="text-muted mb-0">
 
-                <button class="btn btn-danger">Mental Health Report</button>
+                        View and manage different reports of the
+                        Student Mental Health Monitoring System.
 
-                <button class="btn btn-dark">Graduation Report</button>
+                    </p>
+
+                </div>
+
+                <div class="rounded-4 d-flex align-items-center justify-content-center"
+                     style="width:60px;
+                    height:60px;
+                    background:#E5D7CB;">
+
+                    <i class="bi bi-file-earmark-bar-graph"
+                       style="font-size:28px;
+                    color:#806C5D;"></i>
+
+                </div>
 
             </div>
 
@@ -32,4 +49,320 @@
 
     </div>
 
-</div>
+
+    <!-- ================= Report Cards ================= -->
+
+    <div class="row">
+
+        <!-- Student Report -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#E6D9CE;">
+
+                        <i class="bi bi-people"
+                           style="font-size:27px;
+                        color:#806C5D;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        Student Report
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        View the complete list of registered students
+                        with their academic and contact information.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="StudentReport"
+                       class="btn rounded-3 px-4"
+                       style="background:#A67C52;
+                        color:white;">
+
+                        View Report
+
+                        <i class="bi bi-arrow-right ms-1"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- High Risk Report -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#F0DDD8;">
+
+                        <i class="bi bi-exclamation-triangle"
+                           style="font-size:27px;
+                        color:#A45E53;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        High Risk Report
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        View students identified with High, Severe,
+                        or Extremely Severe risk levels.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="HighRiskReport"
+                       class="btn rounded-3 px-4"
+                       style="background:#B96A5B;
+                        color:white;">
+
+                        View Report
+
+                        <i class="bi bi-arrow-right ms-1"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Counseling Report -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#DDE5DD;">
+
+                        <i class="bi bi-chat-heart"
+                           style="font-size:27px;
+                        color:#687D68;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        Counseling Report
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        View counseling records, students,
+                        psychologists and counseling dates.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="CounselingReport"
+                       class="btn rounded-3 px-4"
+                       style="background:#718471;
+                        color:white;">
+
+                        View Report
+
+                        <i class="bi bi-arrow-right ms-1"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Psychologist Report -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#E2DCD8;">
+
+                        <i class="bi bi-person-badge"
+                           style="font-size:27px;
+                        color:#76695F;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        Psychologist Report
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        View all registered psychologists and
+                        their professional information.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="PsychologistReport"
+                       class="btn rounded-3 px-4"
+                       style="background:#806C5D;
+                        color:white;">
+
+                        View Report
+
+                        <i class="bi bi-arrow-right ms-1"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Department Report -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#E5DED5;">
+
+                        <i class="bi bi-building"
+                           style="font-size:27px;
+                        color:#806C5D;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        Department Report
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        View departments and the total number
+                        of students in each department.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="DepartmentReport"
+                       class="btn rounded-3 px-4"
+                       style="background:#8A7563;
+                        color:white;">
+
+                        View Report
+
+                        <i class="bi bi-arrow-right ms-1"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Report Summary -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100"
+                 style="background:#F7F2ED;">
+
+                <div class="card-body p-4">
+
+                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
+                         style="width:60px;
+                        height:60px;
+                        background:#E1D2C5;">
+
+                        <i class="bi bi-bar-chart-line"
+                           style="font-size:27px;
+                        color:#806C5D;"></i>
+
+                    </div>
+
+                    <h4 class="fw-bold"
+                        style="color:#5C5148;">
+
+                        Report Overview
+
+                    </h4>
+
+                    <p class="text-muted">
+
+                        Access student, risk, counseling,
+                        psychologist and department reports
+                        from one place.
+
+                    </p>
+
+                    <span class="badge rounded-pill px-3 py-2"
+                          style="background:#E5D7CB;
+                        color:#6B5B4E;">
+
+                        5 Reports Available
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div></div>

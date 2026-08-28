@@ -1,175 +1,899 @@
-﻿@{
+@using StudentMentalHealthMonitoringSystem.Models
+
+@{
     ViewData["Title"] = "AI Mental Health Assistant";
+
+    var studentName =
+        ViewBag.StudentName as string
+        ?? "Student";
+
+    var chatRiskStatus =
+        ViewBag.ChatRiskStatus as string
+        ?? "Not Assessed";
+
+    var chatMessages =
+        ViewBag.ChatMessages as IEnumerable<ChatMessage>
+        ?? Enumerable.Empty<ChatMessage>();
+
+
+    // =========================================================
+    // STATUS DISPLAY
+    // =========================================================
+
+    var statusClass =
+        "status-not-assessed";
+
+    var statusText =
+        chatRiskStatus;
+
+    var recommendation =
+        "Continue the conversation whenever you feel comfortable.";
+
+    if (chatRiskStatus == "Normal")
+    {
+        statusClass =
+            "status-normal";
+
+        recommendation =
+            "Continue healthy routines and use the chat whenever you want to reflect on how you are feeling.";
+    }
+    else if (chatRiskStatus == "Stressed")
+    {
+        statusClass =
+            "status-stressed";
+
+        recommendation =
+            "Consider taking manageable breaks, organizing your immediate priorities, and talking with someone you trust if the pressure continues.";
+    }
+    else if (chatRiskStatus == "Possible Depression")
+    {
+        statusClass =
+            "status-depression";
+
+        recommendation =
+            "Consider speaking with a university psychologist, counselor, trusted adult, or qualified mental-health professional for additional support.";
+    }
+    else if (chatRiskStatus == "Possible High Risk")
+    {
+        statusClass =
+            "status-high";
+
+        recommendation =
+            "Please reach out promptly to a trusted adult or qualified mental-health professional and avoid handling serious distress alone.";
+    }
 }
 
-<div class="container-fluid mt-4">
 
-    <div class="row">
+<style>
+    /* =========================================================
+       AI MENTAL HEALTH CHAT - IUBAT Green Compact Professional Theme
+       ========================================================= */
 
-        <div class="col-lg-3">
+    .ai-chat-page {
+        --chat-bg: #F4F8F5;
+        --chat-white: #ffffff;
+        --chat-primary: #006837;
+        --chat-dark: #004D25;
+        --chat-accent: #FFC20E;
+        --chat-light: #EBF4EE;
+        --chat-border: #D1E2D7;
+        --chat-text: #0F172A;
+        --chat-muted: #526A5E;
+        background: var(--chat-bg);
+        min-height: calc(100vh - 60px);
+        padding: 20px;
+    }
 
-            <div class="card shadow">
+    .ai-chat-page .soft-card {
+        background: var(--chat-white);
+        border: 1px solid var(--chat-border);
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 77, 37, 0.06);
+    }
 
-                <div class="card-body">
+    /* ================= SIDEBAR ================= */
 
-                    <h4 class="text-center text-primary">
+    .ai-chat-page .chat-sidebar {
+        overflow: hidden;
+        position: sticky;
+        top: 20px;
+    }
 
-                        AI Mental Health Assistant
+    .ai-chat-page .sidebar-header {
+        padding: 24px 20px;
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%);
+        text-align: center;
+        color: white;
+        border-bottom: 3px solid #FFC20E;
+    }
 
-                    </h4>
+    .ai-chat-page .assistant-logo {
+        width: 68px;
+        height: 68px;
+        margin: 0 auto 12px;
+        border-radius: 1.1rem;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #006837;
+        font-size: 32px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
 
-                    <hr>
+    .ai-chat-page .sidebar-title {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
 
-                    <div class="list-group">
+    .ai-chat-page .sidebar-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.98rem;
+        margin-bottom: 0;
+    }
 
-                        <a href="/Student/Dashboard" class="list-group-item list-group-item-action">
-                            Dashboard
-                        </a>
+    .ai-chat-page .student-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255,255,255,0.2);
+        color: #ffffff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-top: 10px;
+    }
 
-                        <a href="/Student/AIChat" class="list-group-item list-group-item-action active">
-                            AI Chat
-                        </a>
+    /* Sidebar Navigation */
 
-                        <a href="/Student/History" class="list-group-item list-group-item-action">
-                            Conversation History
-                        </a>
+    .ai-chat-page .sidebar-menu {
+        padding: 14px;
+        background: #EBF4EE;
+    }
 
-                        <a href="/Student/Profile" class="list-group-item list-group-item-action">
-                            Profile
-                        </a>
+    .ai-chat-page .sidebar-menu .list-group-item {
+        border: none;
+        border-radius: 0.9rem;
+        padding: 12px 16px;
+        margin-bottom: 6px;
+        color: #1E293B;
+        background: transparent;
+        font-weight: 700;
+        font-size: 1.12rem;
+        transition: all 0.2s ease;
+    }
+
+    .ai-chat-page .sidebar-menu .list-group-item i {
+        width: 28px;
+        color: #006837;
+        font-size: 1.3rem;
+    }
+
+    .ai-chat-page .sidebar-menu .list-group-item:hover {
+        background: #D1EBD9;
+        color: #004D25;
+        transform: translateX(4px);
+    }
+
+    .ai-chat-page .sidebar-menu .list-group-item.active {
+        background: #FFFFFF;
+        color: #004D25;
+        font-weight: 800;
+        box-shadow: 0 4px 16px rgba(0, 77, 37, 0.12);
+    }
+
+    .ai-chat-page .sidebar-menu .list-group-item.active i {
+        color: #006837;
+    }
+
+    /* ================= CHAT CARD ================= */
+
+    .ai-chat-page .main-chat-card {
+        overflow: hidden;
+    }
+
+    .ai-chat-page .chat-header {
+        padding: 18px 24px;
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%);
+        color: white;
+        border-bottom: 3px solid #FFC20E;
+    }
+
+    .ai-chat-page .chat-header-title {
+        color: white;
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-bottom: 3px;
+    }
+
+    .ai-chat-page .chat-header-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 1.02rem;
+        margin-bottom: 0;
+    }
+
+    .ai-chat-page .online-dot {
+        width: 10px;
+        height: 10px;
+        display: inline-block;
+        background: #22C55E;
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+    }
+
+    .ai-chat-page .new-chat-btn {
+        border: 1px solid #ffffff;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-weight: 700;
+        font-size: 1.02rem;
+        transition: 0.2s ease;
+    }
+
+    .ai-chat-page .new-chat-btn:hover {
+        background: white;
+        color: #004D25;
+    }
+
+    /* ================= CHAT BODY & BUBBLES ================= */
+
+    .ai-chat-page .chat-body {
+        height: 660px !important;
+        overflow-y: auto;
+        padding: 24px;
+        background: #F8FAFC;
+        scroll-behavior: smooth;
+    }
+
+    .ai-chat-page .chat-body::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    .ai-chat-page .chat-body::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 10px;
+    }
+
+    /* Empty Chat */
+    .ai-chat-page .empty-chat {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .ai-chat-page .empty-chat-icon {
+        width: 76px;
+        height: 76px;
+        border-radius: 1.25rem;
+        background: #EBF4EE;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #006837;
+        font-size: 34px;
+        margin-bottom: 16px;
+    }
+
+    .ai-chat-page .empty-chat h5 {
+        color: #004D25;
+        font-weight: 800;
+        font-size: 1.35rem;
+    }
+
+    .ai-chat-page .empty-chat p {
+        color: #526A5E;
+        max-width: 480px;
+        font-size: 1.08rem;
+        line-height: 1.6;
+    }
+
+    /* Message Rows - Tight wrapping around text */
+    /* Message Rows - Tight wrapping around text */
+    .ai-chat-page .message-row {
+        display: flex !important;
+        margin-bottom: 16px !important;
+        width: 100% !important;
+    }
+
+    .ai-chat-page .student-row {
+        justify-content: flex-end !important;
+    }
+
+    .ai-chat-page .ai-row {
+        justify-content: flex-start !important;
+    }
+
+    .ai-chat-page .message-wrapper {
+        max-width: 70% !important;
+        width: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .ai-chat-page .student-row .message-wrapper {
+        align-items: flex-end !important;
+    }
+
+    .ai-chat-page .ai-row .message-wrapper {
+        align-items: flex-start !important;
+    }
+
+    .ai-chat-page .message-label {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #475569 !important;
+        margin-bottom: 4px !important;
+        padding: 0 4px !important;
+    }
+
+    .ai-chat-page .student-row .message-label {
+        text-align: right !important;
+    }
+
+    .ai-chat-page .message-bubble {
+        display: inline-block !important;
+        width: auto !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: unset !important;
+        padding: 8px 14px !important;
+        font-size: 1.15rem !important; /* Large clear text */
+        font-weight: 600 !important;
+        line-height: 1.4 !important;
+        word-break: break-word !important;
+        white-space: pre-line !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* Student Bubble - Deep Green - Tight Fit */
+    .ai-chat-page .student-message {
+        color: #ffffff !important;
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%) !important;
+        border-radius: 1.1rem 1.1rem 0.2rem 1.1rem !important;
+        text-align: left !important;
+        align-self: flex-end !important;
+    }
+
+    /* AI Bubble - Soft Light Green Card - Tight Fit */
+    .ai-chat-page .ai-message {
+        color: #0F172A !important;
+        background: #EBF4EE !important;
+        border: 1px solid #D1E2D7 !important;
+        border-radius: 1.1rem 1.1rem 1.1rem 0.2rem !important;
+        text-align: left !important;
+        align-self: flex-start !important;
+    }
+
+    .ai-chat-page .message-time {
+        display: block !important;
+        margin-top: 4px !important;
+        padding: 0 6px !important;
+        color: #64748B !important;
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
+    }
+
+    .ai-chat-page .student-row .message-time {
+        text-align: right !important;
+    }
+
+    /* Typing Indicator */
+    .ai-chat-page .typing-wrapper {
+        display: none;
+        margin-bottom: 15px;
+    }
+
+    .ai-chat-page .typing-bubble {
+        display: inline-flex;
+        gap: 6px;
+        padding: 14px 20px;
+        background: #EBF4EE;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem 1.1rem 1.1rem 0.2rem;
+    }
+
+    .ai-chat-page .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #006837;
+        animation: typingAnimation 1.2s infinite ease-in-out;
+    }
+
+    .ai-chat-page .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .ai-chat-page .typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+    @@keyframes typingAnimation {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+        30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* MESSAGE INPUT */
+    .ai-chat-page .chat-input-area {
+        padding: 16px 22px;
+        background: white;
+        border-top: 1px solid var(--chat-border);
+    }
+
+    .ai-chat-page .chat-input-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 8px 8px 18px;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem;
+        background: #F8FAFC;
+        transition: all 0.2s ease;
+    }
+
+    .ai-chat-page .chat-input-box:focus-within {
+        border-color: #006837;
+        box-shadow: 0 0 0 4px rgba(0, 104, 55, 0.1);
+        background: white;
+    }
+
+    .ai-chat-page .chat-message-input {
+        border: none;
+        outline: none;
+        flex: 1;
+        background: transparent;
+        color: #0F172A;
+        font-size: 1.15rem;
+        font-weight: 600;
+        min-height: 44px;
+    }
+
+    .ai-chat-page .chat-message-input::placeholder {
+        color: #64748B;
+        font-weight: 500;
+        font-size: 1.08rem;
+    }
+
+    .ai-chat-page .send-button {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border: none;
+        border-radius: 0.9rem;
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .ai-chat-page .send-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(0, 77, 37, 0.25);
+    }
+
+    .ai-chat-page .send-button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .ai-chat-page .input-note {
+        font-size: 0.92rem;
+        color: #64748B;
+        margin-top: 8px;
+        padding-left: 6px;
+    }
+
+    /* SUMMARY CARD */
+    .ai-chat-page .summary-card {
+        margin-top: 22px;
+        overflow: hidden;
+    }
+
+    .ai-chat-page .summary-header {
+        padding: 16px 22px;
+        background: #EBF4EE;
+        border-bottom: 1px solid var(--chat-border);
+    }
+
+    .ai-chat-page .summary-title {
+        color: #004D25;
+        font-weight: 800;
+        font-size: 1.15rem;
+        margin-bottom: 0;
+    }
+
+    .ai-chat-page .summary-body {
+        padding: 20px;
+    }
+
+    .ai-chat-page .summary-item {
+        height: 100%;
+        background: #F8FAFC;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem;
+        padding: 16px;
+    }
+
+    .ai-chat-page .summary-label {
+        color: #526A5E;
+        font-size: 0.98rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .ai-chat-page .summary-value {
+        color: #0F172A;
+        font-weight: 700;
+        font-size: 1.1rem;
+        line-height: 1.5;
+    }
+
+    /* STATUS PILLS */
+    .ai-chat-page .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .ai-chat-page .status-not-assessed { background: #E2E8F0; color: #475569; }
+    .ai-chat-page .status-normal { background: #D1FAE5; color: #047857; }
+    .ai-chat-page .status-stressed { background: #FEF3C7; color: #D97706; }
+    .ai-chat-page .status-depression { background: #DBEAFE; color: #1D4ED8; }
+    .ai-chat-page .status-high { background: #FEE2E2; color: #DC2626; }
+
+    /* NOTICE */
+    .ai-chat-page .support-notice {
+        margin-top: 18px;
+        display: flex;
+        align-items: flex-start;
+        background: #EBF4EE;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem;
+        padding: 14px 18px;
+        color: #526A5E;
+        font-size: 0.98rem;
+        line-height: 1.6;
+    }
+
+    .ai-chat-page .support-notice i {
+        color: #006837;
+        margin-right: 10px;
+        margin-top: 2px;
+        font-size: 1.1rem;
+    }
+
+    .ai-chat-page .chat-error {
+        display: none;
+        margin: 0 20px 14px;
+        background: #FEE2E2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-size: 1rem;
+    }
+
+
+    /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+    @@media (max-width: 991px) {
+
+        .ai-chat-page {
+            padding: 14px;
+        }
+
+            .ai-chat-page .chat-sidebar {
+                position: static;
+                margin-bottom: 22px;
+            }
+
+            .ai-chat-page .chat-body {
+                height: 480px;
+            }
+
+            .ai-chat-page .message-wrapper {
+                max-width: 88%;
+            }
+    }
+
+
+    @@media (max-width: 575px) {
+
+        .ai-chat-page .chat-body {
+            height: 430px;
+            padding: 17px 13px;
+        }
+
+        .ai-chat-page .message-wrapper {
+            max-width: 93%;
+        }
+
+        .ai-chat-page .chat-header {
+            padding: 16px;
+        }
+
+        .ai-chat-page .chat-header-container {
+            align-items: flex-start !important;
+        }
+
+        .ai-chat-page .new-chat-btn {
+            margin-top: 10px;
+        }
+    }
+
+</style>
+
+
+<div class="ai-chat-page">
+
+    <div class="container-fluid p-0">
+
+        <div class="row g-4">
+
+            <!-- ===================================================== -->
+            <!-- SIDEBAR -->
+            <!-- ===================================================== -->
+
+            <div class="col-lg-3">
+
+                <div class="soft-card chat-sidebar">
+
+                    <!-- ================= Sidebar Header ================= -->
+
+                    <div class="sidebar-header">
+
+                        <div class="assistant-logo">
+
+                            <i class="bi bi-chat-heart"></i>
+
+                        </div>
+
+
+                        <div class="sidebar-title">
+
+                            AI Mental Health Assistant
+
+                        </div>
+
+
+                        <p class="sidebar-subtitle">
+
+                            A private space to talk and reflect.
+
+                        </p>
+
+
+                        <span class="student-badge">
+
+                            <i class="bi bi-person me-1"></i>
+
+                            @studentName
+
+                        </span>
 
                     </div>
 
+
+                    <!-- ================= Menu ================= -->
+
+                    <div class="sidebar-menu">
+
+                        <div class="list-group">
+
+                            <a asp-controller="Student"
+                               asp-action="Dashboard"
+                               class="list-group-item list-group-item-action">
+
+                                <i class="bi bi-grid me-2"></i>
+
+                                Dashboard
+
+                            </a>
+
+
+                            <a asp-controller="Student"
+                               asp-action="AIChat"
+                               class="list-group-item list-group-item-action active">
+
+                                <i class="bi bi-chat-dots me-2"></i>
+
+                                AI Chat
+
+                            </a>
+
+
+                            <a asp-controller="Student"
+                               asp-action="History"
+                               class="list-group-item list-group-item-action">
+                                <i class="bi bi-clock-history me-2"></i>
+                                Conversation History
+                            </a>
+
+                            <a asp-controller="Student"
+                               asp-action="Profile"
+                               class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-circle me-2"></i>
+                                Profile
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- ================= CHAT SUMMARY ON THE LEFT SIDEBAR ================= -->
+                <div class="soft-card summary-card">
+                    <div class="summary-header">
+                        <h6 class="summary-title fw-bold">
+                            <i class="bi bi-clipboard2-pulse me-2"></i>Chat Summary
+                        </h6>
+                    </div>
+
+                    <div class="summary-body p-3">
+                        <div class="summary-item mb-2.5 p-2.5">
+                            <div class="summary-label">Current Assessment</div>
+                            <div>
+                                <span id="riskStatusBadge" class="status-pill @statusClass">
+                                    @statusText
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="summary-item mb-2.5 p-2.5">
+                            <div class="summary-label">Conversation Memory</div>
+                            <div class="summary-value fs-6">
+                                <i class="bi bi-database-check me-1" style="color:#006837;"></i>Active
+                            </div>
+                        </div>
+
+                        <div class="summary-item mb-2.5 p-2.5">
+                            <div class="summary-label">Response Language</div>
+                            <div class="summary-value fs-6">
+                                <i class="bi bi-translate me-1" style="color:#006837;"></i>Automatic
+                            </div>
+                        </div>
+
+                        <div class="summary-item p-2.5">
+                            <div class="summary-label">Support Recommendation</div>
+                            <div id="recommendationText" class="summary-value small fw-semibold" style="font-size: 0.95rem;">
+                                @recommendation
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-        </div>
+            <!-- ===================================================== -->
+            <!-- MAIN AREA - FULL HEIGHT CHAT CARD -->
+            <!-- ===================================================== -->
+            <div class="col-lg-9">
 
-        <div class="col-lg-9">
+                <div class="soft-card main-chat-card">
 
-            <div class="card shadow">
+                    <!-- ================= Chat Header ================= -->
+                    <div class="chat-header">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap chat-header-container">
+                            <div>
+                                <div class="chat-header-title">
+                                    <span class="online-dot"></span>
+                                    AI Support Assistant
+                                </div>
+                                <p class="chat-header-subtitle">
+                                    Share what is on your mind. The assistant will respond in the language you use.
+                                </p>
+                            </div>
 
-                <div class="card-header bg-primary text-white">
-
-                    <h4>AI Mental Health Chatbot</h4>
-
-                </div>
-
-                <div class="card-body">
-
-                    <div style="height:500px;overflow-y:auto;background:#f8f9fa;padding:20px;border-radius:10px;">
-
-                        <div class="text-end mb-3">
-
-                            <span class="badge bg-primary p-3">
-
-                                Hello, I have been feeling stressed recently.
-
-                            </span>
-
+                            <!-- ================= New Chat ================= -->
+                            <form asp-controller="Student" asp-action="StartNewAIChat" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="new-chat-btn">
+                                    <i class="bi bi-plus-circle me-1"></i> New Chat
+                                </button>
+                            </form>
                         </div>
-
-                        <div class="text-start mb-3">
-
-                            <span class="badge bg-success p-3">
-
-                                I'm sorry you're feeling stressed. Would you like to tell me what has been bothering you lately?
-
-                            </span>
-
-                        </div>
-
-                        <div class="text-end mb-3">
-
-                            <span class="badge bg-primary p-3">
-
-                                I have too much academic pressure.
-
-                            </span>
-
-                        </div>
-
-                        <div class="text-start mb-3">
-
-                            <span class="badge bg-success p-3">
-
-                                Thank you for sharing that with me. Remember that you don't have to handle everything alone. If needed, our university psychologist is available to support you.
-
-                            </span>
-
-                        </div>
-
                     </div>
 
-                    <div class="input-group mt-4">
+                    <!-- ================= CHAT BODY ================= -->
+                    <div id="chatBody" class="chat-body" style="height: 660px;">
+                        @if (chatMessages.Any())
+                        {
+                            foreach (var chatMessage in chatMessages)
+                            {
+                                bool isAI = string.Equals(chatMessage.Sender, "AI", StringComparison.OrdinalIgnoreCase);
 
-                        <input type="text"
-                               class="form-control"
-                               placeholder="Type your message here...">
+                                if (isAI)
+                                {
+                                    <!-- ================= AI Message ================= -->
+                                    <div class="message-row ai-row">
+                                        <div class="message-wrapper">
+                                            <div class="message-label">AI Assistant</div>
+                                            <div class="message-bubble ai-message">@chatMessage.MessageText.Trim()</div>
+                                            <span class="message-time">@chatMessage.CreatedAt.ToString("h:mm tt")</span>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- ================= Student Message ================= -->
+                                    <div class="message-row student-row">
+                                        <div class="message-wrapper">
+                                            <div class="message-label">You</div>
+                                            <div class="message-bubble student-message">@chatMessage.MessageText.Trim()</div>
+                                            <span class="message-time">@chatMessage.CreatedAt.ToString("h:mm tt")</span>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <!-- ================= Empty State ================= -->
+                            <div id="emptyChat" class="empty-chat">
+                                <div class="empty-chat-icon">
+                                    <i class="bi bi-chat-heart"></i>
+                                </div>
+                                <h5>Hi @studentName</h5>
+                                <p>
+                                    You can start by sharing how your day has been, what has been on your mind, or anything you would like to talk about.
+                                </p>
+                            </div>
+                        }
 
-                        <button class="btn btn-primary">
-
-                            Send
-
-                        </button>
-
+                        <!-- ================= Typing Indicator ================= -->
+                        <div id="typingIndicator" class="typing-wrapper">
+                            <div>
+                                <div class="message-label">AI Assistant</div>
+                                <div class="typing-bubble">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                </div>
+                    <!-- ================= Error ================= -->
+                    <div id="chatError" class="chat-error">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        <span id="chatErrorText"></span>
+                    </div>
 
-            </div>
+                    <!-- ================= MESSAGE INPUT ================= -->
+                    <div class="chat-input-area">
+                        <form id="chatForm">
+                            @Html.AntiForgeryToken()
+                            <div class="chat-input-box">
+                                <input type="text"
+                                       id="messageInput"
+                                       name="message"
+                                       class="chat-message-input"
+                                       autocomplete="off"
+                                       maxlength="2000"
+                                       placeholder="Type your message here..." />
 
-            <div class="card shadow mt-4">
+                                <button type="submit" id="sendButton" class="send-button" title="Send Message">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
 
-                <div class="card-header bg-warning">
-
-                    Chat Summary
-
-                </div>
-
-                <div class="card-body">
-
-                    <table class="table table-bordered">
-
-                        <tr>
-
-                            <th>Conversation Status</th>
-
-                            <td>Normal Conversation</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Detected Emotion</th>
-
-                            <td>Stress</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Risk Level</th>
-
-                            <td>Moderate</td>
-
-                        </tr>
-
-                        <tr>
-
-                            <th>Recommendation</th>
-
-                            <td>
-
-                                Continue chatting or complete semester screening.
-
-                            </td>
-
-                        </tr>
-
-                    </table>
-
+                            <div class="input-note">
+                                AI-generated support is for wellbeing assistance and does not replace professional care.
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
             </div>
@@ -179,3 +903,551 @@
     </div>
 
 </div>
+
+
+@section Scripts
+{
+    <script>
+
+        // =========================================================
+        // ELEMENTS
+        // =========================================================
+
+        const chatForm =
+            document.getElementById(
+                "chatForm"
+            );
+
+
+        const messageInput =
+            document.getElementById(
+                "messageInput"
+            );
+
+
+        const sendButton =
+            document.getElementById(
+                "sendButton"
+            );
+
+
+        const chatBody =
+            document.getElementById(
+                "chatBody"
+            );
+
+
+        const typingIndicator =
+            document.getElementById(
+                "typingIndicator"
+            );
+
+
+        const chatError =
+            document.getElementById(
+                "chatError"
+            );
+
+
+        const chatErrorText =
+            document.getElementById(
+                "chatErrorText"
+            );
+
+
+        const riskStatusBadge =
+            document.getElementById(
+                "riskStatusBadge"
+            );
+
+
+        const recommendationText =
+            document.getElementById(
+                "recommendationText"
+            );
+
+
+        // =========================================================
+        // SCROLL TO BOTTOM
+        // =========================================================
+
+        function scrollChatToBottom()
+        {
+            chatBody.scrollTop =
+                chatBody.scrollHeight;
+        }
+
+
+        // ================= Initial Scroll =================
+
+        window.addEventListener(
+            "load",
+            function ()
+            {
+                scrollChatToBottom();
+
+                messageInput.focus();
+            }
+        );
+
+
+        // =========================================================
+        // ESCAPE HTML
+        // =========================================================
+
+        function escapeHtml(text)
+        {
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+            div.textContent =
+                text ?? "";
+
+            return div.innerHTML;
+        }
+
+
+        // =========================================================
+        // REMOVE EMPTY STATE
+        // =========================================================
+
+        function removeEmptyState()
+        {
+            const emptyChat =
+                document.getElementById(
+                    "emptyChat"
+                );
+
+            if (emptyChat)
+            {
+                emptyChat.remove();
+            }
+        }
+
+
+        // =========================================================
+        // ADD STUDENT MESSAGE
+        // =========================================================
+
+        function addStudentMessage(
+            message,
+            time)
+        {
+            removeEmptyState();
+
+
+            const html =
+                `
+                <div class="message-row student-row">
+
+                    <div class="message-wrapper">
+
+                        <div class="message-label">
+                            You
+                        </div>
+
+                        <div class="message-bubble student-message">${escapeHtml(message)}</div>
+
+                        <span class="message-time">
+                            ${escapeHtml(time)}
+                        </span>
+
+                    </div>
+
+                </div>
+                `;
+
+
+            typingIndicator.insertAdjacentHTML(
+                "beforebegin",
+                html
+            );
+
+
+            scrollChatToBottom();
+        }
+
+
+        // =========================================================
+        // ADD AI MESSAGE
+        // =========================================================
+
+        function addAIMessage(
+            message,
+            time)
+        {
+            const html =
+                `
+                <div class="message-row ai-row">
+
+                    <div class="message-wrapper">
+
+                        <div class="message-label">
+                            AI Assistant
+                        </div>
+
+                        <div class="message-bubble ai-message">${escapeHtml(message)}</div>
+
+                        <span class="message-time">
+                            ${escapeHtml(time)}
+                        </span>
+
+                    </div>
+
+                </div>
+                `;
+
+
+            typingIndicator.insertAdjacentHTML(
+                "beforebegin",
+                html
+            );
+
+
+            scrollChatToBottom();
+        }
+
+
+        // =========================================================
+        // SHOW / HIDE TYPING
+        // =========================================================
+
+        function showTyping()
+        {
+            typingIndicator.style.display =
+                "block";
+
+            scrollChatToBottom();
+        }
+
+
+        function hideTyping()
+        {
+            typingIndicator.style.display =
+                "none";
+        }
+
+
+        // =========================================================
+        // SHOW ERROR
+        // =========================================================
+
+        function showError(message)
+        {
+            chatErrorText.textContent =
+                message;
+
+            chatError.style.display =
+                "block";
+        }
+
+
+        // =========================================================
+        // HIDE ERROR
+        // =========================================================
+
+        function hideError()
+        {
+            chatError.style.display =
+                "none";
+
+            chatErrorText.textContent =
+                "";
+        }
+
+
+        // =========================================================
+        // CURRENT TIME
+        // =========================================================
+
+        function getCurrentTime()
+        {
+            return new Date()
+                .toLocaleTimeString(
+                    [],
+                    {
+                        hour:
+                            "numeric",
+
+                        minute:
+                            "2-digit"
+                    }
+                );
+        }
+
+
+        // =========================================================
+        // UPDATE CHAT ASSESSMENT
+        // =========================================================
+
+        function updateRiskStatus(
+            status)
+        {
+            if (!status)
+            {
+                return;
+            }
+
+
+            riskStatusBadge.textContent =
+                status;
+
+
+            riskStatusBadge.className =
+                "status-pill";
+
+
+            // ================= Normal =================
+
+            if (status === "Normal")
+            {
+                riskStatusBadge.classList.add(
+                    "status-normal"
+                );
+
+
+                recommendationText.textContent =
+                    "Continue healthy routines and use the chat whenever you want to reflect on how you are feeling.";
+            }
+
+            // ================= Stressed =================
+
+            else if (status === "Stressed")
+            {
+                riskStatusBadge.classList.add(
+                    "status-stressed"
+                );
+
+
+                recommendationText.textContent =
+                    "Consider taking manageable breaks, organizing your immediate priorities, and talking with someone you trust if the pressure continues.";
+            }
+
+            // ================= Possible Depression =================
+
+            else if (
+                status ===
+                "Possible Depression"
+            )
+            {
+                riskStatusBadge.classList.add(
+                    "status-depression"
+                );
+
+
+                recommendationText.textContent =
+                    "Consider speaking with a university psychologist, counselor, trusted adult, or qualified mental-health professional for additional support.";
+            }
+
+            // ================= Possible High Risk =================
+
+            else if (
+                status ===
+                "Possible High Risk"
+            )
+            {
+                riskStatusBadge.classList.add(
+                    "status-high"
+                );
+
+
+                recommendationText.textContent =
+                    "Please reach out promptly to a trusted adult or qualified mental-health professional and avoid handling serious distress alone.";
+            }
+
+            // ================= Default =================
+
+            else
+            {
+                riskStatusBadge.classList.add(
+                    "status-not-assessed"
+                );
+
+
+                recommendationText.textContent =
+                    "Continue the conversation whenever you feel comfortable.";
+            }
+        }
+
+
+        // =========================================================
+        // SEND MESSAGE
+        // =========================================================
+
+        chatForm.addEventListener(
+            "submit",
+            async function (event)
+            {
+                event.preventDefault();
+
+
+                hideError();
+
+
+                // ================= Get Message =================
+
+                const message =
+                    messageInput.value.trim();
+
+
+                if (!message)
+                {
+                    return;
+                }
+
+
+                if (message.length > 2000)
+                {
+                    showError(
+                        "Message is too long."
+                    );
+
+                    return;
+                }
+
+
+                // ================= Disable Input =================
+
+                messageInput.disabled =
+                    true;
+
+                sendButton.disabled =
+                    true;
+
+
+                // ================= Show Student Message =================
+
+                addStudentMessage(
+                    message,
+                    getCurrentTime()
+                );
+
+
+                messageInput.value =
+                    "";
+
+
+                showTyping();
+
+
+                // =================================================
+                // FORM DATA
+                // =================================================
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "message",
+                    message
+                );
+
+
+                // ================= Anti Forgery Token =================
+
+                const token =
+                    chatForm.querySelector(
+                        'input[name="__RequestVerificationToken"]'
+                    ).value;
+
+
+                formData.append(
+                    "__RequestVerificationToken",
+                    token
+                );
+
+
+                try
+                {
+                    // =================================================
+                    // SEND TO STUDENT CONTROLLER
+                    // =================================================
+
+                    const response =
+                        await fetch(
+                            '@Url.Action("SendAIMessage", "Student")',
+                            {
+                                method:
+                                    "POST",
+
+                                body:
+                                    formData
+                            }
+                        );
+
+
+                    if (!response.ok)
+                    {
+                        throw new Error(
+                            "Server request failed."
+                        );
+                    }
+
+
+                    const result =
+                        await response.json();
+
+
+                    hideTyping();
+
+
+                    // ================= Controller Error =================
+
+                    if (!result.success)
+                    {
+                        showError(
+                            result.message
+                            ??
+                            "The assistant could not respond."
+                        );
+
+                        return;
+                    }
+
+
+                    // ================= Add AI Reply =================
+
+                    addAIMessage(
+                        result.reply,
+                        result.createdAt
+                        ??
+                        getCurrentTime()
+                    );
+
+
+                    // ================= Update Assessment =================
+
+                    updateRiskStatus(
+                        result.riskStatus
+                    );
+                }
+                catch (error)
+                {
+                    hideTyping();
+
+
+                    showError(
+                        "The support assistant could not respond right now. Please try again."
+                    );
+                }
+                finally
+                {
+                    // ================= Enable Input =================
+
+                    messageInput.disabled =
+                        false;
+
+                    sendButton.disabled =
+                        false;
+
+
+                    messageInput.focus();
+                }
+            }
+        );
+
+    </script>
+}

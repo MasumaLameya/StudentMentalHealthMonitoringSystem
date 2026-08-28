@@ -1,0 +1,216 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.SemesterManagementViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Semester Transition & Control System";
+}
+
+<div class="container-fluid py-4" style="background:#F8FAFC; min-height: 90vh;">
+
+    <!-- ================= Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #002147 0%, #004D25 100%); color: white;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-arrow-repeat me-2"></i>Semester Transition & Governance Panel
+                    </h2>
+                    <p class="text-white-50 mb-0">Manage 4-month semester transitions, advance compliant students, and generate end-of-semester department reports.</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm d-block mb-1">
+                        Active: @Model.CurrentActiveSemester
+                    </span>
+                    <span class="text-white-50 small">Term Cycle: 4 Months</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- ================= Metric Cards ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#E2E8F0; color:#0F172A;">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Students</div>
+                        <h3 class="fw-bold mb-0 text-dark">@Model.TotalStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#D1E7DD; color:#0F5132;">
+                        <i class="bi bi-check-circle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Ready for Next Semester</div>
+                        <h3 class="fw-bold mb-0 text-success">@Model.CompliantStudents <span class="fs-6 text-muted">(@Model.CompliancePercentage%)</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#F8D7DA; color:#842029;">
+                        <i class="bi bi-lock-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Promotion Blocked (Incomplete)</div>
+                        <h3 class="fw-bold mb-0 text-danger">@Model.NonCompliantStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 text-center justify-content-center">
+                <button type="button" class="btn btn-primary btn-lg rounded-3 fw-bold py-2.5 shadow-sm" data-bs-toggle="modal" data-bs-target="#advanceSemesterModal">
+                    <i class="bi bi-rocket-takeoff me-1"></i> Start New Semester
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Transition Control Modal ================= -->
+    <div class="modal fade" id="advanceSemesterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-0 bg-dark text-white p-4">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-arrow-right-circle-fill text-warning me-2"></i>End @Model.CurrentActiveSemester & Start New Term
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="AdvanceSemester" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-body p-4">
+                        <p class="text-secondary small">
+                            Closing the current 4-month term will advance all compliant students who finished PHQ-9 & C-SSRS screenings.
+                        </p>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">Target New Semester Name</label>
+                            <input type="text" name="targetSemester" class="form-control form-control-lg rounded-3 fw-bold" value="@Model.NextProposedSemester" required />
+                        </div>
+
+                        <div class="alert alert-warning border-0 rounded-3 p-3 small mb-0">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>Note:</strong> @Model.NonCompliantStudents student(s) with pending screenings will NOT be promoted and will receive a warning reminder.
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-light rounded-3 fw-semibold" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning rounded-3 fw-bold px-4 text-dark shadow-sm">
+                            Confirm & Advance Semester
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Non-Compliant Blocked Students Table ================= -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0" style="color:#002147;">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Students Blocked From Advancement
+            </h5>
+            <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 fw-semibold">@Model.BlockedStudents.Count Pending</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#002147; color:white;" class="fw-bold text-uppercase small">
+                    <tr>
+                        <th class="ps-4">Student</th>
+                        <th>Department</th>
+                        <th>Current Semester</th>
+                        <th>PHQ-9 Status</th>
+                        <th>C-SSRS Status</th>
+                        <th>Advancement Action Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.BlockedStudents.Any())
+                    {
+                        foreach (var item in Model.BlockedStudents)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@item.FullName</div>
+                                    <div class="text-muted small">@item.Email</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-2.5 py-1 fw-semibold">@item.DepartmentName</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fw-semibold">@item.Semester</span>
+                                </td>
+                                <td>
+                                    @if (item.HasPHQ)
+                                    {
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.HasCSSRS)
+                                    {
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-1.5 fw-semibold">
+                                        <i class="bi bi-lock-fill me-1"></i>Must Complete Screening
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-check-circle-fill fs-1 text-success d-block mb-2"></i>
+                                All students are fully compliant for the current active semester!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

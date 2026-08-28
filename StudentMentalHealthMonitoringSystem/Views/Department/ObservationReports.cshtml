@@ -1,0 +1,283 @@
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.ObservationReport>
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = "Observation Reports";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="mb-4">
+
+        <h2 class="mb-2"
+            style="
+            color:#405B6B;
+            font-weight:700;">
+
+            Observation Reports
+
+        </h2>
+
+        <p class="mb-0"
+           style="
+            color:#7B8E99;
+            font-size:14px;">
+
+            View counseling observation and follow-up progress
+            for students in your department.
+
+        </p>
+
+    </div>
+
+
+    <div class="card border-0 shadow-sm"
+         style="
+        border-radius:20px;
+        overflow:hidden;">
+
+        <div class="card-header border-0 py-3"
+             style="
+            background:#E8F1F5;">
+
+            <h5 class="mb-0"
+                style="
+                color:#526A79;
+                font-weight:700;">
+
+                <i class="bi bi-journal-medical me-2"></i>
+
+                Student Observation Reports
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model != null &&
+                 Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table
+                        table-hover
+                        align-middle
+                        mb-0">
+
+                        <thead style="
+                            background:#F7FAFB;">
+
+                            <tr>
+
+                                <th class="px-4 py-3">
+                                    Student
+                                </th>
+
+                                <th class="py-3">
+                                    Semester (4-Mo Term)
+                                </th>
+
+                                <th class="py-3">
+                                    Psychologist
+                                </th>
+
+                                <th class="py-3">
+                                    Initial Status
+                                </th>
+
+                                <th class="py-3">
+                                    Current Status
+                                </th>
+
+                                <th class="py-3">
+                                    Overall Progress
+                                </th>
+
+                                <th class="py-3">
+                                    Report Status
+                                </th>
+
+                                <th class="py-3">
+                                    Updated
+                                </th>
+
+                                <th class="py-3 text-center">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="px-4 py-3">
+
+                                        <div class="fw-semibold"
+                                             style="color:#526A79;">
+
+                                            @(item.Student?.FullName
+                                                ?? "Student")
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @(item.Student?.StudentIdNumber
+                                                ?? "-")
+
+                                        </small>
+
+                                    </td>
+
+                                    <td class="py-3">
+                                        <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-calendar3 me-1"></i>@(string.IsNullOrWhiteSpace(item.Semester) ? (item.Student?.Semester ?? "Semester 1") : item.Semester)
+                                        </span>
+                                    </td>
+
+                                    <td class="py-3">
+
+                                        @(item.Psychologist?.FullName
+                                            ?? "-")
+
+                                    </td>
+
+
+                                    <td class="py-3">
+
+                                        @item.InitialStatus
+
+                                    </td>
+
+
+                                    <td class="py-3">
+
+                                        <strong style="color:#526A79;">
+
+                                            @item.CurrentStatus
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <td class="py-3">
+
+                                        @item.OverallProgressStatus
+
+                                    </td>
+
+
+                                    <td class="py-3">
+
+                                        @if (item.IsFinal)
+                                        {
+                                            <span class="badge
+                                                bg-success
+                                                rounded-pill
+                                                px-3 py-2">
+
+                                                Final
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge
+                                                rounded-pill
+                                                px-3 py-2"
+                                                  style="
+                                                background:#FFF3CD;
+                                                color:#795F00;">
+
+                                                Ongoing
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <td class="py-3">
+
+                                        @item.UpdatedAt.ToString(
+                                            "dd MMM yyyy, h:mm tt")
+
+                                    </td>
+
+
+                                    <td class="py-3 text-center">
+
+                                        <a asp-controller="Department"
+                                           asp-action="ObservationReportDetails"
+                                           asp-route-id="@item.ObservationReportId"
+                                           class="btn btn-sm
+                                            rounded-3
+                                            px-3"
+                                           style="
+                                            background:#658296;
+                                            color:white;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View Report
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <div class="mb-3"
+                         style="
+                        font-size:35px;
+                        color:#7896A7;">
+
+                        <i class="bi bi-journal-x"></i>
+
+                    </div>
+
+
+                    <h5 style="
+                        color:#526A79;
+                        font-weight:600;">
+
+                        No Observation Reports
+
+                    </h5>
+
+
+                    <p class="text-muted mb-0">
+
+                        Observation reports will appear after
+                        counseling observations are completed.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

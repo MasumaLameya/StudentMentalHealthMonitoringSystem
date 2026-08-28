@@ -1,133 +1,179 @@
-﻿@{
+@{
     ViewData["Title"] = "Mental Health History";
 }
 
-<div class="container mt-4">
+<style>
+    .student-app-bg {
+        background: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
 
-    <div class="card shadow">
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
 
-        <div class="card-header bg-dark text-white">
+    .student-sidebar .list-group-item {
+        border: none;
+        border-radius: 0.75rem;
+        margin-bottom: 0.35rem;
+        padding: 0.8rem 1.1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #1E293B;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
 
-            <h3>Mental Health History</h3>
+    .student-sidebar .list-group-item i {
+        font-size: 1.25rem;
+        color: #2563EB;
+        width: 26px;
+        text-align: center;
+    }
+
+    .student-sidebar .list-group-item:hover {
+        background: #EFF6FF;
+        color: #1E3A8A;
+        transform: translateX(4px);
+    }
+
+    .student-sidebar .list-group-item.active {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .student-sidebar .list-group-item.active i {
+        color: #ffffff;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 text-center student-sidebar">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="https://ui-avatars.com/api/?name=Student&background=8A7563&color=fff&size=110" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" alt="Avatar" />
+                    </div>
+
+                    <h5 class="fw-bold mb-1" style="color: #5F5146;">Student Portal</h5>
+                    <p class="text-muted small mb-3"><i class="bi bi-shield-check me-1"></i>Mental Health Monitoring</p>
+                    
+                    <hr class="my-3 opacity-25" />
+
+                    <div class="list-group list-group-flush text-start">
+                        <a href="/Student/Dashboard" class="list-group-item">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/Student/Profile" class="list-group-item">
+                            <i class="bi bi-person-badge"></i> My Profile
+                        </a>
+                        <a href="/Student/SemesterScreening" class="list-group-item">
+                            <i class="bi bi-journal-check"></i> Semester Screening
+                        </a>
+                        <a href="/Student/PHQ" class="list-group-item">
+                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
+                        </a>
+                        <a href="/Student/CSRRS" class="list-group-item">
+                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
+                        </a>
+                        <a href="/Student/Feelings" class="list-group-item">
+                            <i class="bi bi-emoji-smile"></i> Daily Feelings
+                        </a>
+                        <a href="/Student/AIChat" class="list-group-item">
+                            <i class="bi bi-robot"></i> AI Companion Chat
+                        </a>
+                        <a href="/VoiceBot/Index" class="list-group-item">
+                            <i class="bi bi-mic"></i> Live Voice Bot
+                        </a>
+                        <a href="/Student/Appointment" class="list-group-item">
+                            <i class="bi bi-calendar-event"></i> Counseling Session
+                        </a>
+                        <a href="/Student/History" class="list-group-item active">
+                            <i class="bi bi-clock-history"></i> History Records
+                        </a>
+                        <a href="/Student/Progress" class="list-group-item">
+                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
+                        </a>
+                        <a href="/Student/Reports" class="list-group-item">
+                            <i class="bi bi-file-earmark-medical"></i> Official Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); color: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-clock-history me-2"></i>Mental Health Assessment History
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Historical records of past semester screening assessments and counseling sessions.</p>
+                        </div>
+                        <a href="/Student/Dashboard" class="btn btn-light text-primary btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Academic Semester</th>
+                                    <th class="text-center">PHQ-9 Score</th>
+                                    <th class="text-center">C-SSRS Risk</th>
+                                    <th class="text-center">Assessed Risk Status</th>
+                                    <th class="text-center">Counseling Session</th>
+                                    <th class="text-center">Overall Record Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold text-dark"><i class="bi bi-mortarboard me-2 text-secondary"></i>Semester 1</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">6 Pts</span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">Low Risk</span></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-1">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Moderate
+                                        </span>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">Completed</span></td>
+                                    <td class="text-center"><span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3 py-1">Verified</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold text-dark"><i class="bi bi-mortarboard me-2 text-secondary"></i>Semester 2</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">3 Pts</span></td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">No Risk</span></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Normal
+                                        </span>
+                                    </td>
+                                    <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1">Not Needed</span></td>
+                                    <td class="text-center"><span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3 py-1">Verified</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
 
         </div>
-
-        <div class="card-body">
-
-            <table class="table table-bordered table-hover">
-
-                <thead class="table-dark">
-
-                    <tr>
-
-                        <th>Semester</th>
-
-                        <th>PHQ-9</th>
-
-                        <th>C-SSRS</th>
-
-                        <th>Risk Level</th>
-
-                        <th>Counseling</th>
-
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-
-                        <td>Semester 1</td>
-
-                        <td>6</td>
-
-                        <td>Low</td>
-
-                        <td>
-
-                            <span class="badge bg-warning">
-
-                                Moderate
-
-                            </span>
-
-                        </td>
-
-                        <td>Completed</td>
-
-                        <td>
-
-                            Improved
-
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td>Semester 2</td>
-
-                        <td>3</td>
-
-                        <td>Low</td>
-
-                        <td>
-
-                            <span class="badge bg-success">
-
-                                Normal
-
-                            </span>
-
-                        </td>
-
-                        <td>Not Required</td>
-
-                        <td>
-
-                            Stable
-
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td>Semester 3</td>
-
-                        <td>-</td>
-
-                        <td>-</td>
-
-                        <td>
-
-                            <span class="badge bg-secondary">
-
-                                Pending
-
-                            </span>
-
-                        </td>
-
-                        <td>-</td>
-
-                        <td>
-
-                            Awaiting Screening
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
     </div>
-
 </div>

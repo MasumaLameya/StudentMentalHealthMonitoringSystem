@@ -1,0 +1,169 @@
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+
+@{
+    ViewData["Title"] = "Counseling History";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <!-- ================= Header ================= -->
+
+        <div class="card-header bg-info text-white">
+
+            <h3>
+
+                Counseling History
+
+            </h3>
+
+        </div>
+
+        <div class="card-body">
+
+            <!-- ================= Student Information ================= -->
+
+            <div class="alert alert-primary">
+
+                <strong>Student Name :</strong>
+
+                @ViewBag.Student.FullName
+
+                <br />
+
+                <strong>Student ID :</strong>
+
+                @ViewBag.Student.StudentIdNumber
+
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-warning">
+
+                    No Counseling History Found.
+
+                </div>
+            }
+            else
+            {
+                <table class="table table-bordered table-striped">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Date</th>
+
+                            <th>Psychologist</th>
+
+                            <th>Observation</th>
+
+                            <th>Recommendation</th>
+
+                            <th>Risk Level</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <!-- ================= Date ================= -->
+
+                                <td>
+
+                                    @item.CounselingDate.ToString("dd MMM yyyy")
+
+                                </td>
+
+                                <!-- ================= Psychologist ================= -->
+
+                                <td>
+
+                                    @(item.Psychologist?.FullName ?? "N/A")
+
+                                </td>
+
+                                <!-- ================= Observation ================= -->
+
+                                <td>
+
+                                    @item.Observation
+
+                                </td>
+
+                                <!-- ================= Recommendation ================= -->
+
+                                <td>
+
+                                    @item.Recommendation
+
+                                </td>
+
+                                <!-- ================= Risk Level ================= -->
+
+                                <td>
+
+                                    @item.RiskLevel
+
+                                </td>
+
+                                <!-- ================= Status ================= -->
+
+                                <td>
+
+                                    @if (item.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Completed
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+
+                                            Pending
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            }
+
+            <!-- ================= Back Button ================= -->
+
+            <div class="mt-3">
+
+                <a asp-controller="Psychologist"
+                   asp-action="StudentDetails"
+                   asp-route-id="@ViewBag.Student.StudentId"
+                   class="btn btn-secondary">
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

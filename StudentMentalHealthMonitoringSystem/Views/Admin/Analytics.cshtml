@@ -1,60 +1,424 @@
-﻿@{
+﻿@model StudentMentalHealthMonitoringSystem.ViewModels.AdminDashboardViewModel
+
+@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Analytics";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-info text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F1EAE4;">
 
-            <h3>Analytics</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5C5148;">
+
+                        📊 Analytics
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Overview of student mental health monitoring
+                        and counseling activities.
+
+                    </p>
+
+                </div>
+
+                <div class="rounded-4 d-flex align-items-center justify-content-center"
+                     style="width:60px;
+                    height:60px;
+                    background:#E5DAD1;">
+
+                    <i class="bi bi-bar-chart-line"
+                       style="font-size:28px;
+                    color:#806C5D;"></i>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <h5>Dashboard Statistics</h5>
 
-            <hr>
+    <!-- ================= Main Statistics ================= -->
 
-            <div class="row">
+    <div class="row">
 
-                <div class="col-md-3">
+        <!-- Total Students -->
 
-                    <div class="alert alert-primary">
+        <div class="col-xl-4 col-md-6 mb-4">
 
-                        Students : 1200
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total Students
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#806C5D;">
+
+                                @Model.TotalStudents
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#E8DDD2;">
+
+                            <i class="bi bi-people-fill"
+                               style="font-size:26px;
+                            color:#806C5D;"></i>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                <div class="col-md-3">
+            </div>
 
-                    <div class="alert alert-success">
+        </div>
 
-                        Normal : 900
+
+        <!-- High Risk Students -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100"
+                 style="background:#F8F0ED;">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                High Risk Students
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#A45E53;">
+
+                                @Model.HighRiskStudents
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#E7C4BD;">
+
+                            <i class="bi bi-exclamation-triangle-fill"
+                               style="font-size:25px;
+                            color:#A45E53;"></i>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                <div class="col-md-3">
+            </div>
 
-                    <div class="alert alert-warning">
+        </div>
 
-                        Moderate : 200
+
+        <!-- Total Psychologists -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total Psychologists
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#718471;">
+
+                                @Model.TotalPsychologists
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#DDE5DD;">
+
+                            <i class="bi bi-person-badge-fill"
+                               style="font-size:25px;
+                            color:#687D68;"></i>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-                <div class="col-md-3">
+            </div>
 
-                    <div class="alert alert-danger">
+        </div>
 
-                        High Risk : 100
+
+        <!-- Total Departments -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total Departments
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#806C5D;">
+
+                                @Model.TotalDepartments
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#E5DAD1;">
+
+                            <i class="bi bi-building-fill"
+                               style="font-size:25px;
+                            color:#806C5D;"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Total Counseling Sessions -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Total Counseling Sessions
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#718471;">
+
+                                @Model.TotalCounselingSessions
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#DDE5DD;">
+
+                            <i class="bi bi-chat-heart-fill"
+                               style="font-size:25px;
+                            color:#687D68;"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pending Counseling -->
+
+        <div class="col-xl-4 col-md-6 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100"
+                 style="background:#F7F1EA;">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <small class="text-muted">
+                                Pending Counseling Sessions
+                            </small>
+
+                            <h2 class="fw-bold mb-0 mt-2"
+                                style="color:#8A7563;">
+
+                                @Model.PendingCounselingSessions
+
+                            </h2>
+
+                        </div>
+
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:60px;
+                            height:60px;
+                            background:#E8DDD2;">
+
+                            <i class="bi bi-clock-history"
+                               style="font-size:25px;
+                            color:#806C5D;"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Mental Health Overview ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mt-2">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5C5148;">
+
+                Mental Health Monitoring Overview
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-4">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <p class="text-muted mb-3">
+
+                        The current system overview shows the number of
+                        registered students, high-risk students,
+                        psychologists, departments and counseling sessions.
+
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2">
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              style="background:#E8DDD2;
+                            color:#705F50;">
+
+                            Students: @Model.TotalStudents
+
+                        </span>
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              style="background:#E7C4BD;
+                            color:#7A4038;">
+
+                            High Risk: @Model.HighRiskStudents
+
+                        </span>
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              style="background:#DDE5DD;
+                            color:#526052;">
+
+                            Psychologists: @Model.TotalPsychologists
+
+                        </span>
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              style="background:#E5DAD1;
+                            color:#6B5B4E;">
+
+                            Departments: @Model.TotalDepartments
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 text-center mt-4 mt-md-0">
+
+                    <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center"
+                         style="width:130px;
+                        height:130px;
+                        background:#F1EAE4;">
+
+                        <div>
+
+                            <i class="bi bi-activity"
+                               style="font-size:40px;
+                            color:#806C5D;"></i>
+
+                            <div class="small fw-semibold mt-1"
+                                 style="color:#5C5148;">
+
+                                System Overview
+
+                            </div>
+
+                        </div>
 
                     </div>
 

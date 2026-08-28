@@ -1,0 +1,230 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentProgressReportListViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Student Follow-up Progress Reports";
+
+    int totalStudents = Model.Reports?.Count ?? 0;
+    int completedCount = Model.Reports?.Count(r => r.IsFinal) ?? 0;
+    int inProgressCount = Model.Reports?.Count(r => !r.IsFinal) ?? 0;
+    int improvedCount = Model.Reports?.Count(r => r.OverallImprovementStatus == "Improved") ?? 0;
+    int improvedPercent = totalStudents > 0 ? (int)Math.Round((double)improvedCount / totalStudents * 100) : 0;
+}
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        border-radius: 1rem;
+    }
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .gradient-text-primary {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="bi bi-graph-up-arrow me-2 text-primary"></i>
+                Student Follow-up Progress Reports
+            </h3>
+            <p class="text-muted mb-0">
+                Track individual student counseling progress scores, follow-up statuses, and overall session improvement.
+            </p>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="stat-icon bg-primary-subtle text-primary">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Total Students Tracked</div>
+                    <div class="fs-4 fw-bold text-dark">@totalStudents</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="stat-icon bg-success-subtle text-success">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Follow-up Completed</div>
+                    <div class="fs-4 fw-bold text-success">@completedCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="stat-icon bg-warning-subtle text-warning">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Continuous Follow-up</div>
+                    <div class="fs-4 fw-bold text-warning">@inProgressCount</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card p-3 d-flex align-items-center gap-3">
+                <div class="stat-icon bg-info-subtle text-info">
+                    <i class="bi bi-graph-up font-bold"></i>
+                </div>
+                <div>
+                    <div class="text-muted small fw-semibold">Improved Rate</div>
+                    <div class="fs-4 fw-bold text-info">@improvedPercent% <small class="fs-6 fw-normal text-muted">(@improvedCount)</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="glass-card p-4 mb-4">
+        <form method="get" asp-controller="Admin" asp-action="StudentProgressReports" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="followUpFilter" class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-funnel me-1"></i> Follow-up Status
+                </label>
+                <select id="followUpFilter" name="followUpFilter" class="form-select rounded-3">
+                    <option value="All" selected="@(Model.FollowUpFilter == "All" ? "selected" : null)">All Students (Continuous & Completed)</option>
+                    <option value="InProgress" selected="@(Model.FollowUpFilter == "InProgress" ? "selected" : null)">Continuous Follow-up (In Progress)</option>
+                    <option value="Completed" selected="@(Model.FollowUpFilter == "Completed" ? "selected" : null)">Follow-up Completed (Finished)</option>
+                </select>
+            </div>
+
+            <div class="col-md-5">
+                <label for="department" class="form-label fw-semibold text-secondary">
+                    <i class="bi bi-building me-1"></i> Department
+                </label>
+                <select id="department" name="department" class="form-select rounded-3">
+                    <option value="All" selected="@(Model.DepartmentFilter == "All" ? "selected" : null)">All Departments</option>
+                    @foreach (var dept in Model.AvailableDepartments)
+                    {
+                        <option value="@dept" selected="@(dept == Model.DepartmentFilter ? "selected" : null)">@dept</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Student Reports Table -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Department</th>
+                        <th>Psychologist</th>
+                        <th class="text-center">Sessions</th>
+                        <th class="text-center">Follow-up Status</th>
+                        <th class="text-center">Initial Score</th>
+                        <th class="text-center">Latest Score</th>
+                        <th class="text-center">Overall Progress</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Reports != null && Model.Reports.Any())
+                    {
+                        @foreach (var item in Model.Reports)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@(string.IsNullOrEmpty(item.ProfileImage) ? "/images/default-avatar.png" : item.ProfileImage)"
+                                             class="rounded-circle shadow-sm" style="width: 42px; height: 42px; object-fit: cover;" alt="Avatar" />
+                                        <div>
+                                            <div class="fw-bold text-dark">@item.StudentName</div>
+                                            <small class="text-muted">ID: @item.StudentIdNumber</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border px-2 py-1">@item.Department</span></td>
+                                <td class="small fw-semibold text-secondary">@item.PsychologistName</td>
+                                <td class="text-center"><span class="badge bg-secondary-subtle text-dark rounded-pill px-3">@item.TotalSessions</span></td>
+                                <td class="text-center">
+                                    @if (item.IsFinal)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Completed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                                            <i class="bi bi-arrow-repeat me-1"></i> In Progress
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center fw-semibold text-muted">@item.InitialScore</td>
+                                <td class="text-center fw-bold text-primary fs-6">@item.LatestScore</td>
+                                <td class="text-center">
+                                    @if (item.OverallImprovementStatus == "Improved")
+                                    {
+                                        <span class="badge bg-success rounded-pill px-3 py-2">
+                                            <i class="bi bi-arrow-up-right-circle me-1"></i> Improved
+                                        </span>
+                                    }
+                                    else if (item.OverallImprovementStatus == "Deteriorated")
+                                    {
+                                        <span class="badge bg-danger rounded-pill px-3 py-2">
+                                            <i class="bi bi-arrow-down-right-circle me-1"></i> Deteriorated
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                            <i class="bi bi-dash-circle me-1"></i> Stable
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-controller="Admin" asp-action="StudentProgressDetails" asp-route-id="@(item.ObservationReportId > 0 ? item.ObservationReportId : item.StudentId)"
+                                       class="btn btn-sm btn-outline-primary rounded-3 px-3">
+                                        <i class="bi bi-graph-up me-1"></i> View Progress
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">No student follow-up progress reports match the selected criteria.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

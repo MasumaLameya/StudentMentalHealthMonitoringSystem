@@ -1,0 +1,379 @@
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.StudentAvailability>
+
+@{
+    Layout = "_StudentLayout";
+    ViewData["Title"] = "My Availability";
+}
+
+<div class="container-fluid">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-clock-history me-2"></i>My Counseling Availability
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Add the days and times when you are free for counseling.
+
+                    </p>
+
+                </div>
+
+                <a asp-controller="Student"
+                   asp-action="Appointment"
+                   class="btn rounded-3 px-4"
+                   style="background:#A67C52;
+                    color:white;">
+
+                    <i class="bi bi-calendar-check me-1"></i>
+
+                    Book Counseling
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Rules ================= -->
+
+    <div class="alert rounded-4 mb-4"
+         style="background:#F7F2ED;
+        border:1px solid #E5D8CC;
+        color:#5F5146;">
+
+        <div class="d-flex align-items-start">
+
+            <i class="bi bi-info-circle-fill fs-4 me-3"
+               style="color:#A67C52;"></i>
+
+            <div>
+
+                <strong>Counseling Availability Rules</strong>
+
+                <ul class="mb-0 mt-2">
+
+                    <li>
+                        Available days: Saturday to Wednesday.
+                    </li>
+
+                    <li>
+                        Available time: 8:30 AM to 5:30 PM.
+                    </li>
+
+                    <li>
+                        Lunch break: 12:45 PM to 1:10 PM.
+                    </li>
+
+                    <li>
+                        Each availability slot can be maximum 1 hour.
+                    </li>
+
+                    <li>
+                        Your availability must not overlap with another saved slot.
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Messages ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-3">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-3">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+    <div class="row">
+
+        <!-- ================= Add Availability ================= -->
+
+        <div class="col-lg-5 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h5 class="mb-0"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-plus-circle me-2"></i>
+
+                        Add Free Time
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <form asp-controller="Student"
+                          asp-action="Availability"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- Day -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+
+                                Available Day
+
+                            </label>
+
+                            <select name="day"
+                                    class="form-select rounded-3"
+                                    required>
+
+                                <option value="">
+                                    Select Day
+                                </option>
+
+                                <option value="Saturday">
+                                    Saturday
+                                </option>
+
+                                <option value="Sunday">
+                                    Sunday
+                                </option>
+
+                                <option value="Monday">
+                                    Monday
+                                </option>
+
+                                <option value="Tuesday">
+                                    Tuesday
+                                </option>
+
+                                <option value="Wednesday">
+                                    Wednesday
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Start Time -->
+
+                        <div class="mb-3">
+
+                            <label class="form-label fw-semibold">
+
+                                Start Time
+
+                            </label>
+
+                            <input type="time"
+                                   name="startTime"
+                                   class="form-control rounded-3"
+                                   min="08:30"
+                                   max="17:30"
+                                   required />
+
+                        </div>
+
+
+                        <!-- End Time -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                End Time
+
+                            </label>
+
+                            <input type="time"
+                                   name="endTime"
+                                   class="form-control rounded-3"
+                                   min="08:30"
+                                   max="17:30"
+                                   required />
+
+                        </div>
+
+
+                        <button type="submit"
+                                class="btn w-100 rounded-3 py-2"
+                                style="background:#A67C52;
+                            color:white;">
+
+                            <i class="bi bi-plus-lg me-1"></i>
+
+                            Add Availability
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= Existing Availability ================= -->
+
+        <div class="col-lg-7 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h5 class="mb-0"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-clock-history me-2"></i>
+
+                        My Available Times
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+
+                            <table class="table align-middle">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Day
+                                        </th>
+
+                                        <th>
+                                            Start
+                                        </th>
+
+                                        <th>
+                                            End
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+
+                                            <td>
+
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      style="background:#EEE4DA;
+                                                    color:#705F50;">
+
+                                                    @item.Day
+
+                                                </span>
+
+                                            </td>
+
+                                            <td>
+
+                                                @item.StartTime.ToString(@"hh\:mm")
+
+                                            </td>
+
+                                            <td>
+
+                                                @item.EndTime.ToString(@"hh\:mm")
+
+                                            </td>
+
+                                        </tr>
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+
+                            <i class="bi bi-calendar-x"
+                               style="font-size:45px;
+                            color:#B7A99A;"></i>
+
+                            <h5 class="mt-3"
+                                style="color:#5F5146;">
+
+                                No Availability Added
+
+                            </h5>
+
+                            <p class="text-muted mb-0">
+
+                                Add your free time using the form.
+
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

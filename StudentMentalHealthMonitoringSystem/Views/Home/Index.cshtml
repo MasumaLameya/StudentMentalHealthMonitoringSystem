@@ -1,139 +1,234 @@
-﻿@{
-    ViewData["Title"] = "Home";
+@{
+    ViewData["Title"] = "Student Mental Health Monitoring System for IUBAT";
 }
 
-<div class="container mt-5">
+<style>
+    body {
+        background: #F4F8F5;
+    }
 
-    <div class="text-center mb-5">
+    .hero-section {
+        background: linear-gradient(135deg, #004D25 0%, #006837 60%, #002147 100%);
+        border: 2px solid #FFC20E;
+        border-radius: 1.25rem;
+        padding: 2.75rem 2rem;
+        color: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 77, 37, 0.25);
+    }
 
-        <h1 class="display-4 fw-bold text-primary">
-            AI Assisted Student Mental Health Monitoring System
+    .portal-container {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+    .portal-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem;
+        padding: 1.6rem 1.1rem;
+        box-shadow: 0 6px 20px rgba(0, 77, 37, 0.06);
+        transition: all 0.25s ease;
+        width: 205px;
+        min-width: 195px;
+    }
+
+    .portal-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 32px rgba(0, 104, 55, 0.18);
+        border-color: #FFC20E;
+    }
+
+    .portal-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.1rem;
+        font-size: 2rem;
+    }
+
+    .portal-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #004D25;
+        margin-bottom: 0.4rem;
+    }
+
+    .portal-subtitle {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #526A5E;
+        margin-bottom: 1.2rem;
+    }
+
+    /* Role Colors - Psychologist changed to Aesthetic Brown (#8C5A3C) */
+    .card-student { border-top: 5px solid #006837; }
+    .card-student .portal-icon { background: #D1EBD9; color: #006837; }
+    .btn-student { background: #006837; color: white; border: none; font-weight: 700; font-size: 1.1rem; }
+    .btn-student-outline { color: #006837; border: 2px solid #006837; background: transparent; font-weight: 700; font-size: 1.1rem; }
+
+    .card-psychologist { border-top: 5px solid #8C5A3C; }
+    .card-psychologist .portal-icon { background: #F4ECE8; color: #8C5A3C; }
+    .btn-psychologist { background: #8C5A3C; color: white; border: none; font-weight: 700; font-size: 1.1rem; }
+
+    .card-department { border-top: 5px solid #047857; }
+    .card-department .portal-icon { background: #D1FAE5; color: #047857; }
+    .btn-department { background: #047857; color: white; border: none; font-weight: 700; font-size: 1.1rem; }
+
+    .card-admin { border-top: 5px solid #002147; }
+    .card-admin .portal-icon { background: #E0E8F5; color: #002147; }
+    .btn-admin { background: #002147; color: white; border: none; font-weight: 700; font-size: 1.1rem; }
+
+    .card-guardian { border-top: 5px solid #0284C7; }
+    .card-guardian .portal-icon { background: #E0F2FE; color: #0284C7; }
+    .btn-guardian { background: #0284C7; color: white; border: none; font-weight: 700; font-size: 1.1rem; }
+
+    .feature-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.1rem;
+        padding: 1.6rem;
+        box-shadow: 0 4px 18px rgba(0, 77, 37, 0.05);
+        height: 100%;
+    }
+</style>
+
+<div class="container-fluid px-lg-4 py-3">
+
+    <!-- IUBAT Brand Banner (Green & Gold) -->
+    <div class="hero-section text-center mb-4">
+        <div class="d-inline-flex align-items-center gap-2 bg-warning text-dark px-4 py-1.5 rounded-pill mb-3 fw-bold shadow-sm" style="background:#FFC20E !important; font-size: 0.95rem;">
+            <i class="bi bi-mortarboard-fill fs-5"></i>
+            <span class="text-uppercase tracking-wider">Official IUBAT Mental Health Portal</span>
+        </div>
+        <h1 class="fw-extrabold mb-3 text-white" style="font-size: 2.5rem;">
+            Student Mental Health Monitoring System for IUBAT
         </h1>
-
-        <p class="lead">
-            Continuous Mental Health Monitoring from Admission to Graduation
+        <p class="fs-5 mx-auto mb-0 text-white-50" style="max-width: 800px; font-size: 1.2rem !important;">
+            Continuous mental health tracking, semester PHQ-9 & C-SSRS screening, 24/7 AI companion support, and clinical counseling management.
         </p>
-
     </div>
 
-    <div class="row justify-content-center">
+    <!-- Section Title -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-1" style="color:#004D25; font-size: 1.85rem;">Select Portal Access</h2>
+        <p class="fs-6 mb-0 text-secondary" style="font-size: 1.15rem !important;">Choose your designated role to log in or access your dashboard</p>
+    </div>
 
-        <div class="col-md-3 mb-4">
-
-            <div class="card shadow text-center">
-
-                <div class="card-body">
-
-                    <h3 class="text-primary">Student</h3>
-
-                    <hr>
-
-                    <a asp-controller="Student"
-                       asp-action="Login"
-                       class="btn btn-primary w-100 mb-2">
-
-                        Login
-
-                    </a>
-
-                    <a asp-controller="Student"
-                       asp-action="Register"
-                       class="btn btn-outline-primary w-100">
-
-                        Registration
-
-                    </a>
-
+    <!-- 5 Role Cards Grid with Aesthetic Brown for Psychologist -->
+    <div class="portal-container d-flex flex-wrap justify-content-center gap-3.5 gap-lg-4 mb-5">
+        <!-- Student -->
+        <div class="portal-card card-student text-center d-flex flex-column justify-content-between">
+            <div>
+                <div class="portal-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
                 </div>
-
+                <div class="portal-title">Student</div>
+                <div class="portal-subtitle">Screening & AI</div>
             </div>
-
+            <div>
+                <a asp-controller="Student" asp-action="Login" class="btn btn-student btn-lg w-100 rounded-3 mb-2 py-2">Login</a>
+                <a asp-controller="Student" asp-action="Register" class="btn btn-student-outline btn-lg w-100 rounded-3 py-2">Register</a>
+            </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-
-            <div class="card shadow text-center">
-
-                <div class="card-body">
-
-                    <h3 class="text-danger">
-
-                        Psychologist
-
-                    </h3>
-
-                    <hr>
-
-                    <a asp-controller="Psychologist"
-                       asp-action="Login"
-                       class="btn btn-danger w-100">
-
-                        Login
-
-                    </a>
-
+        <!-- Psychologist (Aesthetic Brown Accent) -->
+        <div class="portal-card card-psychologist text-center d-flex flex-column justify-content-between">
+            <div>
+                <div class="portal-icon">
+                    <i class="bi bi-person-workspace"></i>
                 </div>
-
+                <div class="portal-title" style="color:#8C5A3C;">Psychologist</div>
+                <div class="portal-subtitle">Counseling</div>
             </div>
-
+            <div>
+                <a asp-controller="Psychologist" asp-action="Login" class="btn btn-psychologist btn-lg w-100 rounded-3 py-2">Login</a>
+            </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-
-            <div class="card shadow text-center">
-
-                <div class="card-body">
-
-                    <h3 class="text-success">
-
-                        Department
-
-                    </h3>
-
-                    <hr>
-
-                    <a asp-controller="Department"
-                       asp-action="Login"
-                       class="btn btn-success w-100">
-
-                        Login
-
-                    </a>
-
+        <!-- Department -->
+        <div class="portal-card card-department text-center d-flex flex-column justify-content-between">
+            <div>
+                <div class="portal-icon">
+                    <i class="bi bi-building-fill"></i>
                 </div>
-
+                <div class="portal-title">Department</div>
+                <div class="portal-subtitle">Academic View</div>
             </div>
-
+            <div>
+                <a asp-controller="Department" asp-action="Login" class="btn btn-department btn-lg w-100 rounded-3 py-2">Login</a>
+            </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-
-            <div class="card shadow text-center">
-
-                <div class="card-body">
-
-                    <h3>
-
-                        Admin
-
-                    </h3>
-
-                    <hr>
-
-                    <a asp-controller="Admin"
-                       asp-action="Login"
-                       class="btn btn-dark w-100">
-
-                        Login
-
-                    </a>
-
+        <!-- Admin -->
+        <div class="portal-card card-admin text-center d-flex flex-column justify-content-between">
+            <div>
+                <div class="portal-icon">
+                    <i class="bi bi-shield-lock-fill"></i>
                 </div>
-
+                <div class="portal-title">Admin</div>
+                <div class="portal-subtitle">Governance</div>
             </div>
-
+            <div>
+                <a asp-controller="Admin" asp-action="Login" class="btn btn-admin btn-lg w-100 rounded-3 py-2">Login</a>
+            </div>
         </div>
 
+        <!-- Guardian -->
+        <div class="portal-card card-guardian text-center d-flex flex-column justify-content-between">
+            <div>
+                <div class="portal-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="portal-title">Guardian</div>
+                <div class="portal-subtitle">Ward Safety</div>
+            </div>
+            <div>
+                <a asp-controller="Guardian" asp-action="Login" class="btn btn-guardian btn-lg w-100 rounded-3 py-2">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-journal-check fs-3" style="color:#006837;"></i>
+                    <h5 class="fw-bold mb-0" style="color:#004D25; font-size: 1.25rem;">Semester Screening</h5>
+                </div>
+                <p class="fs-6 mb-0 text-secondary" style="font-size: 1.05rem !important;">PHQ-9 depression & C-SSRS suicide safety evaluations every semester.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-robot fs-3" style="color:#8C5A3C;"></i>
+                    <h5 class="fw-bold mb-0" style="color:#004D25; font-size: 1.25rem;">AI & Voice Assistant</h5>
+                </div>
+                <p class="fs-6 mb-0 text-secondary" style="font-size: 1.05rem !important;">24/7 intelligent chat assistant and live voice bot for instant guidance.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-graph-up-arrow fs-3" style="color:#047857;"></i>
+                    <h5 class="fw-bold mb-0" style="color:#004D25; font-size: 1.25rem;">Recovery Trajectory</h5>
+                </div>
+                <p class="fs-6 mb-0 text-secondary" style="font-size: 1.05rem !important;">Individual recovery score line graphs tracking patient improvement over sessions.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-shield-check fs-3" style="color:#002147;"></i>
+                    <h5 class="fw-bold mb-0" style="color:#004D25; font-size: 1.25rem;">Role Coordination</h5>
+                </div>
+                <p class="fs-6 mb-0 text-secondary" style="font-size: 1.05rem !important;">Unified dashboards for Students, Psychologists, Academic Departments & Admin.</p>
+            </div>
+        </div>
     </div>
 
 </div>

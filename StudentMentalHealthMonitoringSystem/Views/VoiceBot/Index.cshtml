@@ -1,0 +1,4000 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Live Voice Support";
+
+    string studentName =
+        ViewBag.StudentName
+        ?? "Student";
+
+    int? activeSessionId =
+        ViewBag.ActiveSessionId;
+
+    string currentStatus =
+        ViewBag.CurrentStatus
+        ?? "Normal";
+
+    string currentSummary =
+        ViewBag.CurrentSummary
+        ?? "";
+}
+
+
+<div class="container py-4">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-mic-fill me-2"></i>
+
+                        Live Voice Support
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Have a live voice conversation with
+                        the AI support assistant.
+
+                    </p>
+
+                </div>
+
+
+                <div class="text-end">
+
+                    <small class="text-muted d-block">
+                        Student
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @studentName
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+
+    <div class="row g-4">
+
+        <!-- =====================================================
+             LIVE VOICE AREA
+             ===================================================== -->
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4 p-md-5 text-center">
+
+                    <!-- ================= Voice Icon ================= -->
+
+                    <div id="voiceCircle"
+                         class="rounded-circle
+                        d-flex
+                        align-items-center
+                        justify-content-center
+                        mx-auto mb-4"
+                         style="
+                        width:130px;
+                        height:130px;
+                        background:#EEE4DA;
+                        transition:all .25s ease;">
+
+                        <i id="voiceIcon"
+                           class="bi bi-mic-fill"
+                           style="
+                            font-size:52px;
+                            color:#A67C52;">
+                        </i>
+
+                    </div>
+
+
+                    <!-- ================= Connection State ================= -->
+
+                    <h4 id="voiceState"
+                        class="fw-bold mb-2"
+                        style="color:#5F5146;">
+
+                        Ready to Start
+
+                    </h4>
+
+
+                    <p id="voiceMessage"
+                       class="text-muted mb-4">
+
+                        Start the conversation when you are ready.
+
+                    </p>
+
+
+                    <!-- ================= Timer ================= -->
+
+                    <div id="timerBox"
+                         class="mb-4"
+                         style="display:none;">
+
+                        <span class="badge
+                            rounded-pill
+                            px-3 py-2"
+                              style="
+                            background:#EEE4DA;
+                            color:#705F50;
+                            font-size:14px;">
+
+                            <i class="bi bi-clock me-1"></i>
+
+                            <span id="sessionTimer">
+                                00:00
+                            </span>
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================= Buttons ================= -->
+
+                    <div class="d-flex
+                        justify-content-center
+                        flex-wrap
+                        gap-3">
+
+                        <button type="button"
+                                id="startButton"
+                                class="btn rounded-3 px-4 py-2"
+                                style="
+                            background:#A67C52;
+                            color:white;">
+
+                            <i class="bi bi-mic-fill me-2"></i>
+
+                            Start Conversation
+
+                        </button>
+
+
+                        <button type="button"
+                                id="endButton"
+                                class="btn rounded-3 px-4 py-2"
+                                style="
+                            background:#806C5D;
+                            color:white;"
+                                disabled>
+
+                            <i class="bi bi-stop-circle me-2"></i>
+
+                            End Conversation
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- ================= Error ================= -->
+
+                    <div id="errorBox"
+                         class="alert alert-danger
+                        rounded-4
+                        mt-4
+                        mb-0"
+                         style="display:none;">
+
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                        <span id="errorText"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             LIVE STATUS REPORT
+             ===================================================== -->
+
+        <div class="col-lg-5">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h5 class="mb-0"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-activity me-2"></i>
+
+                        Live Voice Status
+
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <!-- ================= Current Status ================= -->
+
+                    <div class="mb-4">
+
+                        <small class="text-muted d-block mb-2">
+
+                            Current Status
+
+                        </small>
+
+
+                        <span id="currentStatus"
+                              class="badge
+                            rounded-pill
+                            px-4 py-2"
+                              style="
+                            background:#E8EFE9;
+                            color:#526B59;
+                            font-size:15px;">
+
+                            @currentStatus
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- ================= Live Summary ================= -->
+
+                    <div class="mb-4">
+
+                        <small class="text-muted d-block mb-2">
+
+                            Live Summary
+
+                        </small>
+
+
+                        <div id="currentSummary"
+                             class="rounded-4 p-3"
+                             style="
+                            background:#F8F5F2;
+                            color:#5F5146;
+                            min-height:110px;
+                            white-space:pre-line;">
+
+                            @if (string.IsNullOrWhiteSpace(
+                                currentSummary))
+                            {
+                                <span class="text-muted">
+
+                                    The summary will update as
+                                    the conversation progresses.
+
+                                </span>
+                            }
+                            else
+                            {
+                                @currentSummary
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= Last Update ================= -->
+
+                    <div>
+
+                        <small class="text-muted d-block">
+
+                            Last Updated
+
+                        </small>
+
+                        <span id="lastUpdated"
+                              style="color:#5F5146;">
+
+                            Not updated yet
+
+                        </span>
+
+                    </div>
+
+
+                    <hr class="my-4" />
+
+
+                    <div class="small text-muted">
+
+                        <i class="bi bi-info-circle me-1"></i>
+
+                        This status is used for monitoring and
+                        support purposes and is not a medical diagnosis.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         LIVE TRANSCRIPT
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#F4EEE8;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-chat-dots me-2"></i>
+
+                Live Conversation
+
+            </h5>
+
+        </div>
+
+
+        <div id="transcriptArea"
+             class="card-body p-4"
+             style="
+            min-height:150px;
+            max-height:350px;
+            overflow-y:auto;">
+
+            <div id="emptyTranscript"
+                 class="text-center text-muted py-4">
+
+                Conversation transcript will appear here.
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         ANTI FORGERY TOKEN
+         ========================================================= -->
+
+    <form id="antiForgeryForm"
+          style="display:none;">
+
+        @Html.AntiForgeryToken()
+
+    </form>
+
+</div>
+
+
+@section Scripts
+{
+    <script>
+
+        // =========================================================
+        // BASIC VARIABLES
+        // =========================================================
+
+        let voiceBotSessionId =
+                                                            @(activeSessionId?.ToString() ?? "null");
+
+
+        let geminiSocket =
+            null;
+
+
+        let ephemeralToken =
+            null;
+
+
+        let liveModelName =
+            null;
+
+
+        let microphoneStream =
+            null;
+
+
+        let inputAudioContext =
+            null;
+
+
+        let microphoneSource =
+            null;
+
+
+        let processorNode =
+            null;
+
+
+        let liveReady =
+            false;
+
+
+        let conversationRunning =
+            false;
+
+
+        let endingConversation =
+            false;
+
+
+        let endFallbackTimer =
+            null;
+
+
+        let setupCompleted =
+            false;
+
+
+        // =========================================================
+        // LOCAL HYBRID VAD
+        // =========================================================
+
+        const localSpeechThreshold =
+            0.012;
+
+
+        const localSilenceDurationMs =
+            500;
+
+
+        let localSpeechDetected =
+            false;
+
+
+        let localSilenceStartedAt =
+            null;
+
+
+        let localWaitingForNewSpeech =
+            false;
+
+
+        // =========================================================
+        // CURRENT TURN TRANSCRIPT
+        // =========================================================
+
+        let studentTranscriptBuffer =
+            "";
+
+
+        let voiceBotTranscriptBuffer =
+            "";
+
+
+        let studentLiveMessage =
+            null;
+
+
+        let voiceBotLiveMessage =
+            null;
+
+
+        let messageProcessingQueue =
+            Promise.resolve();
+
+
+        // =========================================================
+        // IMMEDIATE STUDENT-TURN STATUS UPDATE
+        // =========================================================
+        //
+        // Status analysis starts as soon as Gemini begins replying
+        // to the completed student turn. We do NOT wait for the
+        // Voice Bot's full reply / turnComplete.
+        //
+        // =========================================================
+
+        let studentTurnCommitted =
+            false;
+
+
+        let immediateStudentStatusTimer =
+            null;
+
+
+        let immediateStudentStatusTask =
+            Promise.resolve();
+
+
+        // =========================================================
+        // STATUS ANALYSIS QUEUE
+        // =========================================================
+        //
+        // Every completed Student turn gets its own status analysis.
+        //
+        // If a previous analysis is still running, the next one is
+        // queued instead of being lost or overlapping incorrectly.
+        //
+        // =========================================================
+
+        let statusAnalysisQueue =
+            Promise.resolve();
+
+
+        let pendingStatusAnalyses =
+            0;
+
+
+        let lastStatusUpdateText =
+            "Not updated yet";
+
+
+        // =========================================================
+        // AUDIO PLAYBACK
+        // =========================================================
+
+        let outputAudioContext =
+            null;
+
+
+        let nextPlayTime =
+            0;
+
+
+        let playingSources =
+            [];
+
+
+        // =========================================================
+        // SESSION TIMER
+        // =========================================================
+
+        let sessionStartedAt =
+            null;
+
+
+        let timerInterval =
+            null;
+
+
+        // =========================================================
+        // ELEMENTS
+        // =========================================================
+
+        const startButton =
+            document.getElementById(
+                "startButton"
+            );
+
+
+        const endButton =
+            document.getElementById(
+                "endButton"
+            );
+
+
+        const voiceState =
+            document.getElementById(
+                "voiceState"
+            );
+
+
+        const voiceMessage =
+            document.getElementById(
+                "voiceMessage"
+            );
+
+
+        const voiceCircle =
+            document.getElementById(
+                "voiceCircle"
+            );
+
+
+        const voiceIcon =
+            document.getElementById(
+                "voiceIcon"
+            );
+
+
+        const currentStatus =
+            document.getElementById(
+                "currentStatus"
+            );
+
+
+        const currentSummary =
+            document.getElementById(
+                "currentSummary"
+            );
+
+
+        const lastUpdated =
+            document.getElementById(
+                "lastUpdated"
+            );
+
+
+        const transcriptArea =
+            document.getElementById(
+                "transcriptArea"
+            );
+
+
+        const emptyTranscript =
+            document.getElementById(
+                "emptyTranscript"
+            );
+
+
+        const errorBox =
+            document.getElementById(
+                "errorBox"
+            );
+
+
+        const errorText =
+            document.getElementById(
+                "errorText"
+            );
+
+
+        const timerBox =
+            document.getElementById(
+                "timerBox"
+            );
+
+
+        const sessionTimer =
+            document.getElementById(
+                "sessionTimer"
+            );
+
+
+        // =========================================================
+        // ANTI FORGERY TOKEN
+        // =========================================================
+
+        function getAntiForgeryToken() {
+            return document.querySelector(
+                '#antiForgeryForm ' +
+                'input[name="__RequestVerificationToken"]'
+            ).value;
+        }
+
+
+        // =========================================================
+        // START BUTTON
+        // =========================================================
+
+        startButton.addEventListener(
+            "click",
+            startConversation
+        );
+
+
+        // =========================================================
+        // END BUTTON
+        // =========================================================
+
+        endButton.addEventListener(
+            "click",
+            requestEndConversation
+        );
+
+
+        // =========================================================
+        // START CONVERSATION
+        // =========================================================
+
+        async function startConversation() {
+            hideError();
+
+
+            startButton.disabled =
+                true;
+
+
+            setVoiceState(
+                "Starting...",
+                "Preparing the live voice assistant."
+            );
+
+
+            try {
+                // =================================================
+                // STEP 1:
+                // CREATE / GET DATABASE VOICE SESSION
+                // =================================================
+
+                const startResult =
+                    await startDatabaseSession();
+
+
+                voiceBotSessionId =
+                    startResult.sessionId;
+
+
+                updateStatusDisplay(
+                    startResult.status
+                    ?? "Normal",
+
+                    startResult.summary
+                    ?? ""
+                );
+
+
+                // =================================================
+                // STEP 2:
+                // GET SHORT-LIVED GEMINI LIVE TOKEN
+                // =================================================
+                //
+                // Permanent Gemini API key stays on ASP.NET server.
+                //
+                // =================================================
+
+                const tokenResult =
+                    await getLiveToken();
+
+
+                ephemeralToken =
+                    tokenResult.token;
+
+
+                liveModelName =
+                    tokenResult.model;
+
+
+                if (
+                    !ephemeralToken ||
+                    !liveModelName
+                ) {
+                    throw new Error(
+                        "The live voice token could not be prepared."
+                    );
+                }
+
+
+                // =================================================
+                // STEP 3:
+                // REQUEST MICROPHONE PERMISSION
+                // =================================================
+
+                microphoneStream =
+                    await navigator.mediaDevices
+                        .getUserMedia(
+                            {
+                                audio:
+                                {
+                                    echoCancellation:
+                                        true,
+
+                                    noiseSuppression:
+                                        true,
+
+                                    autoGainControl:
+                                        true
+                                }
+                            }
+                        );
+
+
+                // =================================================
+                // STEP 4:
+                // CONNECT BROWSER DIRECTLY TO GEMINI LIVE
+                // =================================================
+
+                await connectDirectlyToGemini();
+
+
+                // =================================================
+                // STEP 5:
+                // START MICROPHONE STREAMING
+                // =================================================
+
+                await startMicrophone();
+
+
+                conversationRunning =
+                    true;
+
+
+                endingConversation =
+                    false;
+
+
+                startButton.disabled =
+                    true;
+
+
+                endButton.disabled =
+                    false;
+
+
+                timerBox.style.display =
+                    "block";
+
+
+                startTimer();
+
+
+                setVoiceState(
+                    "Listening",
+                    "You can start speaking now."
+                );
+            }
+            catch (error) {
+                cleanupLocalResources();
+
+
+                startButton.disabled =
+                    false;
+
+
+                endButton.disabled =
+                    true;
+
+
+                setVoiceState(
+                    "Unable to Start",
+                    "The live conversation could not be started."
+                );
+
+
+                showError(
+                    error?.message
+                    ?? "Something went wrong."
+                );
+            }
+        }
+
+
+        // =========================================================
+        // START DATABASE SESSION
+        // =========================================================
+
+        async function startDatabaseSession() {
+            const formData =
+                new URLSearchParams();
+
+
+            formData.append(
+                "__RequestVerificationToken",
+                getAntiForgeryToken()
+            );
+
+
+            const response =
+                await fetch(
+                    '@Url.Action("StartSession", "VoiceBot")',
+                    {
+                        method:
+                            "POST",
+
+                        headers:
+                        {
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body:
+                            formData.toString()
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to create the voice session."
+                );
+            }
+
+
+            const result =
+                await response.json();
+
+
+            if (!result.success) {
+                throw new Error(
+                    result.message
+                    ?? "Unable to start the voice session."
+                );
+            }
+
+
+            return result;
+        }
+
+
+        // =========================================================
+        // GET EPHEMERAL GEMINI LIVE TOKEN
+        // =========================================================
+
+        async function getLiveToken() {
+            const formData =
+                new URLSearchParams();
+
+
+            formData.append(
+                "__RequestVerificationToken",
+                getAntiForgeryToken()
+            );
+
+
+            formData.append(
+                "sessionId",
+                voiceBotSessionId
+            );
+
+
+            const response =
+                await fetch(
+                    '@Url.Action("GetLiveToken", "VoiceBot")',
+                    {
+                        method:
+                            "POST",
+
+                        headers:
+                        {
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body:
+                            formData.toString()
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to request the Gemini Live token."
+                );
+            }
+
+
+            const result =
+                await response.json();
+
+
+            if (!result.success) {
+                throw new Error(
+                    result.message
+                    ?? "Unable to prepare the live voice connection."
+                );
+            }
+
+
+            return result;
+        }
+
+
+        // =========================================================
+        // DIRECT BROWSER → GEMINI LIVE CONNECTION
+        // =========================================================
+        //
+        // No ASP.NET WebSocket relay.
+        //
+        // Browser
+        //    ↕
+        // Gemini Live API
+        //
+        // Authentication:
+        // short-lived ephemeral token
+        //
+        // =========================================================
+
+        function connectDirectlyToGemini() {
+            return new Promise(
+                (resolve, reject) => {
+
+                    setupCompleted =
+                        false;
+
+
+                    liveReady =
+                        false;
+
+
+                    const liveUrl =
+                        "wss://generativelanguage.googleapis.com/ws/" +
+                        "google.ai.generativelanguage.v1alpha." +
+                        "GenerativeService.BidiGenerateContentConstrained" +
+                        "?access_token=" +
+                        ephemeralToken;
+
+                    geminiSocket =
+                        new WebSocket(
+                            liveUrl
+                        );
+
+
+                    geminiSocket.binaryType =
+                        "arraybuffer";
+
+
+                    let connectionFinished =
+                        false;
+
+
+                    // =============================================
+                    // SETUP TIMEOUT
+                    // =============================================
+
+                    const setupTimeout =
+                        setTimeout(
+                            function() {
+                                if (
+                                    !connectionFinished
+                                ) {
+                                    connectionFinished =
+                                        true;
+
+
+                                    try {
+                                        geminiSocket.close();
+                                    }
+                                    catch {
+                                    }
+
+
+                                    reject(
+                                        new Error(
+                                            "Gemini Live setup timed out. setupComplete was not received."
+                                        )
+                                    );
+                                }
+                            },
+                            10000
+                        );
+
+
+                    // =============================================
+                    // SOCKET OPEN
+                    // =============================================
+
+                    geminiSocket.onopen =
+                        function() {
+                            setVoiceState(
+                                "Connecting...",
+                                "Configuring the live voice assistant."
+                            );
+
+
+                            sendGeminiSetup();
+                        };
+
+
+                    // =============================================
+                    // GEMINI MESSAGE
+                    // =============================================
+
+                    geminiSocket.onmessage =
+                        async function(event) {
+                            try {
+                                let rawMessage;
+
+
+                                if (
+                                    event.data instanceof
+                                    Blob
+                                ) {
+                                    rawMessage =
+                                        await event.data
+                                            .text();
+                                }
+                                else if (
+                                    event.data instanceof
+                                    ArrayBuffer
+                                ) {
+                                    rawMessage =
+                                        new TextDecoder()
+                                            .decode(
+                                                event.data
+                                            );
+                                }
+                                else {
+                                    rawMessage =
+                                        event.data;
+                                }
+
+
+                                const data =
+                                    JSON.parse(
+                                        rawMessage
+                                    );
+
+
+                                // =================================
+                                // GEMINI SETUP ERROR
+                                // =================================
+
+                                if (
+                                    data.error
+                                ) {
+                                    const message =
+                                        data.error.message
+                                        ?? "Gemini Live returned an error.";
+
+
+                                    if (
+                                        !connectionFinished
+                                    ) {
+                                        clearTimeout(
+                                            setupTimeout
+                                        );
+
+
+                                        connectionFinished =
+                                            true;
+
+
+                                        reject(
+                                            new Error(
+                                                message
+                                            )
+                                        );
+                                    }
+                                    else {
+                                        showError(
+                                            message
+                                        );
+                                    }
+
+
+                                    return;
+                                }
+
+
+                                // =================================
+                                // SETUP COMPLETE
+                                // =================================
+
+                                if (
+                                    Object.prototype
+                                        .hasOwnProperty.call(
+                                            data,
+                                            "setupComplete"
+                                        )
+                                ) {
+                                    clearTimeout(
+                                        setupTimeout
+                                    );
+
+
+                                    setupCompleted =
+                                        true;
+
+
+                                    liveReady =
+                                        true;
+
+
+                                    if (
+                                        !connectionFinished
+                                    ) {
+                                        connectionFinished =
+                                            true;
+
+
+                                        resolve();
+                                    }
+
+
+                                    return;
+                                }
+
+
+                                // =================================
+                                // PROCESS LIVE MESSAGE IN ORDER
+                                // =================================
+
+                                messageProcessingQueue =
+                                    messageProcessingQueue
+                                        .then(
+                                            () =>
+                                                handleGeminiMessage(
+                                                    data
+                                                )
+                                        )
+                                        .catch(
+                                            error => {
+                                                console.error(
+                                                    "Gemini message processing error:",
+                                                    error
+                                                );
+                                            }
+                                        );
+                            }
+                            catch (error) {
+                                console.error(
+                                    "Invalid Gemini Live message:",
+                                    error,
+                                    event.data
+                                );
+                            }
+                        };
+
+
+                    // =============================================
+                    // SOCKET ERROR
+                    // =============================================
+
+                    geminiSocket.onerror =
+                        function() {
+                            if (
+                                !connectionFinished
+                            ) {
+                                clearTimeout(
+                                    setupTimeout
+                                );
+
+
+                                connectionFinished =
+                                    true;
+
+
+                                reject(
+                                    new Error(
+                                        "Unable to connect directly to Gemini Live."
+                                    )
+                                );
+                            }
+                        };
+
+
+                    // =============================================
+                    // SOCKET CLOSED
+                    // =============================================
+
+                    geminiSocket.onclose =
+                        function(event) {
+
+                            console.error(
+                                "Gemini Live socket closed:",
+                                {
+                                    code:
+                                        event.code,
+
+                                    reason:
+                                        event.reason,
+
+                                    wasClean:
+                                        event.wasClean
+                                }
+                            );
+
+
+                            liveReady =
+                                false;
+
+
+                            setupCompleted =
+                                false;
+
+
+                            const reason =
+                                event.reason
+                                    && event.reason.trim().length > 0
+
+                                    ? event.reason
+
+                                    : "Gemini Live connection closed.";
+
+
+                            if (
+                                !connectionFinished
+                            ) {
+                                clearTimeout(
+                                    setupTimeout
+                                );
+
+
+                                connectionFinished =
+                                    true;
+
+
+                                reject(
+                                    new Error(
+                                        reason
+                                    )
+                                );
+
+
+                                return;
+                            }
+
+
+                            if (
+                                conversationRunning &&
+                                !endingConversation
+                            ) {
+                                setVoiceState(
+                                    "Connection Closed",
+                                    "The live voice connection ended."
+                                );
+
+
+                                showError(
+                                    reason
+                                );
+                            }
+                        };
+                }
+            );
+        }
+
+
+        // =========================================================
+        // SEND GEMINI LIVE SETUP
+        // =========================================================
+
+        function sendGeminiSetup() {
+            if (
+                !geminiSocket ||
+                geminiSocket.readyState !==
+                WebSocket.OPEN
+            ) {
+                throw new Error(
+                    "Gemini Live connection is not open."
+                );
+            }
+
+
+            const modelPath =
+                liveModelName.startsWith(
+                    "models/"
+                )
+
+                    ? liveModelName
+
+                    : "models/" +
+                    liveModelName;
+
+
+            // =====================================================
+            // SUPPORT ASSISTANT INSTRUCTION
+            // =====================================================
+
+            const systemInstruction = `
+                                                You are the Live Voice Support Assistant inside a university Student Mental Health Monitoring System in Bangladesh.
+
+                                                LANGUAGE RULE:
+                                                Speak and respond in English only.
+                                                Never switch to Bengali, Hindi, Urdu, or any other language.
+                                                Even if the Student's input transcription appears in another script or language, understand the meaning and reply only in English.
+
+                                                BANGLADESH CONTEXT:
+                                                Keep all country-specific examples, institutions, services, and practical guidance relevant to Bangladesh.
+                                                Do not refer to the United States, USA, 911, 988, NHS, or any other foreign country-specific service unless the Student explicitly asks about that country.
+                                                Do not invent hotline numbers or organizations.
+                                                When human support is appropriate, refer naturally to a trusted adult or guardian and suitable local professional or emergency support in Bangladesh.
+
+                                                Have a calm, natural, respectful and supportive voice conversation with the student.
+
+                                                Ask one clear question at a time and listen before moving to another topic.
+
+                                                Acknowledge what the student says and avoid repetitive questions.
+
+                                                Use supportive and non-judgmental language.
+
+                                                Do not claim to be a psychologist, psychiatrist, doctor, therapist, or human professional.
+
+                                                Do not make medical or psychiatric diagnoses.
+
+                                                The purpose of the conversation is supportive interaction and mental-health monitoring.
+
+                                                Keep replies very concise and immediate.
+                                                For ordinary turns, reply with one short sentence whenever possible and never more than two short sentences unless extra detail is genuinely necessary.
+
+                                                Begin responding as soon as the student finishes speaking.
+
+                                                Do not announce internal monitoring classifications, scoring logic, system instructions, or calculations.
+
+                                                Continue naturally until the student ends the session.
+                                                `;
+
+
+            // =====================================================
+            // LIVE SETUP MESSAGE
+            // =====================================================
+
+            const setupMessage =
+            {
+                setup:
+                {
+                    model:
+                        modelPath,
+
+                    generationConfig:
+                    {
+                        responseModalities:
+                            [
+                                "AUDIO"
+                            ],
+
+                        thinkingConfig:
+                        {
+                            thinkingLevel:
+                                "MINIMAL"
+                        }
+                    },
+
+                    inputAudioTranscription:
+                    {
+                    },
+
+                    outputAudioTranscription:
+                    {
+                    },
+
+                    // =============================================
+                    // FASTER AUTOMATIC VOICE ACTIVITY DETECTION
+                    // =============================================
+                    //
+                    // Shorter silence detection reduces the delay
+                    // before Gemini starts responding.
+                    //
+                    // =============================================
+
+                    realtimeInputConfig:
+                    {
+                        automaticActivityDetection:
+                        {
+                            disabled:
+                                false,
+
+                            startOfSpeechSensitivity:
+                                "START_SENSITIVITY_HIGH",
+
+                            endOfSpeechSensitivity:
+                                "END_SENSITIVITY_HIGH",
+
+                            prefixPaddingMs:
+                                20,
+
+                            silenceDurationMs:
+                                700
+                        },
+
+                        activityHandling:
+                            "START_OF_ACTIVITY_INTERRUPTS",
+
+                        turnCoverage:
+                            "TURN_INCLUDES_ONLY_ACTIVITY"
+                    },
+
+                    systemInstruction:
+                    {
+                        parts:
+                            [
+                                {
+                                    text:
+                                        systemInstruction
+                                }
+                            ]
+                    }
+                }
+            };
+
+
+            console.log(
+                "Sending Gemini setup:",
+                setupMessage
+            );
+
+
+            geminiSocket.send(
+                JSON.stringify(
+                    setupMessage
+                )
+            );
+        }
+
+
+        // =========================================================
+        // HANDLE GEMINI LIVE MESSAGE
+        // =========================================================
+
+        async function handleGeminiMessage(
+            data) {
+            if (
+                !data ||
+                !data.serverContent
+            ) {
+                return;
+            }
+
+
+            const serverContent =
+                data.serverContent;
+
+
+            // =====================================================
+            // STUDENT TRANSCRIPTION
+            // =====================================================
+
+            if (
+                serverContent.inputTranscription &&
+                serverContent.inputTranscription.text
+            ) {
+                const text =
+                    serverContent
+                        .inputTranscription
+                        .text;
+
+
+                studentTranscriptBuffer =
+                    mergeTranscriptText(
+                        studentTranscriptBuffer,
+                        text
+                    );
+
+
+                // ================================================
+                // A newer transcription chunk arrived.
+                // If a quick-status commit was waiting, restart it
+                // so the newest student text is analyzed.
+                // ================================================
+
+                if (
+                    immediateStudentStatusTimer
+                ) {
+                    clearTimeout(
+                        immediateStudentStatusTimer
+                    );
+
+
+                    immediateStudentStatusTimer =
+                        null;
+                }
+
+
+                const studentDisplayText =
+                    containsNonEnglishScript(
+                        studentTranscriptBuffer
+                    )
+
+                        ? "Processing speech..."
+
+                        : studentTranscriptBuffer;
+
+
+                studentLiveMessage =
+                    updateLiveTranscript(
+                        studentLiveMessage,
+                        "You",
+                        studentDisplayText,
+                        false
+                    );
+
+
+                setVoiceState(
+                    "Listening",
+                    "Voice Bot is listening and responding."
+                );
+            }
+
+
+            // =====================================================
+            // IMMEDIATE STUDENT STATUS TRIGGER
+            // =====================================================
+            //
+            // Once Gemini starts producing the response, the
+            // student's spoken turn has effectively completed.
+            //
+            // Save/analyze the student turn immediately in the
+            // background instead of waiting for turnComplete.
+            //
+            // =====================================================
+
+            if (
+                (
+                    serverContent.outputTranscription &&
+                    serverContent.outputTranscription.text
+                ) ||
+                (
+                    serverContent.modelTurn &&
+                    Array.isArray(
+                        serverContent.modelTurn.parts
+                    )
+                )
+            ) {
+                scheduleImmediateStudentStatusUpdate();
+            }
+
+
+            // =====================================================
+            // VOICE BOT TRANSCRIPTION
+            // =====================================================
+
+            if (
+                serverContent.outputTranscription &&
+                serverContent.outputTranscription.text
+            ) {
+                const text =
+                    serverContent
+                        .outputTranscription
+                        .text;
+
+
+                voiceBotTranscriptBuffer =
+                    mergeTranscriptText(
+                        voiceBotTranscriptBuffer,
+                        text
+                    );
+
+
+                voiceBotLiveMessage =
+                    updateLiveTranscript(
+                        voiceBotLiveMessage,
+                        "Voice Bot",
+                        voiceBotTranscriptBuffer,
+                        true
+                    );
+
+
+                setVoiceState(
+                    "Voice Bot Speaking",
+                    "The assistant is responding."
+                );
+            }
+
+
+            // =====================================================
+            // GEMINI AUDIO
+            // =====================================================
+
+            if (
+                serverContent.modelTurn &&
+                Array.isArray(
+                    serverContent.modelTurn.parts
+                )
+            ) {
+                for (
+                    const part of
+                    serverContent.modelTurn.parts
+                ) {
+                    if (
+                        !part.inlineData ||
+                        !part.inlineData.data
+                    ) {
+                        continue;
+                    }
+
+
+                    await playPcmAudio(
+                        part.inlineData.data,
+                        part.inlineData.mimeType
+                    );
+                }
+            }
+
+
+            // =====================================================
+            // INTERRUPTION
+            // =====================================================
+
+            if (
+                serverContent.interrupted ===
+                true
+            ) {
+                stopCurrentPlayback();
+
+
+                setVoiceState(
+                    "Listening",
+                    "Listening to you."
+                );
+            }
+
+
+            // =====================================================
+            // TURN COMPLETE
+            // =====================================================
+
+            if (
+                serverContent.turnComplete ===
+                true
+            ) {
+                await flushCurrentTurn();
+
+
+                if (
+                    endingConversation
+                ) {
+                    await completeEndConversation();
+                }
+                else {
+                    setVoiceState(
+                        "Listening",
+                        "You can continue speaking."
+                    );
+                }
+            }
+        }
+
+
+        // =========================================================
+        // PREVENT NON-ENGLISH SCRIPT FROM APPEARING IN LIVE UI
+        // =========================================================
+        //
+        // Raw Gemini input transcription is still kept internally
+        // so the existing backend correction can convert it to
+        // faithful English. Until that correction arrives, a simple
+        // English placeholder is shown instead of another script.
+        //
+        // =========================================================
+
+        function containsNonEnglishScript(
+            text) {
+            if (
+                !text ||
+                text.trim().length === 0
+            ) {
+                return false;
+            }
+
+
+            return /[^\p{Script=Latin}\p{Number}\p{Punctuation}\p{Separator}\p{Symbol}]/u
+                .test(
+                    text
+                );
+        }
+
+
+        // =========================================================
+        // MERGE TRANSCRIPTION CHUNKS
+        // =========================================================
+        //
+        // Handles both:
+        // - incremental transcript chunks
+        // - cumulative transcript updates
+        //
+        // =========================================================
+
+        function mergeTranscriptText(
+            current,
+            incoming) {
+            current =
+                (current ?? "")
+                    .trim();
+
+
+            incoming =
+                (incoming ?? "")
+                    .trim();
+
+
+            if (!incoming) {
+                return current;
+            }
+
+
+            if (!current) {
+                return incoming;
+            }
+
+
+            if (
+                incoming.startsWith(
+                    current
+                )
+            ) {
+                return incoming;
+            }
+
+
+            if (
+                current.startsWith(
+                    incoming
+                )
+            ) {
+                return current;
+            }
+
+
+            if (
+                current.endsWith(
+                    incoming
+                )
+            ) {
+                return current;
+            }
+
+
+            return (
+                current +
+                " " +
+                incoming
+            ).trim();
+        }
+
+
+        // =========================================================
+        // UPDATE LIVE TRANSCRIPT BUBBLE
+        // =========================================================
+
+        function updateLiveTranscript(
+            existingMessage,
+            speaker,
+            text,
+            isVoiceBot) {
+            if (
+                !text ||
+                text.trim().length === 0
+            ) {
+                return existingMessage;
+            }
+
+
+            if (
+                emptyTranscript
+            ) {
+                emptyTranscript.style.display =
+                    "none";
+            }
+
+
+            if (
+                existingMessage
+            ) {
+                existingMessage.textContent =
+                    text;
+
+
+                transcriptArea.scrollTop =
+                    transcriptArea.scrollHeight;
+
+
+                return existingMessage;
+            }
+
+
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+
+            wrapper.className =
+                "mb-3";
+
+
+            const speakerElement =
+                document.createElement(
+                    "small"
+                );
+
+
+            speakerElement.className =
+                "fw-bold d-block mb-1";
+
+
+            speakerElement.style.color =
+                isVoiceBot
+                    ? "#806C5D"
+                    : "#5F5146";
+
+
+            speakerElement.textContent =
+                speaker;
+
+
+            const messageElement =
+                document.createElement(
+                    "div"
+                );
+
+
+            messageElement.className =
+                "rounded-4 p-3";
+
+
+            messageElement.style.background =
+                isVoiceBot
+                    ? "#F4EEE8"
+                    : "#F8F5F2";
+
+
+            messageElement.style.color =
+                "#5F5146";
+
+
+            messageElement.textContent =
+                text;
+
+
+            wrapper.appendChild(
+                speakerElement
+            );
+
+
+            wrapper.appendChild(
+                messageElement
+            );
+
+
+            transcriptArea.appendChild(
+                wrapper
+            );
+
+
+            transcriptArea.scrollTop =
+                transcriptArea.scrollHeight;
+
+
+            return messageElement;
+        }
+
+
+        // =========================================================
+        // SAVE COMPLETED TURN
+        // =========================================================
+
+        async function flushCurrentTurn() {
+            const studentText =
+                studentTranscriptBuffer
+                    .trim();
+
+
+            const voiceBotText =
+                voiceBotTranscriptBuffer
+                    .trim();
+
+
+            // =====================================================
+            // STUDENT TURN
+            // =====================================================
+            //
+            // Normally this was already saved/analyzed immediately
+            // when Gemini started replying.
+            //
+            // If it was not, save it here as a fallback.
+            //
+            // =====================================================
+
+            if (
+                studentText.length > 0 &&
+                !studentTurnCommitted
+            ) {
+                const saveResult =
+                    await saveTranscript(
+                        "Student",
+                        studentText
+                    );
+
+
+                studentTurnCommitted =
+                    true;
+
+
+                queueLiveStatusUpdate(
+                    saveResult.transcriptId,
+                    studentLiveMessage
+                );
+            }
+
+
+            // =====================================================
+            // WAIT FOR ANY IMMEDIATE STUDENT ANALYSIS
+            // =====================================================
+
+            try {
+                await immediateStudentStatusTask;
+            }
+            catch {
+                // Immediate status failure must not break the turn.
+            }
+
+
+            // =====================================================
+            // SAVE VOICE BOT TRANSCRIPT
+            // =====================================================
+
+            if (
+                voiceBotText.length > 0
+            ) {
+                await saveTranscript(
+                    "VoiceBot",
+                    voiceBotText
+                );
+            }
+
+
+            // =====================================================
+            // RESET TURN BUFFERS
+            // =====================================================
+
+            studentTranscriptBuffer =
+                "";
+
+
+            voiceBotTranscriptBuffer =
+                "";
+
+
+            studentLiveMessage =
+                null;
+
+
+            voiceBotLiveMessage =
+                null;
+
+
+            studentTurnCommitted =
+                false;
+
+
+            if (
+                immediateStudentStatusTimer
+            ) {
+                clearTimeout(
+                    immediateStudentStatusTimer
+                );
+
+
+                immediateStudentStatusTimer =
+                    null;
+            }
+        }
+
+
+        // =========================================================
+        // SCHEDULE IMMEDIATE STUDENT STATUS UPDATE
+        // =========================================================
+        //
+        // A very short delay allows the final input transcription
+        // chunk to arrive, while still updating status before the
+        // Voice Bot finishes speaking.
+        //
+        // =========================================================
+
+        function scheduleImmediateStudentStatusUpdate() {
+            if (
+                studentTurnCommitted ||
+                immediateStudentStatusTimer
+            ) {
+                return;
+            }
+
+
+            const currentText =
+                studentTranscriptBuffer
+                    .trim();
+
+
+            if (
+                currentText.length === 0
+            ) {
+                return;
+            }
+
+
+            immediateStudentStatusTimer =
+                setTimeout(
+                    function() {
+                        immediateStudentStatusTimer =
+                            null;
+
+
+                        immediateStudentStatusTask =
+                            commitStudentTurnAndUpdateStatus();
+                    },
+                    120
+                );
+        }
+
+
+        // =========================================================
+        // SAVE STUDENT TURN + UPDATE STATUS IMMEDIATELY
+        // =========================================================
+
+        async function commitStudentTurnAndUpdateStatus() {
+            if (
+                studentTurnCommitted
+            ) {
+                return;
+            }
+
+
+            const studentText =
+                studentTranscriptBuffer
+                    .trim();
+
+
+            if (
+                studentText.length === 0
+            ) {
+                return;
+            }
+
+
+            // Mark first so repeated Gemini audio chunks do not
+            // trigger duplicate transcript/status requests.
+            studentTurnCommitted =
+                true;
+
+
+            try {
+                const saveResult =
+                    await saveTranscript(
+                        "Student",
+                        studentText
+                    );
+
+
+                queueLiveStatusUpdate(
+                    saveResult.transcriptId,
+                    studentLiveMessage
+                );
+            }
+            catch (error) {
+                // Allow turnComplete fallback to retry.
+                studentTurnCommitted =
+                    false;
+
+
+                console.error(
+                    "Immediate student status update failed:",
+                    error
+                );
+            }
+        }
+
+
+        // =========================================================
+        // SAVE TRANSCRIPT TO ASP.NET / DATABASE
+        // =========================================================
+
+        async function saveTranscript(
+            speaker,
+            text) {
+            const formData =
+                new URLSearchParams();
+
+
+            formData.append(
+                "__RequestVerificationToken",
+                getAntiForgeryToken()
+            );
+
+
+            formData.append(
+                "sessionId",
+                voiceBotSessionId
+            );
+
+
+            formData.append(
+                "speaker",
+                speaker
+            );
+
+
+            formData.append(
+                "text",
+                text
+            );
+
+
+            const response =
+                await fetch(
+                    '@Url.Action("SaveTranscript", "VoiceBot")',
+                    {
+                        method:
+                            "POST",
+
+                        headers:
+                        {
+                            "Content-Type":
+                                "application/x-www-form-urlencoded"
+                        },
+
+                        body:
+                            formData.toString()
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to save the live conversation transcript."
+                );
+            }
+
+
+            const result =
+                await response.json();
+
+
+            if (!result.success) {
+                throw new Error(
+                    result.message
+                    ?? "Unable to save the live conversation transcript."
+                );
+            }
+
+
+            return result;
+        }
+
+
+        // =========================================================
+        // QUEUE LIVE STATUS UPDATE
+        // =========================================================
+        //
+        // One completed Student speech = one queued analysis.
+        //
+        // This prevents:
+        // - overlapping UpdateStatus requests
+        // - later speeches being ignored
+        // - race conditions where an older response overwrites a
+        //   newer one
+        //
+        // =========================================================
+
+        function queueLiveStatusUpdate(
+            studentTranscriptId,
+            studentMessageElement) {
+            pendingStatusAnalyses++;
+
+
+            lastUpdated.textContent =
+                "Analyzing...";
+
+
+            statusAnalysisQueue =
+                statusAnalysisQueue
+                    .catch(
+                        function(error) {
+                            console.error(
+                                "Previous status analysis failed:",
+                                error
+                            );
+                        }
+                    )
+                    .then(
+                        async function() {
+                            await runLiveStatusUpdate(
+                                studentTranscriptId,
+                                studentMessageElement
+                            );
+                        }
+                    )
+                    .finally(
+                        function() {
+                            pendingStatusAnalyses =
+                                Math.max(
+                                    0,
+                                    pendingStatusAnalyses - 1
+                                );
+
+
+                            if (
+                                pendingStatusAnalyses > 0
+                            ) {
+                                lastUpdated.textContent =
+                                    "Analyzing...";
+                            }
+                            else {
+                                lastUpdated.textContent =
+                                    lastStatusUpdateText;
+                            }
+                        }
+                    );
+
+
+            return statusAnalysisQueue;
+        }
+
+
+        // =========================================================
+        // RUN ONE LIVE STATUS UPDATE
+        // =========================================================
+
+        async function runLiveStatusUpdate(
+            studentTranscriptId,
+            studentMessageElement) {
+            const formData =
+                new URLSearchParams();
+
+
+            formData.append(
+                "__RequestVerificationToken",
+                getAntiForgeryToken()
+            );
+
+
+            formData.append(
+                "sessionId",
+                voiceBotSessionId
+            );
+
+
+            if (
+                studentTranscriptId
+            ) {
+                formData.append(
+                    "studentTranscriptId",
+                    studentTranscriptId
+                );
+            }
+
+
+            let response;
+
+
+            try {
+                response =
+                    await fetch(
+                        '@Url.Action("UpdateStatus", "VoiceBot")',
+                        {
+                            method:
+                                "POST",
+
+                            headers:
+                            {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded"
+                            },
+
+                            body:
+                                formData.toString()
+                        }
+                    );
+            }
+            catch (error) {
+                console.error(
+                    "Status analysis network error:",
+                    error
+                );
+
+
+                lastStatusUpdateText =
+                    "Update failed";
+
+
+                return;
+            }
+
+
+            // =====================================================
+            // HTTP ERROR
+            // =====================================================
+
+            if (!response.ok) {
+                let errorDetails =
+                    "";
+
+
+                try {
+                    errorDetails =
+                        await response.text();
+                }
+                catch {
+                }
+
+
+                console.error(
+                    "Status analysis HTTP error:",
+                    response.status,
+                    errorDetails
+                );
+
+
+                lastStatusUpdateText =
+                    "Update failed";
+
+
+                return;
+            }
+
+
+            let result;
+
+
+            try {
+                result =
+                    await response.json();
+            }
+            catch (error) {
+                console.error(
+                    "Invalid status analysis response:",
+                    error
+                );
+
+
+                lastStatusUpdateText =
+                    "Update failed";
+
+
+                return;
+            }
+
+
+            // =====================================================
+            // BACKEND REPORTED FAILURE
+            // =====================================================
+
+            if (!result.success) {
+                console.error(
+                    "Status analysis failed:",
+                    result.message
+                    ?? "Unknown status analysis error."
+                );
+
+
+                lastStatusUpdateText =
+                    "Update failed";
+
+
+                return;
+            }
+
+
+            // =====================================================
+            // APPLY NEW STATUS IMMEDIATELY
+            // =====================================================
+
+            updateStatusDisplay(
+                result.status,
+                result.summary
+            );
+
+
+            // =====================================================
+            // APPLY CONSERVATIVE TRANSCRIPT CORRECTION
+            // =====================================================
+
+            if (
+                studentMessageElement &&
+                result.studentTranscriptId &&
+                result.studentTranscriptId ===
+                studentTranscriptId &&
+                result.correctedStudentText &&
+                result.correctedStudentText
+                    .trim()
+                    .length > 0
+            ) {
+                studentMessageElement.textContent =
+                    result.correctedStudentText
+                        .trim();
+            }
+
+
+            lastStatusUpdateText =
+                formatCurrentTime();
+
+
+            lastUpdated.textContent =
+                pendingStatusAnalyses > 1
+                    ? "Analyzing..."
+                    : lastStatusUpdateText;
+        }
+
+
+        // =========================================================
+        // START MICROPHONE
+        // =========================================================
+
+        async function startMicrophone() {
+            inputAudioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+
+            if (
+                inputAudioContext.state ===
+                "suspended"
+            ) {
+                await inputAudioContext
+                    .resume();
+            }
+
+
+            microphoneSource =
+                inputAudioContext
+                    .createMediaStreamSource(
+                        microphoneStream
+                    );
+
+
+            // =====================================================
+            // Simple PCM processor
+            // =====================================================
+
+            processorNode =
+                inputAudioContext
+                    .createScriptProcessor(
+                        1024,
+                        1,
+                        1
+                    );
+
+
+            processorNode
+                .onaudioprocess =
+                function(event) {
+                    if (
+                        !conversationRunning &&
+                        !liveReady
+                    ) {
+                        return;
+                    }
+
+
+                    if (
+                        !liveReady ||
+                        endingConversation ||
+                        !geminiSocket ||
+                        geminiSocket.readyState !==
+                        WebSocket.OPEN
+                    ) {
+                        return;
+                    }
+
+
+                    const inputData =
+                        event
+                            .inputBuffer
+                            .getChannelData(
+                                0
+                            );
+
+
+                    const shouldSendAudio =
+                        handleLocalSpeechActivity(
+                            inputData
+                        );
+
+
+                    if (
+                        !shouldSendAudio
+                    ) {
+                        return;
+                    }
+
+
+                    const inputRate =
+                        inputAudioContext
+                            .sampleRate;
+
+
+                    const resampled =
+                        resampleAudio(
+                            inputData,
+                            inputRate,
+                            16000
+                        );
+
+
+                    const pcm16 =
+                        floatTo16BitPCM(
+                            resampled
+                        );
+
+
+                    if (
+                        pcm16.byteLength >
+                        0
+                    ) {
+                        sendMicrophoneAudio(
+                            pcm16
+                        );
+                    }
+                };
+
+
+            microphoneSource.connect(
+                processorNode
+            );
+
+
+            processorNode.connect(
+                inputAudioContext
+                    .destination
+            );
+        }
+
+
+        // =========================================================
+        // LOCAL HYBRID VAD
+        // =========================================================
+
+        function handleLocalSpeechActivity(
+            inputData) {
+            if (
+                !inputData ||
+                inputData.length === 0
+            ) {
+                return false;
+            }
+
+
+            let squareSum =
+                0;
+
+
+            for (
+                let i = 0;
+                i < inputData.length;
+                i++
+            ) {
+                squareSum +=
+                    inputData[i] *
+                    inputData[i];
+            }
+
+
+            const rms =
+                Math.sqrt(
+                    squareSum /
+                    inputData.length
+                );
+
+
+            const isSpeech =
+                rms >=
+                localSpeechThreshold;
+
+
+            if (
+                isSpeech
+            ) {
+                localSpeechDetected =
+                    true;
+
+
+                localSilenceStartedAt =
+                    null;
+
+
+                localWaitingForNewSpeech =
+                    false;
+
+
+                return true;
+            }
+
+
+            if (
+                localWaitingForNewSpeech
+            ) {
+                return false;
+            }
+
+
+            if (
+                !localSpeechDetected
+            ) {
+                return true;
+            }
+
+
+            if (
+                localSilenceStartedAt ==
+                null
+            ) {
+                localSilenceStartedAt =
+                    performance.now();
+
+
+                return true;
+            }
+
+
+            const silenceElapsed =
+                performance.now() -
+                localSilenceStartedAt;
+
+
+            if (
+                silenceElapsed <
+                localSilenceDurationMs
+            ) {
+                return true;
+            }
+
+
+            sendLocalAudioStreamEnd();
+
+
+            localSpeechDetected =
+                false;
+
+
+            localSilenceStartedAt =
+                null;
+
+
+            localWaitingForNewSpeech =
+                true;
+
+
+            return false;
+        }
+
+
+        function sendLocalAudioStreamEnd() {
+            if (
+                !geminiSocket ||
+                geminiSocket.readyState !==
+                WebSocket.OPEN ||
+                !setupCompleted ||
+                endingConversation
+            ) {
+                return;
+            }
+
+
+            geminiSocket.send(
+                JSON.stringify(
+                    {
+                        realtimeInput:
+                        {
+                            audioStreamEnd:
+                                true
+                        }
+                    }
+                )
+            );
+        }
+
+
+        // =========================================================
+        // SEND MICROPHONE PCM DIRECTLY TO GEMINI
+        // =========================================================
+
+        function sendMicrophoneAudio(
+            pcmBuffer) {
+            if (
+                !geminiSocket ||
+                geminiSocket.readyState !==
+                WebSocket.OPEN ||
+                !setupCompleted
+            ) {
+                return;
+            }
+
+
+            const base64Audio =
+                arrayBufferToBase64(
+                    pcmBuffer
+                );
+
+
+            const audioMessage =
+            {
+                realtimeInput:
+                {
+                    audio:
+                    {
+                        data:
+                            base64Audio,
+
+                        mimeType:
+                            "audio/pcm;rate=16000"
+                    }
+                }
+            };
+
+
+            geminiSocket.send(
+                JSON.stringify(
+                    audioMessage
+                )
+            );
+        }
+
+
+        // =========================================================
+        // ARRAY BUFFER → BASE64
+        // =========================================================
+
+        function arrayBufferToBase64(
+            buffer) {
+            const bytes =
+                new Uint8Array(
+                    buffer
+                );
+
+
+            const chunkSize =
+                0x8000;
+
+
+            let binary =
+                "";
+
+
+            for (
+                let i = 0;
+                i < bytes.length;
+                i += chunkSize
+            ) {
+                const chunk =
+                    bytes.subarray(
+                        i,
+                        Math.min(
+                            i + chunkSize,
+                            bytes.length
+                        )
+                    );
+
+
+                binary +=
+                    String.fromCharCode
+                        .apply(
+                            null,
+                            chunk
+                        );
+            }
+
+
+            return btoa(
+                binary
+            );
+        }
+
+
+        // =========================================================
+        // RESAMPLE MICROPHONE AUDIO TO 16 KHZ
+        // =========================================================
+
+        function resampleAudio(
+            input,
+            inputSampleRate,
+            outputSampleRate) {
+            if (
+                inputSampleRate ===
+                outputSampleRate
+            ) {
+                return new Float32Array(
+                    input
+                );
+            }
+
+
+            const ratio =
+                inputSampleRate /
+                outputSampleRate;
+
+
+            const outputLength =
+                Math.round(
+                    input.length /
+                    ratio
+                );
+
+
+            const output =
+                new Float32Array(
+                    outputLength
+                );
+
+
+            let outputIndex =
+                0;
+
+
+            let inputIndex =
+                0;
+
+
+            while (
+                outputIndex <
+                outputLength
+            ) {
+                const nextInputIndex =
+                    Math.round(
+                        (outputIndex + 1) *
+                        ratio
+                    );
+
+
+                let total =
+                    0;
+
+
+                let count =
+                    0;
+
+
+                for (
+                    let i = inputIndex;
+                    i < nextInputIndex &&
+                    i < input.length;
+                    i++
+                ) {
+                    total +=
+                        input[i];
+
+
+                    count++;
+                }
+
+
+                output[
+                    outputIndex
+                ] =
+                    count > 0
+                        ? total / count
+                        : 0;
+
+
+                outputIndex++;
+
+
+                inputIndex =
+                    nextInputIndex;
+            }
+
+
+            return output;
+        }
+
+
+        // =========================================================
+        // FLOAT AUDIO → PCM 16-BIT
+        // =========================================================
+
+        function floatTo16BitPCM(
+            floatData) {
+            const buffer =
+                new ArrayBuffer(
+                    floatData.length *
+                    2
+                );
+
+
+            const view =
+                new DataView(
+                    buffer
+                );
+
+
+            let offset =
+                0;
+
+
+            for (
+                let i = 0;
+                i < floatData.length;
+                i++
+            ) {
+                let sample =
+                    Math.max(
+                        -1,
+                        Math.min(
+                            1,
+                            floatData[i]
+                        )
+                    );
+
+
+                sample =
+                    sample < 0
+                        ? sample * 0x8000
+                        : sample * 0x7FFF;
+
+
+                view.setInt16(
+                    offset,
+                    sample,
+                    true
+                );
+
+
+                offset +=
+                    2;
+            }
+
+
+            return buffer;
+        }
+
+
+        // =========================================================
+        // PLAY GEMINI PCM AUDIO
+        // =========================================================
+
+        async function playPcmAudio(
+            base64Data,
+            mimeType) {
+            if (
+                !base64Data
+            ) {
+                return;
+            }
+
+
+            if (
+                !outputAudioContext
+            ) {
+                outputAudioContext =
+                    new (
+                        window.AudioContext ||
+                        window.webkitAudioContext
+                    )();
+            }
+
+
+            if (
+                outputAudioContext.state ===
+                "suspended"
+            ) {
+                await outputAudioContext
+                    .resume();
+            }
+
+
+            let sampleRate =
+                24000;
+
+
+            if (
+                mimeType
+            ) {
+                const match =
+                    mimeType.match(
+                        /rate=(\d+)/i
+                    );
+
+
+                if (
+                    match &&
+                    match[1]
+                ) {
+                    sampleRate =
+                        parseInt(
+                            match[1]
+                        );
+                }
+            }
+
+
+            const binaryString =
+                atob(
+                    base64Data
+                );
+
+
+            const byteLength =
+                binaryString.length;
+
+
+            const bytes =
+                new Uint8Array(
+                    byteLength
+                );
+
+
+            for (
+                let i = 0;
+                i < byteLength;
+                i++
+            ) {
+                bytes[i] =
+                    binaryString
+                        .charCodeAt(
+                            i
+                        );
+            }
+
+
+            const dataView =
+                new DataView(
+                    bytes.buffer
+                );
+
+
+            const sampleCount =
+                Math.floor(
+                    bytes.byteLength /
+                    2
+                );
+
+
+            const floatData =
+                new Float32Array(
+                    sampleCount
+                );
+
+
+            for (
+                let i = 0;
+                i < sampleCount;
+                i++
+            ) {
+                const value =
+                    dataView.getInt16(
+                        i * 2,
+                        true
+                    );
+
+
+                floatData[i] =
+                    value /
+                    32768;
+            }
+
+
+            const audioBuffer =
+                outputAudioContext
+                    .createBuffer(
+                        1,
+                        floatData.length,
+                        sampleRate
+                    );
+
+
+            audioBuffer
+                .getChannelData(
+                    0
+                )
+                .set(
+                    floatData
+                );
+
+
+            const source =
+                outputAudioContext
+                    .createBufferSource();
+
+
+            source.buffer =
+                audioBuffer;
+
+
+            source.connect(
+                outputAudioContext
+                    .destination
+            );
+
+
+            const now =
+                outputAudioContext
+                    .currentTime;
+
+
+            if (
+                nextPlayTime <
+                now
+            ) {
+                nextPlayTime =
+                    now;
+            }
+
+
+            source.start(
+                nextPlayTime
+            );
+
+
+            nextPlayTime +=
+                audioBuffer.duration;
+
+
+            playingSources.push(
+                source
+            );
+
+
+            source.onended =
+                function() {
+                    playingSources =
+                        playingSources
+                            .filter(
+                                x =>
+                                    x !== source
+                            );
+                };
+        }
+
+
+        // =========================================================
+        // STOP CURRENT BOT AUDIO
+        // =========================================================
+
+        function stopCurrentPlayback() {
+            playingSources.forEach(
+                source => {
+                    try {
+                        source.stop();
+                    }
+                    catch {
+                    }
+                }
+            );
+
+
+            playingSources =
+                [];
+
+
+            if (
+                outputAudioContext
+            ) {
+                nextPlayTime =
+                    outputAudioContext
+                        .currentTime;
+            }
+        }
+
+
+        // =========================================================
+        // REQUEST END CONVERSATION
+        // =========================================================
+
+        function requestEndConversation() {
+            if (
+                !conversationRunning ||
+                endingConversation
+            ) {
+                return;
+            }
+
+
+            endingConversation =
+                true;
+
+
+            endButton.disabled =
+                true;
+
+
+            stopMicrophone();
+
+
+            setVoiceState(
+                "Finishing Session",
+                "Completing the current voice session."
+            );
+
+
+            // =====================================================
+            // Tell Gemini microphone audio has ended.
+            // =====================================================
+
+            if (
+                geminiSocket &&
+                geminiSocket.readyState ===
+                WebSocket.OPEN
+            ) {
+                const endMessage =
+                {
+                    realtimeInput:
+                    {
+                        audioStreamEnd:
+                            true
+                    }
+                };
+
+
+                geminiSocket.send(
+                    JSON.stringify(
+                        endMessage
+                    )
+                );
+
+
+                endFallbackTimer =
+                    setTimeout(
+                        async function() {
+                            await completeEndConversation();
+                        },
+                        3000
+                    );
+            }
+            else {
+                completeEndConversation();
+            }
+        }
+
+
+        // =========================================================
+        // COMPLETE END CONVERSATION
+        // =========================================================
+
+        async function completeEndConversation() {
+            if (
+                !endingConversation
+            ) {
+                return;
+            }
+
+
+            endingConversation =
+                false;
+
+
+            if (
+                endFallbackTimer
+            ) {
+                clearTimeout(
+                    endFallbackTimer
+                );
+
+
+                endFallbackTimer =
+                    null;
+            }
+
+
+            stopTimer();
+
+
+            try {
+                // =================================================
+                // Save remaining partial transcript if necessary.
+                // =================================================
+
+                await flushCurrentTurn();
+            }
+            catch (error) {
+                console.error(
+                    "Final transcript save failed:",
+                    error
+                );
+            }
+
+
+            // =====================================================
+            // CLOSE GEMINI LIVE SESSION
+            // =====================================================
+
+            if (
+                geminiSocket &&
+                (
+                    geminiSocket.readyState ===
+                    WebSocket.OPEN ||
+
+                    geminiSocket.readyState ===
+                    WebSocket.CONNECTING
+                )
+            ) {
+                try {
+                    geminiSocket.close(
+                        1000,
+                        "Student ended conversation."
+                    );
+                }
+                catch {
+                }
+            }
+
+
+            geminiSocket =
+                null;
+
+
+            liveReady =
+                false;
+
+
+            setupCompleted =
+                false;
+
+
+            conversationRunning =
+                false;
+
+
+            setVoiceState(
+                "Finalizing Report",
+                "Updating the final voice status."
+            );
+
+
+            try {
+                const formData =
+                    new URLSearchParams();
+
+
+                formData.append(
+                    "__RequestVerificationToken",
+                    getAntiForgeryToken()
+                );
+
+
+                formData.append(
+                    "sessionId",
+                    voiceBotSessionId
+                );
+
+
+                const response =
+                    await fetch(
+                        '@Url.Action("EndSession", "VoiceBot")',
+                        {
+                            method:
+                                "POST",
+
+                            headers:
+                            {
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded"
+                            },
+
+                            body:
+                                formData.toString()
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (!result.success) {
+                    throw new Error(
+                        result.message
+                        ?? "Unable to complete the voice session."
+                    );
+                }
+
+
+                updateStatusDisplay(
+                    result.finalStatus
+                    ?? currentStatus.textContent,
+
+                    result.finalSummary
+                    ?? ""
+                );
+
+
+                setVoiceState(
+                    "Conversation Completed",
+                    "Your voice session has been completed."
+                );
+
+
+                // =================================================
+                // OPEN FINAL REPORT
+                // =================================================
+
+                if (
+                    result.redirectUrl
+                ) {
+                    window.location.href =
+                        result.redirectUrl;
+                }
+            }
+            catch (error) {
+                startButton.disabled =
+                    false;
+
+
+                showError(
+                    error?.message
+                    ?? "The voice session could not be finalized."
+                );
+            }
+            finally {
+                cleanupLocalResources();
+            }
+        }
+
+
+        // =========================================================
+        // STOP MICROPHONE
+        // =========================================================
+
+        function stopMicrophone() {
+            if (
+                processorNode
+            ) {
+                try {
+                    processorNode
+                        .disconnect();
+                }
+                catch {
+                }
+
+
+                processorNode
+                    .onaudioprocess =
+                    null;
+
+
+                processorNode =
+                    null;
+            }
+
+
+            if (
+                microphoneSource
+            ) {
+                try {
+                    microphoneSource
+                        .disconnect();
+                }
+                catch {
+                }
+
+
+                microphoneSource =
+                    null;
+            }
+
+
+            if (
+                microphoneStream
+            ) {
+                microphoneStream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+
+                microphoneStream =
+                    null;
+            }
+
+
+            if (
+                inputAudioContext
+            ) {
+                try {
+                    inputAudioContext
+                        .close();
+                }
+                catch {
+                }
+
+
+                inputAudioContext =
+                    null;
+            }
+        }
+
+
+        // =========================================================
+        // CLEAN LOCAL RESOURCES
+        // =========================================================
+
+        function cleanupLocalResources() {
+            stopMicrophone();
+
+
+            stopCurrentPlayback();
+
+
+            stopTimer();
+
+
+            if (
+                geminiSocket &&
+                (
+                    geminiSocket.readyState ===
+                    WebSocket.OPEN ||
+
+                    geminiSocket.readyState ===
+                    WebSocket.CONNECTING
+                )
+            ) {
+                try {
+                    geminiSocket.close();
+                }
+                catch {
+                }
+            }
+
+
+            geminiSocket =
+                null;
+
+
+            ephemeralToken =
+                null;
+
+
+            liveModelName =
+                null;
+
+
+            liveReady =
+                false;
+
+
+            setupCompleted =
+                false;
+
+
+            localSpeechDetected =
+                false;
+
+
+            localSilenceStartedAt =
+                null;
+
+
+            localWaitingForNewSpeech =
+                false;
+
+
+            conversationRunning =
+                false;
+
+
+            endingConversation =
+                false;
+
+
+            studentTurnCommitted =
+                false;
+
+
+            if (
+                immediateStudentStatusTimer
+            ) {
+                clearTimeout(
+                    immediateStudentStatusTimer
+                );
+
+
+                immediateStudentStatusTimer =
+                    null;
+            }
+
+
+            immediateStudentStatusTask =
+                Promise.resolve();
+
+
+            statusAnalysisQueue =
+                Promise.resolve();
+
+
+            pendingStatusAnalyses =
+                0;
+
+
+            lastStatusUpdateText =
+                lastUpdated.textContent &&
+                    lastUpdated.textContent !==
+                    "Analyzing..."
+
+                    ? lastUpdated.textContent
+
+                    : "Not updated yet";
+
+
+            if (
+                lastUpdated.textContent ===
+                "Analyzing..."
+            ) {
+                lastUpdated.textContent =
+                    lastStatusUpdateText;
+            }
+
+
+            endButton.disabled =
+                true;
+        }
+
+
+        // =========================================================
+        // UPDATE STATUS DISPLAY
+        // =========================================================
+
+        function updateStatusDisplay(
+            status,
+            summary) {
+            status =
+                status
+                ?? "Normal";
+
+
+            currentStatus.textContent =
+                status;
+
+
+            currentSummary.textContent =
+                summary &&
+                    summary.trim().length > 0
+
+                    ? summary
+
+                    : "The summary will update as the conversation progresses.";
+
+
+            if (
+                status ===
+                "Normal"
+            ) {
+                currentStatus.style.background =
+                    "#E8EFE9";
+
+
+                currentStatus.style.color =
+                    "#526B59";
+            }
+            else if (
+                status ===
+                "Moderate"
+            ) {
+                currentStatus.style.background =
+                    "#FFF3CD";
+
+
+                currentStatus.style.color =
+                    "#795F00";
+            }
+            else if (
+                status ===
+                "Severe"
+            ) {
+                currentStatus.style.background =
+                    "#F8D7DA";
+
+
+                currentStatus.style.color =
+                    "#842029";
+            }
+            else if (
+                status ===
+                "Extremely Severe"
+            ) {
+                currentStatus.style.background =
+                    "#E7D8DC";
+
+
+                currentStatus.style.color =
+                    "#682F3B";
+            }
+        }
+
+
+        // =========================================================
+        // VOICE STATE
+        // =========================================================
+
+        function setVoiceState(
+            title,
+            message) {
+            voiceState.textContent =
+                title;
+
+
+            voiceMessage.textContent =
+                message;
+
+
+            if (
+                title ===
+                "Listening"
+            ) {
+                voiceCircle.style.transform =
+                    "scale(1.05)";
+
+
+                voiceIcon.className =
+                    "bi bi-mic-fill";
+
+
+                voiceIcon.style.color =
+                    "#A67C52";
+            }
+            else if (
+                title ===
+                "Voice Bot Speaking"
+            ) {
+                voiceCircle.style.transform =
+                    "scale(1.05)";
+
+
+                voiceIcon.className =
+                    "bi bi-soundwave";
+
+
+                voiceIcon.style.color =
+                    "#806C5D";
+            }
+            else {
+                voiceCircle.style.transform =
+                    "scale(1)";
+
+
+                voiceIcon.className =
+                    "bi bi-mic-fill";
+
+
+                voiceIcon.style.color =
+                    "#A67C52";
+            }
+        }
+
+
+        // =========================================================
+        // TIMER
+        // =========================================================
+
+        function startTimer() {
+            sessionStartedAt =
+                new Date();
+
+
+            updateTimer();
+
+
+            timerInterval =
+                setInterval(
+                    updateTimer,
+                    1000
+                );
+        }
+
+
+        function updateTimer() {
+            if (
+                !sessionStartedAt
+            ) {
+                return;
+            }
+
+
+            const seconds =
+                Math.floor(
+                    (
+                        new Date() -
+                        sessionStartedAt
+                    ) /
+                    1000
+                );
+
+
+            const minutes =
+                Math.floor(
+                    seconds /
+                    60
+                );
+
+
+            const remainingSeconds =
+                seconds %
+                60;
+
+
+            sessionTimer.textContent =
+                String(
+                    minutes
+                ).padStart(
+                    2,
+                    "0"
+                ) +
+                ":" +
+                String(
+                    remainingSeconds
+                ).padStart(
+                    2,
+                    "0"
+                );
+        }
+
+
+        function stopTimer() {
+            if (
+                timerInterval
+            ) {
+                clearInterval(
+                    timerInterval
+                );
+
+
+                timerInterval =
+                    null;
+            }
+        }
+
+
+        // =========================================================
+        // FORMAT CURRENT TIME
+        // =========================================================
+
+        function formatCurrentTime() {
+            return new Date()
+                .toLocaleTimeString(
+                    [],
+                    {
+                        hour:
+                            "2-digit",
+
+                        minute:
+                            "2-digit"
+                    }
+                );
+        }
+
+
+        // =========================================================
+        // ERROR
+        // =========================================================
+
+        function showError(
+            message) {
+            errorText.textContent =
+                message;
+
+
+            errorBox.style.display =
+                "block";
+        }
+
+
+        function hideError() {
+            errorBox.style.display =
+                "none";
+
+
+            errorText.textContent =
+                "";
+        }
+
+
+        // =========================================================
+        // PAGE CLOSE
+        // =========================================================
+
+        window.addEventListener(
+            "beforeunload",
+            function() {
+                stopMicrophone();
+
+
+                stopCurrentPlayback();
+
+
+                if (
+                    geminiSocket &&
+                    geminiSocket.readyState ===
+                    WebSocket.OPEN
+                ) {
+                    try {
+                        geminiSocket.close();
+                    }
+                    catch {
+                    }
+                }
+            }
+        );
+
+    </script>
+}

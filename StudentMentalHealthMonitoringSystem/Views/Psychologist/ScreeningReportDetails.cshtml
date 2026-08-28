@@ -1,0 +1,368 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.ScreeningReport
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Screening Report";
+}
+
+<div class="container-fluid py-3">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-file-earmark-medical me-2"></i>
+
+                        Screening Report
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Combined student screening information.
+
+                    </p>
+
+                </div>
+
+
+                <a asp-controller="Psychologist"
+                   asp-action="ScreeningReports"
+                   class="btn btn-sm rounded-3 px-3"
+                   style="
+                    background:#806C5D;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Screening Reports
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Student Information ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-person me-2"></i>
+
+                Student Information
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Student Name
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @(Model.Student?.FullName ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Student ID
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @(Model.Student?.StudentIdNumber ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Department
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @(Model.Student?.Department ?? "-")
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Trigger Information ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-clipboard-data me-2"></i>
+
+                Screening Information
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Trigger Source
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @Model.TriggerSource
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Trigger Severity
+                    </small>
+
+                    @if (Model.TriggerSeverity ==
+                         "Extremely Severe")
+                    {
+                        <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                            Extremely Severe
+
+                        </span>
+                    }
+                    else if (Model.TriggerSeverity ==
+                             "Severe")
+                    {
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+
+                            Severe
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                            @Model.TriggerSeverity
+
+                        </span>
+                    }
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Report Created
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @Model.CreatedAt.ToString(
+                            "dd MMM yyyy, h:mm tt"
+                        )
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Appointment Information ================= -->
+    @if (Model.Counseling != null)
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+            <div class="card-header border-0 py-3"
+                 style="background:#E8DDD2;">
+
+                <h5 class="mb-0"
+                    style="color:#5F5146;">
+
+                    <i class="bi bi-calendar-check me-2"></i>
+
+                    Assigned Counseling Appointment
+
+                </h5>
+
+            </div>
+
+
+            <div class="card-body p-4">
+
+                <div class="row g-4">
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Date
+                        </small>
+
+                        <strong style="color:#5F5146;">
+
+                            @Model.Counseling
+                            .CounselingDate
+                            .ToString("dd MMM yyyy")
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Time
+                        </small>
+
+                        <strong style="color:#5F5146;">
+
+                            @DateTime.Today
+                            .Add(
+                            Model.Counseling
+                            .AppointmentTime
+                            )
+                            .ToString("h:mm tt")
+
+                            -
+
+                            @DateTime.Today
+                            .Add(
+                            Model.Counseling
+                            .AppointmentEndTime
+                            )
+                            .ToString("h:mm tt")
+
+                        </strong>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Status
+                        </small>
+
+                        <strong style="color:#5F5146;">
+
+                            @Model.Counseling.Status
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ================= Combined Screening Report ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-file-text me-2"></i>
+
+                Combined Screening Report
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.ReportContent))
+            {
+                <div class="p-4 rounded-4"
+                     style="
+                    background:#FAF7F4;
+                    color:#4F463F;
+                    white-space:pre-wrap;
+                    line-height:1.8;">
+                    @Model.ReportContent
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary mb-0">
+
+                    Screening report information is not available.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

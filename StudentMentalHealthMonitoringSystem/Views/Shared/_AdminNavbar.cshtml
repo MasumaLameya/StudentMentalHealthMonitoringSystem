@@ -1,0 +1,156 @@
+﻿@{
+    var adminName = Context.Session.GetString("AdminName");
+
+    if (string.IsNullOrEmpty(adminName))
+    {
+        adminName = "Admin";
+    }
+}
+
+<div class="container-fluid">
+
+    <!-- ================= Left ================= -->
+
+    <div>
+
+        <h4 class="fw-bold mb-0"
+            style="color:#5E503F;">
+
+            Student Mental Health Monitoring System
+
+        </h4>
+
+        <small class="text-muted">
+
+            Admin Control Panel
+
+        </small>
+
+    </div>
+
+
+    <!-- ================= Right ================= -->
+
+    <div class="d-flex align-items-center">
+
+        <!-- Date -->
+
+        <div class="me-4 text-end">
+
+            <div class="fw-semibold"
+                 style="color:#5E503F;">
+
+                @DateTime.Now.ToString("dddd")
+
+            </div>
+
+            <small class="text-muted">
+
+                @DateTime.Now.ToString("dd MMM yyyy")
+
+            </small>
+
+        </div>
+
+
+        <!-- Notification -->
+
+        <button type="button"
+                class="btn position-relative me-3">
+
+            <i class="bi bi-bell-fill"
+               style="font-size:22px;
+            color:#A67C52;"></i>
+
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+
+                3
+
+            </span>
+
+        </button>
+
+
+        <!-- Profile -->
+
+        <div class="dropdown">
+
+            <button type="button"
+                    class="btn dropdown-toggle d-flex align-items-center"
+                    data-bs-toggle="dropdown">
+
+                <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(adminName)&background=A67C52&color=fff&size=45"
+                     class="rounded-circle me-2"
+                     width="45"
+                     height="45"
+                     alt="Admin Profile" />
+
+                <span class="fw-semibold">
+
+                    @adminName
+
+                </span>
+
+            </button>
+
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4">
+
+                <li>
+
+                    <a asp-controller="Admin"
+                       asp-action="Profile"
+                       class="dropdown-item">
+
+                        <i class="bi bi-person-circle me-2"></i>
+
+                        Profile
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a asp-controller="Admin"
+                       asp-action="Settings"
+                       class="dropdown-item">
+
+                        <i class="bi bi-gear me-2"></i>
+
+                        Settings
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <hr class="dropdown-divider" />
+
+                </li>
+
+
+                <li>
+
+                    <a asp-controller="Admin"
+                       asp-action="Logout"
+                       class="dropdown-item text-danger">
+
+                        <i class="bi bi-box-arrow-right me-2"></i>
+
+                        Logout
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>

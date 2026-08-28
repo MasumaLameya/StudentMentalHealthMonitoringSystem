@@ -1,40 +1,615 @@
-﻿@{
-    ViewData["Title"] = "Follow Up";
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = "Follow-up";
+
+    var departmentName =
+        ViewBag.DepartmentName as string ?? "Department";
 }
 
-<div class="container mt-4">
 
-    <div class="card shadow">
+<style>
 
-        <div class="card-header bg-success text-white">
+    body {
+        background: #F8F4F1;
+    }
 
-            <h3>Student Follow Up</h3>
+    .followup-header {
+        background: linear-gradient( 135deg, #F6E8EC 0%, #EEE5F2 48%, #E7F0EB 100% );
+        border: 1px solid #E9DED7;
+        border-radius: 26px;
+        box-shadow: 0 10px 35px rgba(95, 81, 70, 0.07);
+    }
+
+    .page-title {
+        color: #5F5146;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+
+    .page-subtitle {
+        color: #9A8B7D;
+        font-size: 14px;
+    }
+
+    .header-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.6);
+        color: #90789A;
+        font-size: 28px;
+        box-shadow: 0 6px 20px rgba(95, 81, 70, 0.06);
+    }
+
+    .followup-card {
+        background: #FFFFFF;
+        border: 1px solid #EEE6DF;
+        border-radius: 24px;
+        box-shadow: 0 10px 35px rgba(95, 81, 70, 0.065);
+        overflow: hidden;
+    }
+
+    .card-top {
+        padding: 25px 28px;
+        border-bottom: 1px solid #F0E9E4;
+    }
+
+    .section-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #EEE5F1;
+        color: #8D7597;
+    }
+
+    .followup-table {
+        margin-bottom: 0;
+    }
+
+        .followup-table thead th {
+            background: #FBF8F6;
+            color: #8A7B70;
+            border-bottom: 1px solid #EDE5DF;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 16px 18px;
+            white-space: nowrap;
+        }
+
+        .followup-table tbody td {
+            padding: 19px 18px;
+            border-bottom: 1px solid #F1EBE7;
+            color: #6D6158;
+            vertical-align: middle;
+        }
+
+        .followup-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .followup-table tbody tr:hover {
+                background: #FCF9F7;
+            }
+
+            .followup-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+    .student-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #F2E4E9;
+        color: #966F7D;
+        font-size: 17px;
+    }
+
+    .student-name {
+        color: #5F5146;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .student-id {
+        color: #A09288;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+
+    .psychologist-name {
+        color: #6B5E56;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .date-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #F3E8E4;
+        color: #806E63;
+        border-radius: 11px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .time-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #EAE3F0;
+        color: #786482;
+        border-radius: 11px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .risk-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #F2DDE1;
+        color: #8B626B;
+    }
+
+        .risk-badge.empty {
+            background: #F2EEEA;
+            color: #9A8B7D;
+        }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #E3EEE7;
+        color: #647A6C;
+    }
+
+        .status-badge.pending {
+            background: #F3E7D7;
+            color: #8B735B;
+        }
+
+        .status-badge.cancelled {
+            background: #F2DDE1;
+            color: #8B626B;
+        }
+
+        .status-badge.completed {
+            background: #DFEBE6;
+            color: #60786C;
+        }
+
+    .empty-state {
+        padding: 65px 25px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient( 135deg, #F2E3E8, #EAE2F0 );
+        color: #90789A;
+        font-size: 29px;
+        box-shadow: 0 8px 25px rgba(95, 81, 70, 0.06);
+    }
+
+    .empty-title {
+        color: #5F5146;
+        font-weight: 650;
+        margin-bottom: 7px;
+    }
+
+    @@media (max-width: 768px) {
+
+        .followup-header {
+            border-radius: 20px;
+        }
+
+        .followup-table thead th,
+        .followup-table tbody td {
+            padding: 14px 12px;
+        }
+    }
+
+</style>
+
+
+<div class="container-fluid py-2">
+
+
+    <!-- ================= Header ================= -->
+
+    <div class="followup-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap gap-4">
+
+                <div>
+
+                    <div class="page-subtitle mb-2">
+
+                        @departmentName Department
+
+                    </div>
+
+                    <h2 class="page-title mb-2">
+
+                        Follow-up Management
+
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+
+                        Monitor students who require follow-up
+                        after counseling sessions.
+
+                    </p>
+
+                </div>
+
+                <div class="header-icon">
+
+                    <i class="bi bi-calendar-heart"></i>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered">
 
-                <tr>
+    <!-- ================= Main Card ================= -->
 
-                    <th>Student</th>
-                    <th>Risk</th>
-                    <th>Counseling</th>
-                    <th>Status</th>
+    <div class="followup-card">
 
-                </tr>
+        <!-- ================= Card Header ================= -->
 
-                <tr>
+        <div class="card-top">
 
-                    <td>Masuma</td>
-                    <td>Extremely Severe</td>
-                    <td>Session 2 of 4</td>
-                    <td>Ongoing</td>
+            <div class="d-flex align-items-center gap-3">
 
-                </tr>
+                <div class="section-icon">
 
-            </table>
+                    <i class="bi bi-calendar-check fs-5"></i>
+
+                </div>
+
+                <div>
+
+                    <h5 class="page-title mb-1">
+
+                        Follow-up Appointments
+
+                    </h5>
+
+                    <p class="page-subtitle mb-0">
+
+                        Upcoming follow-up records
+                        for your department.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= Table ================= -->
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table followup-table align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Student
+                                </th>
+
+                                <th>
+                                    Psychologist
+                                </th>
+
+                                <th>
+                                    Follow-up Date
+                                </th>
+
+                                <th>
+                                    Counseling Time
+                                </th>
+
+                                <th>
+                                    Risk Level
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- ================= Student ================= -->
+
+                                    <td>
+
+                                        <div class="d-flex
+                                            align-items-center
+                                            gap-3">
+
+                                            <div class="student-avatar">
+
+                                                <i class="bi bi-person"></i>
+
+                                            </div>
+
+                                            <div>
+
+                                                <div class="student-name">
+
+                                                    @item.Student?.FullName
+
+                                                </div>
+
+                                                <div class="student-id">
+
+                                                    @item.Student?.StudentIdNumber
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- ================= Psychologist ================= -->
+
+                                    <td>
+
+                                        @if (item.Psychologist != null)
+                                        {
+                                            <div class="d-flex
+                                                align-items-center
+                                                gap-2">
+
+                                                <i class="bi bi-person-heart"
+                                                   style="
+                                                color:#9A849F;
+                                                font-size:16px;
+                                                "></i>
+
+                                                <span class="psychologist-name">
+
+                                                    @item.Psychologist.FullName
+
+                                                </span>
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="page-subtitle">
+
+                                                Not Assigned
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Follow-up Date ================= -->
+
+                                    <td>
+
+                                        @if (item.NextFollowUpDate.HasValue)
+                                        {
+                                            <span class="date-box">
+
+                                                <i class="bi bi-calendar3"></i>
+
+                                                @item.NextFollowUpDate.Value.ToString(
+                                                    "dd MMM yyyy"
+                                                )
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="page-subtitle">
+
+                                                Not Set
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Counseling Time ================= -->
+
+                                    <td>
+
+                                        <span class="time-box">
+
+                                            <i class="bi bi-clock"></i>
+
+                                            @(item.AppointmentTime.Hours.ToString("00"))
+                                            :
+                                            @(item.AppointmentTime.Minutes.ToString("00"))
+
+                                            <span style="opacity:.55;">
+                                                –
+                                            </span>
+
+                                            @(item.AppointmentEndTime.Hours.ToString("00"))
+                                            :
+                                            @(item.AppointmentEndTime.Minutes.ToString("00"))
+
+                                        </span>
+
+                                    </td>
+
+                                    <!-- ================= Risk Level ================= -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.RiskLevel))
+                                        {
+                                            <span class="risk-badge">
+
+                                                <i class="bi bi-shield-exclamation me-1"></i>
+
+                                                @item.RiskLevel
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="risk-badge empty">
+
+                                                Not Set
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Status ================= -->
+
+                                    <td>
+
+                                        @if (item.Status == "Completed")
+                                        {
+                                            <span class="status-badge completed">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Completed
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Pending")
+                                        {
+                                            <span class="status-badge pending">
+
+                                                <i class="bi bi-clock-history me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="status-badge cancelled">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Cancelled
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge">
+
+                                                @item.Status
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- ================= Empty State ================= -->
+
+                <div class="empty-state">
+
+                    <div class="empty-icon mb-4">
+
+                        <i class="bi bi-calendar-check"></i>
+
+                    </div>
+
+                    <h5 class="empty-title">
+
+                        No Follow-up Records
+
+                    </h5>
+
+                    <p class="page-subtitle mb-0">
+
+                        There are currently no follow-up
+                        appointments for your department.
+
+                    </p>
+
+                </div>
+            }
 
         </div>
 

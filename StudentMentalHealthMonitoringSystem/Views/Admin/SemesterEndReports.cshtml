@@ -1,0 +1,90 @@
+@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSemesterReportViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Department End-of-Semester Overall Mental Health Reports";
+}
+
+<div class="container-fluid py-4" style="background:#F8FAFC; min-height: 90vh;">
+
+    <!-- Header Banner -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #002147 0%, #004D25 100%); color: white;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Department End-of-Semester Overall Reports
+                    </h2>
+                    <p class="text-white-50 mb-0">Review archived overall mental health, screening compliance, and counseling progress reports across all departments.</p>
+                </div>
+                <a href="/Admin/SemesterManagement" class="btn btn-warning rounded-3 text-dark fw-bold shadow-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Semester Management
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Reports Loop -->
+    @if (Model != null && Model.Any())
+    {
+        foreach (var report in Model)
+        {
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+                <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h4 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-building text-success me-2"></i>@report.DepartmentName Department
+                    </h4>
+                    <span class="badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill fw-bold fs-6">
+                        Compliance: @report.CompliancePercentage%
+                    </span>
+                </div>
+
+                <div class="card-body px-4 py-3">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-light text-center">
+                                <div class="text-muted small">Total Department Students</div>
+                                <h4 class="fw-bold mb-0 text-dark">@report.TotalStudents</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-success-subtle text-center text-success">
+                                <div class="small fw-semibold">Promoted Students</div>
+                                <h4 class="fw-bold mb-0">@report.PromotedStudents</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-warning-subtle text-center text-dark">
+                                <div class="small fw-semibold">Blocked (Incomplete)</div>
+                                <h4 class="fw-bold mb-0 text-danger">@report.BlockedStudents</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-primary-subtle text-center text-primary">
+                                <div class="small fw-semibold">Total Counseling Sessions</div>
+                                <h4 class="fw-bold mb-0">@report.TotalCounselingSessions</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-light mb-3">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-card-text me-1"></i>Executive Summary</h6>
+                        <p class="text-secondary small mb-0">@report.ExecutiveSummary</p>
+                    </div>
+
+                    <div class="p-3 rounded-3 bg-light">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-lightbulb me-1"></i>Recommended Department Action</h6>
+                        <p class="text-secondary small mb-0">@report.RecommendedAction</p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white text-muted">
+            <i class="bi bi-folder2-open fs-1 text-secondary d-block mb-2"></i>
+            No end-of-semester department reports archived yet.
+        </div>
+    }
+</div>

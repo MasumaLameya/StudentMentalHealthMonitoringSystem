@@ -1,0 +1,181 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSemesterReportViewModel
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = "End-of-Semester Overall Mental Health Report";
+}
+
+<div class="container-fluid py-4" style="background:#F4F8F5; min-height: 90vh;">
+
+    <!-- Print & Header Banner -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: white;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-journal-text me-2"></i>End-of-Semester Overall Mental Health Report
+                    </h2>
+                    <p class="text-white-50 mb-0">Official 4-month semester evaluation & mental health compliance summary for @Model.DepartmentName Department.</p>
+                </div>
+                <button type="button" class="btn btn-warning rounded-3 text-dark fw-bold shadow-sm" onclick="window.print();">
+                    <i class="bi bi-printer me-1"></i> Print / Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metric Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#EBF4EE; color:#006837;">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Students</div>
+                        <h3 class="fw-bold mb-0 text-dark">@Model.TotalStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#D1E7DD; color:#0F5132;">
+                        <i class="bi bi-check-circle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Screening Compliant</div>
+                        <h3 class="fw-bold mb-0 text-success">@Model.PromotedStudents <span class="fs-6 text-muted">(@Model.CompliancePercentage%)</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#FFF3CD; color:#664D03;">
+                        <i class="bi bi-hourglass-split fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Promotion Blocked</div>
+                        <h3 class="fw-bold mb-0 text-warning">@Model.BlockedStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#E2E8F0; color:#0F172A;">
+                        <i class="bi bi-chat-heart-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Sessions Conducted</div>
+                        <h3 class="fw-bold mb-0 text-dark">@Model.TotalCounselingSessions</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Executive Summary & Action Plan Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-success mb-3">
+                    <i class="bi bi-card-checklist me-2"></i>Executive Summary
+                </h5>
+                <p class="text-secondary fs-6 mb-0">@Model.ExecutiveSummary</p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">
+                    <i class="bi bi-lightbulb-fill me-2 text-warning"></i>Department Recommended Action
+                </h5>
+                <p class="text-secondary fs-6 mb-0">@Model.RecommendedAction</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Non-Compliant Students Breakdown -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0" style="color:#004D25;">
+                <i class="bi bi-table me-2"></i>Pending Screening Student List
+            </h5>
+            <span class="text-muted small">@Model.NonCompliantStudents.Count student(s) pending</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#EBF4EE; color:#004D25;" class="fw-bold text-uppercase small">
+                    <tr>
+                        <th class="ps-4">Student</th>
+                        <th>Semester</th>
+                        <th>PHQ-9 Status</th>
+                        <th>C-SSRS Status</th>
+                        <th>Advancement Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.NonCompliantStudents.Any())
+                    {
+                        foreach (var st in Model.NonCompliantStudents)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">@st.FullName</div>
+                                    <div class="text-muted small">@st.Email</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2.5 py-1 rounded-pill">@st.Semester</span>
+                                </td>
+                                <td>
+                                    @if (st.HasPHQ)
+                                    {
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (st.HasCSSRS)
+                                    {
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-warning fw-bold"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold">
+                                        <i class="bi bi-lock-fill me-1"></i>Advancement Blocked
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="bi bi-check-circle-fill fs-1 text-success d-block mb-2"></i>
+                                All department students are 100% compliant for this semester!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,861 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.VoiceBotReport
+
+@using StudentMentalHealthMonitoringSystem.Models
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Voice Bot Report";
+
+    var riskHistory =
+        ViewBag.RiskHistory
+        as List<VoiceBotRiskAssessment>
+        ?? new List<VoiceBotRiskAssessment>();
+
+
+    var session =
+        Model.VoiceBotSession;
+
+
+    var displayStatus =
+        Model.IsFinal
+            ? Model.FinalStatus
+            : Model.CurrentStatus;
+
+
+    var displaySummary =
+        Model.IsFinal
+            ? Model.FinalSummary
+            : Model.CurrentSummary;
+
+
+    var sessionStart =
+        session?.StartedAt;
+
+
+    var sessionEnd =
+        session?.EndedAt;
+
+
+    string durationText =
+        "In Progress";
+
+
+    if (sessionStart.HasValue &&
+        sessionEnd.HasValue)
+    {
+        var duration =
+            sessionEnd.Value -
+            sessionStart.Value;
+
+
+        if (duration.TotalHours >= 1)
+        {
+            durationText =
+                $"{(int)duration.TotalHours} hr " +
+                $"{duration.Minutes} min";
+        }
+        else
+        {
+            durationText =
+                $"{Math.Max(1, (int)Math.Ceiling(duration.TotalMinutes))} min";
+        }
+    }
+}
+
+
+<div class="container py-4">
+
+    <!-- =========================================================
+         HEADER
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-mic-fill me-2"></i>
+
+                        Voice Bot Report
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Live voice conversation monitoring report.
+
+                    </p>
+
+                </div>
+
+
+                <a asp-controller="VoiceBot"
+                   asp-action="Index"
+                   class="btn rounded-3 px-4"
+                   style="
+                    background:#806C5D;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Voice Bot
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         STUDENT / SESSION INFORMATION
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-person-lines-fill me-2"></i>
+
+                Session Information
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <!-- Student -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Student
+
+                    </small>
+
+                    <strong style="color:#5F5146;">
+
+                        @(Model.Student?.FullName ?? "Student")
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Student ID -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Student ID
+
+                    </small>
+
+                    <strong>
+
+                        @(Model.Student?.StudentIdNumber ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Session Date -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Session Date
+
+                    </small>
+
+                    <strong>
+
+                        @(sessionStart.HasValue
+                            ? sessionStart.Value.ToString(
+                                "dd MMM yyyy"
+                            )
+                            : "-")
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Duration -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Duration
+
+                    </small>
+
+                    <strong>
+
+                        @durationText
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Started -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Started At
+
+                    </small>
+
+                    <strong>
+
+                        @(sessionStart.HasValue
+                            ? sessionStart.Value.ToString(
+                                "h:mm tt"
+                            )
+                            : "-")
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Ended -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Ended At
+
+                    </small>
+
+                    <strong>
+
+                        @(sessionEnd.HasValue
+                            ? sessionEnd.Value.ToString(
+                                "h:mm tt"
+                            )
+                            : "In Progress")
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Report Status -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Report Status
+
+                    </small>
+
+                    @if (Model.IsFinal)
+                    {
+                        <span class="badge
+                            bg-success
+                            rounded-pill
+                            px-3 py-2">
+
+                            <i class="bi bi-check-circle me-1"></i>
+
+                            Final
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge
+                            rounded-pill
+                            px-3 py-2"
+                              style="
+                            background:#FFF3CD;
+                            color:#795F00;">
+
+                            <i class="bi bi-clock me-1"></i>
+
+                            Live / Ongoing
+
+                        </span>
+                    }
+
+                </div>
+
+
+                <!-- Model -->
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Voice Model
+
+                    </small>
+
+                    <strong>
+
+                        @(session?.ModelName ?? "-")
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         CURRENT / FINAL STATUS
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E4EEE5;">
+
+            <h5 class="mb-0"
+                style="color:#536857;">
+
+                <i class="bi bi-activity me-2"></i>
+
+                @(Model.IsFinal
+                    ? "Final Voice Status"
+                    : "Current Voice Status")
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <!-- Status -->
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block mb-2">
+
+                        @(Model.IsFinal
+                            ? "Final Status"
+                            : "Current Status")
+
+                    </small>
+
+
+                    @if (displayStatus == "Normal")
+                    {
+                        <span class="badge rounded-pill px-4 py-2"
+                              style="
+                            background:#E8EFE9;
+                            color:#526B59;
+                            font-size:15px;">
+
+                            Normal
+
+                        </span>
+                    }
+                    else if (displayStatus == "Moderate")
+                    {
+                        <span class="badge rounded-pill px-4 py-2"
+                              style="
+                            background:#FFF3CD;
+                            color:#795F00;
+                            font-size:15px;">
+
+                            Moderate
+
+                        </span>
+                    }
+                    else if (displayStatus == "Severe")
+                    {
+                        <span class="badge rounded-pill px-4 py-2"
+                              style="
+                            background:#F8D7DA;
+                            color:#842029;
+                            font-size:15px;">
+
+                            Severe
+
+                        </span>
+                    }
+                    else if (displayStatus == "Extremely Severe")
+                    {
+                        <span class="badge rounded-pill px-4 py-2"
+                              style="
+                            background:#E7D8DC;
+                            color:#682F3B;
+                            font-size:15px;">
+
+                            Extremely Severe
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary rounded-pill px-4 py-2">
+
+                            @(displayStatus ?? "Not Available")
+
+                        </span>
+                    }
+
+                </div>
+
+
+                <!-- Last Updated -->
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Last Updated
+
+                    </small>
+
+                    <strong>
+
+                        @Model.LastUpdatedAt.ToString(
+                            "dd MMM yyyy, h:mm tt"
+                        )
+
+                    </strong>
+
+                </div>
+
+
+                <!-- Finalized -->
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block mb-1">
+
+                        Finalized At
+
+                    </small>
+
+                    <strong>
+
+                        @(Model.FinalizedAt.HasValue
+                            ? Model.FinalizedAt.Value.ToString(
+                                "dd MMM yyyy, h:mm tt"
+                            )
+                            : "Not Finalized")
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <hr class="my-4" />
+
+
+            <!-- ================= Session Summary ================= -->
+
+            <div>
+
+                <small class="text-muted d-block mb-2">
+
+                    @(Model.IsFinal
+                        ? "Final Session Summary"
+                        : "Current Session Summary")
+
+                </small>
+
+
+                <div class="rounded-4 p-4"
+                     style="
+                    background:#F8F5F2;
+                    color:#5F5146;
+                    min-height:100px;
+                    white-space:pre-line;">
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        displaySummary))
+                    {
+                        @displaySummary
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+
+                            No summary is available yet.
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         STATUS HISTORY
+         ========================================================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#F4EEE8;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-clock-history me-2"></i>
+
+                Status History
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            @if (riskHistory.Any())
+            {
+                <!-- =============================================
+                     SIMPLE STATUS PROGRESSION
+                     ============================================= -->
+
+                <div class="d-flex
+                    align-items-center
+                    flex-wrap
+                    gap-2
+                    mb-4">
+
+                    @for (int i = 0;
+                          i < riskHistory.Count;
+                          i++)
+                    {
+                        var item =
+                            riskHistory[i];
+
+
+                        if (item.RiskStatus == "Normal")
+                        {
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="
+                                background:#E8EFE9;
+                                color:#526B59;">
+
+                                Normal
+
+                            </span>
+                        }
+                        else if (item.RiskStatus == "Moderate")
+                        {
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="
+                                background:#FFF3CD;
+                                color:#795F00;">
+
+                                Moderate
+
+                            </span>
+                        }
+                        else if (item.RiskStatus == "Severe")
+                        {
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="
+                                background:#F8D7DA;
+                                color:#842029;">
+
+                                Severe
+
+                            </span>
+                        }
+                        else if (item.RiskStatus ==
+                                 "Extremely Severe")
+                        {
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="
+                                background:#E7D8DC;
+                                color:#682F3B;">
+
+                                Extremely Severe
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                @item.RiskStatus
+
+                            </span>
+                        }
+
+
+                        if (i <
+                            riskHistory.Count - 1)
+                        {
+                            <i class="bi bi-arrow-right"
+                               style="color:#A67C52;">
+                            </i>
+                        }
+                    }
+
+                </div>
+
+
+                <!-- =============================================
+                     STATUS HISTORY TABLE
+                     ============================================= -->
+
+                <div class="table-responsive">
+
+                    <table class="table
+                        table-hover
+                        align-middle
+                        mb-0">
+
+                        <thead style="background:#F8F5F2;">
+
+                            <tr>
+
+                                <th>
+                                    Time
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Summary
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item
+                                in riskHistory)
+                            {
+                                <tr>
+
+                                    <!-- Time -->
+
+                                    <td style="min-width:160px;">
+
+                                        <div class="fw-semibold">
+
+                                            @item.CreatedAt.ToString(
+                                                "h:mm tt"
+                                            )
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @item.CreatedAt.ToString(
+                                                "dd MMM yyyy"
+                                            )
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- Status -->
+
+                                    <td style="min-width:150px;">
+
+                                        @if (item.RiskStatus == "Normal")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="
+                                                background:#E8EFE9;
+                                                color:#526B59;">
+
+                                                Normal
+
+                                            </span>
+                                        }
+                                        else if (item.RiskStatus == "Moderate")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="
+                                                background:#FFF3CD;
+                                                color:#795F00;">
+
+                                                Moderate
+
+                                            </span>
+                                        }
+                                        else if (item.RiskStatus == "Severe")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="
+                                                background:#F8D7DA;
+                                                color:#842029;">
+
+                                                Severe
+
+                                            </span>
+                                        }
+                                        else if (item.RiskStatus ==
+                                                 "Extremely Severe")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="
+                                                background:#E7D8DC;
+                                                color:#682F3B;">
+
+                                                Extremely Severe
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                @item.RiskStatus
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Summary -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.Summary))
+                                        {
+                                            <span style="color:#5F5146;">
+
+                                                @item.Summary
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                No summary available.
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+
+                    <div class="rounded-circle
+                        d-flex
+                        align-items-center
+                        justify-content-center
+                        mx-auto
+                        mb-3"
+                         style="
+                        width:65px;
+                        height:65px;
+                        background:#EEE4DA;">
+
+                        <i class="bi bi-activity fs-3"
+                           style="color:#806C5D;">
+                        </i>
+
+                    </div>
+
+
+                    <h6 class="fw-bold"
+                        style="color:#5F5146;">
+
+                        No Status History Yet
+
+                    </h6>
+
+                    <p class="text-muted mb-0">
+
+                        Status history will appear as
+                        the live conversation is analyzed.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         INFORMATION
+         ========================================================= -->
+
+    <div class="alert rounded-4 mb-0"
+         style="
+        background:#F4EEE8;
+        border:1px solid #E6DBD1;
+        color:#705F50;">
+
+        <i class="bi bi-info-circle-fill me-2"></i>
+
+        This report provides a monitoring status based on the
+        live voice conversation. It is intended to support
+        follow-up and does not represent a medical diagnosis.
+
+    </div>
+
+</div>

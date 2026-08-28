@@ -1,0 +1,584 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Edit Student";
+}
+
+<div class="container-fluid">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        Edit Student
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Update student personal and academic information.
+
+                    </p>
+
+                </div>
+
+                <a asp-controller="Admin"
+                   asp-action="StudentDetails"
+                   asp-route-id="@Model.StudentId"
+                   class="btn rounded-3 px-4"
+                   style="background:#8A7563;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Edit Form ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-body p-4">
+
+            <form asp-controller="Admin"
+                  asp-action="EditStudent"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="StudentId"
+                       type="hidden" />
+
+                <input asp-for="ProfileImage"
+                       type="hidden" />
+
+
+                <!-- Validation -->
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-4">
+                </div>
+
+
+                <!-- ================= Profile Image ================= -->
+
+                <div class="text-center mb-4">
+
+                    @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                    {
+                        <img src="@Model.ProfileImage"
+                             width="150"
+                             height="150"
+                             class="rounded-circle border shadow-sm mb-3"
+                             style="object-fit:cover;">
+                    }
+                    else
+                    {
+                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.FullName)&background=A67C52&color=fff&size=150"
+                             width="150"
+                             height="150"
+                             class="rounded-circle shadow-sm mb-3">
+                    }
+
+                    <div>
+
+                        <label asp-for="ImageFile"
+                               class="form-label fw-semibold"
+                               style="color:#5F5146;">
+
+                            Change Profile Image
+
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,image/*" />
+
+                        <span asp-validation-for="ImageFile"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <!-- ================= Basic Information ================= -->
+
+                <h4 class="mb-4"
+                    style="color:#5F5146;">
+
+                    Personal Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Student ID -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="StudentIdNumber"
+                               class="form-label fw-semibold">
+
+                            Student ID
+
+                        </label>
+
+                        <input asp-for="StudentIdNumber"
+                               class="form-control rounded-3"
+                               placeholder="Enter student ID" />
+
+                        <span asp-validation-for="StudentIdNumber"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Full Name -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="FullName"
+                               class="form-label fw-semibold">
+
+                            Full Name
+
+                        </label>
+
+                        <input asp-for="FullName"
+                               class="form-control rounded-3"
+                               placeholder="Enter full name" />
+
+                        <span asp-validation-for="FullName"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Email -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Email"
+                               class="form-label fw-semibold">
+
+                            Email
+
+                        </label>
+
+                        <input asp-for="Email"
+                               type="email"
+                               class="form-control rounded-3"
+                               placeholder="Enter email" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Phone -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Phone"
+                               class="form-label fw-semibold">
+
+                            Phone
+
+                        </label>
+
+                        <input asp-for="Phone"
+                               class="form-control rounded-3"
+                               placeholder="Enter phone number" />
+
+                        <span asp-validation-for="Phone"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Date of Birth -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="DateOfBirth"
+                               class="form-label fw-semibold">
+
+                            Date of Birth
+
+                        </label>
+
+                        <input asp-for="DateOfBirth"
+                               type="date"
+                               class="form-control rounded-3" />
+
+                        <span asp-validation-for="DateOfBirth"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Gender -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Gender"
+                               class="form-label fw-semibold">
+
+                            Gender
+
+                        </label>
+
+                        <select asp-for="Gender"
+                                class="form-select rounded-3">
+
+                            <option value="">
+                                -- Select Gender --
+                            </option>
+
+                            <option value="Male">
+                                Male
+                            </option>
+
+                            <option value="Female">
+                                Female
+                            </option>
+
+                            <option value="Other">
+                                Other
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="Gender"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <!-- ================= Academic Information ================= -->
+
+                <h4 class="mb-4"
+                    style="color:#5F5146;">
+
+                    Academic Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Department -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Department"
+                               class="form-label fw-semibold">
+
+                            Department
+
+                        </label>
+
+                        <input asp-for="Department"
+                               class="form-control rounded-3"
+                               placeholder="Enter department" />
+
+                        <span asp-validation-for="Department"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Semester -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Semester"
+                               class="form-label fw-semibold">
+
+                            Semester
+
+                        </label>
+
+                        <input asp-for="Semester"
+                               class="form-control rounded-3"
+                               placeholder="Enter semester" />
+
+                        <span asp-validation-for="Semester"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <!-- ================= Additional Information ================= -->
+
+                <h4 class="mb-4"
+                    style="color:#5F5146;">
+
+                    Additional Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Height -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Height"
+                               class="form-label fw-semibold">
+
+                            Height
+
+                        </label>
+
+                        <input asp-for="Height"
+                               class="form-control rounded-3"
+                               placeholder="Enter height" />
+
+                        <span asp-validation-for="Height"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Weight -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Weight"
+                               class="form-label fw-semibold">
+
+                            Weight
+
+                        </label>
+
+                        <input asp-for="Weight"
+                               class="form-control rounded-3"
+                               placeholder="Enter weight" />
+
+                        <span asp-validation-for="Weight"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Financial Condition -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="FinancialCondition"
+                               class="form-label fw-semibold">
+
+                            Financial Condition
+
+                        </label>
+
+                        <input asp-for="FinancialCondition"
+                               class="form-control rounded-3"
+                               placeholder="Enter financial condition" />
+
+                        <span asp-validation-for="FinancialCondition"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <!-- ================= Guardian Information ================= -->
+
+                <h4 class="mb-4"
+                    style="color:#5F5146;">
+
+                    Guardian Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Guardian Name -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="GuardianName"
+                               class="form-label fw-semibold">
+
+                            Guardian Name
+
+                        </label>
+
+                        <input asp-for="GuardianName"
+                               class="form-control rounded-3"
+                               placeholder="Enter guardian name" />
+
+                        <span asp-validation-for="GuardianName"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Relationship -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Relationship"
+                               class="form-label fw-semibold">
+
+                            Relationship
+
+                        </label>
+
+                        <input asp-for="Relationship"
+                               class="form-control rounded-3"
+                               placeholder="e.g. Father, Mother, Brother" />
+
+                        <span asp-validation-for="Relationship"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Guardian Phone -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="GuardianPhone"
+                               class="form-label fw-semibold">
+
+                            Guardian Phone
+
+                        </label>
+
+                        <input asp-for="GuardianPhone"
+                               class="form-control rounded-3"
+                               placeholder="Enter guardian phone" />
+
+                        <span asp-validation-for="GuardianPhone"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Guardian Email -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="GuardianEmail"
+                               class="form-label fw-semibold">
+
+                            Guardian Email
+
+                        </label>
+
+                        <input asp-for="GuardianEmail"
+                               type="email"
+                               class="form-control rounded-3"
+                               placeholder="Enter guardian email" />
+
+                        <span asp-validation-for="GuardianEmail"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================= Buttons ================= -->
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <a asp-controller="Admin"
+                       asp-action="StudentDetails"
+                       asp-route-id="@Model.StudentId"
+                       class="btn rounded-3 px-4"
+                       style="background:#E8DDD2;
+                        color:#5F5146;">
+
+                        <i class="bi bi-x-circle me-1"></i>
+
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn rounded-3 px-4"
+                            style="background:#A67C52;
+                        color:white;">
+
+                        <i class="bi bi-check-circle me-1"></i>
+
+                        Save Changes
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

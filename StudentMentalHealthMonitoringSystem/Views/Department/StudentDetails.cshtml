@@ -1,0 +1,1519 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = "Student Details";
+
+    var counselingHistory =
+        ViewBag.CounselingHistory
+        as IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>;
+}
+
+
+<!-- =========================================================
+     STUDENT DETAILS PAGE
+     ========================================================= -->
+
+<style>
+
+    /* =====================================================
+           PAGE HEADER
+           ===================================================== */
+
+    .details-header {
+        background: linear-gradient( 135deg, #B9DFF0, #CADFEA, #DED6E9 );
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.08);
+    }
+
+
+    .details-title {
+        color: #405F70;
+        font-weight: 700;
+    }
+
+
+    .details-subtitle {
+        color: #78909E;
+        font-size: 14px;
+    }
+
+
+    /* =====================================================
+           BACK BUTTON
+           ===================================================== */
+
+    .back-btn {
+        background: rgba(255, 255, 255, 0.75);
+        color: #557587;
+        border: 1px solid rgba(255, 255, 255, 0.90);
+        border-radius: 12px;
+        padding: 10px 17px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+        .back-btn:hover {
+            background: #FFFFFF;
+            color: #466A7D;
+        }
+
+
+    /* =====================================================
+           PROFILE CARD
+           ===================================================== */
+
+    .profile-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E9ED;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.07);
+        overflow: hidden;
+    }
+
+
+    .profile-top {
+        text-align: center;
+        padding: 32px 20px;
+        background: linear-gradient( 180deg, #F1F8FB, #FFFFFF );
+    }
+
+
+    /* =====================================================
+           PROFILE IMAGE
+           ===================================================== */
+
+    .profile-image {
+        width: 135px;
+        height: 135px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid #FFFFFF;
+        box-shadow: 0 8px 25px rgba(70, 100, 120, 0.12);
+    }
+
+
+    .profile-placeholder {
+        width: 135px;
+        height: 135px;
+        margin: auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient( 135deg, #DDEEF5, #E8E1F0 );
+        color: #6D8A9A;
+        border: 5px solid #FFFFFF;
+        box-shadow: 0 8px 25px rgba(70, 100, 120, 0.12);
+        font-size: 45px;
+    }
+
+
+    .profile-name {
+        color: #4C6878;
+        font-size: 21px;
+        font-weight: 700;
+        margin-top: 17px;
+    }
+
+
+    .profile-id {
+        color: #91A0A8;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+
+    .department-badge {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 7px 14px;
+        border-radius: 30px;
+        background: #EEEAF6;
+        color: #766D96;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+
+    /* =====================================================
+           CONTACT SECTION
+           ===================================================== */
+
+    .contact-section {
+        padding: 20px 24px;
+    }
+
+
+    .contact-item {
+        padding: 13px 0;
+        border-bottom: 1px solid #EFF3F5;
+    }
+
+
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+
+
+    .info-label {
+        color: #95A2A9;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+
+    .info-value {
+        color: #526A79;
+        font-size: 13px;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+
+    .not-provided {
+        color: #AAB5BB;
+        font-weight: 400;
+        font-style: italic;
+    }
+
+
+    /* =====================================================
+           INFORMATION CARD
+           ===================================================== */
+
+    .info-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E9ED;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.06);
+        overflow: hidden;
+    }
+
+
+    .info-card-header {
+        padding: 17px 21px;
+        background: #F4F8FA;
+        border-bottom: 1px solid #E5ECEF;
+    }
+
+
+    .info-card-title {
+        color: #526E7D;
+        font-size: 15px;
+        font-weight: 650;
+        margin: 0;
+    }
+
+
+    .info-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background: #E6F2F7;
+        color: #668B9D;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+
+    .info-item {
+        padding: 14px 0;
+        border-bottom: 1px solid #EFF3F5;
+    }
+
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+
+    /* =====================================================
+           COUNSELING HISTORY
+           ===================================================== */
+
+    .history-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E9ED;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.06);
+        overflow: hidden;
+    }
+
+
+    .history-table {
+        margin-bottom: 0;
+    }
+
+
+        .history-table thead th {
+            background: #F5F8FA;
+            color: #718794;
+            font-size: 12px;
+            font-weight: 650;
+            padding: 15px;
+            border-bottom: 1px solid #E4EBEE;
+            white-space: nowrap;
+        }
+
+
+        .history-table tbody td {
+            color: #5B7180;
+            font-size: 12px;
+            padding: 15px;
+            border-bottom: 1px solid #EFF3F5;
+            vertical-align: middle;
+        }
+
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        .history-table tbody tr:hover {
+            background: #FAFCFD;
+        }
+
+
+    /* =====================================================
+           STATUS BADGES
+           ===================================================== */
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 11px;
+        border-radius: 30px;
+        font-size: 10px;
+        font-weight: 650;
+    }
+
+
+    .status-confirmed {
+        background: #E3F0F5;
+        color: #5C8194;
+    }
+
+
+    .status-pending {
+        background: #F3EEDC;
+        color: #8A7B55;
+    }
+
+
+    .status-completed {
+        background: #E2EFE9;
+        color: #607D6E;
+    }
+
+
+    .status-cancelled {
+        background: #F3E3E7;
+        color: #8A6670;
+    }
+
+
+    .status-default {
+        background: #EEF2F4;
+        color: #71828B;
+    }
+
+
+    /* =====================================================
+           RISK BADGE
+           ===================================================== */
+
+    .risk-badge {
+        display: inline-block;
+        padding: 6px 11px;
+        border-radius: 30px;
+        background: #EEEAF6;
+        color: #766D96;
+        font-size: 10px;
+        font-weight: 650;
+    }
+
+
+    /* =====================================================
+           EMPTY HISTORY
+           ===================================================== */
+
+    .empty-history {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+
+    .empty-icon {
+        width: 70px;
+        height: 70px;
+        margin: auto;
+        border-radius: 21px;
+        background: #EAF3F7;
+        color: #7595A6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    .empty-title {
+        color: #526A79;
+        font-weight: 650;
+        margin-top: 15px;
+    }
+
+
+    .empty-text {
+        color: #97A5AC;
+        font-size: 13px;
+    }
+
+
+    /* =====================================================
+           RESPONSIVE DESIGN
+           ===================================================== */
+
+    @@media (max-width: 768px) {
+
+        .details-header {
+            border-radius: 20px;
+        }
+
+        .profile-name {
+            font-size: 19px;
+        }
+    }
+
+</style>
+
+
+
+<div class="container-fluid">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="details-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
+
+
+                <!-- =========================================
+                     HEADER TITLE
+                     ========================================= -->
+
+                <div>
+
+                    <div class="details-subtitle mb-1">
+
+                        Department Student
+
+                    </div>
+
+
+                    <h2 class="details-title mb-1">
+
+                        Student Details
+
+                    </h2>
+
+
+                    <p class="details-subtitle mb-0">
+
+                        View complete student information
+                        and counseling history.
+
+                    </p>
+
+                </div>
+
+
+                <!-- =========================================
+                     BACK TO STUDENTS
+                     ========================================= -->
+
+                <a asp-controller="Department"
+                   asp-action="Students"
+                   class="back-btn">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Students
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PROFILE + PERSONAL INFORMATION
+         ===================================================== -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- =================================================
+             STUDENT PROFILE
+             ================================================= -->
+
+        <div class="col-lg-4">
+
+            <div class="profile-card">
+
+
+                <!-- =========================================
+                     PROFILE TOP
+                     ========================================= -->
+
+                <div class="profile-top">
+
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+                    {
+                        <img src="@Model.ProfileImage"
+                             alt="Student Profile"
+                             class="profile-image" />
+                    }
+                    else
+                    {
+                        <div class="profile-placeholder">
+
+                            <i class="bi bi-person"></i>
+
+                        </div>
+                    }
+
+
+                    <div class="profile-name">
+
+                        @Model.FullName
+
+                    </div>
+
+
+                    <div class="profile-id">
+
+                        Student ID:
+                        @Model.StudentIdNumber
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Department))
+                    {
+                        <span class="department-badge">
+
+                            <i class="bi bi-building me-1"></i>
+
+                            @Model.Department
+
+                        </span>
+                    }
+
+                </div>
+
+
+
+                <!-- =========================================
+                     CONTACT INFORMATION
+                     ========================================= -->
+
+                <div class="contact-section">
+
+
+                    <div class="contact-item">
+
+                        <div class="info-label">
+
+                            Email
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.Email))
+                            {
+                                @Model.Email
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="contact-item">
+
+                        <div class="info-label">
+
+                            Phone
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                            {
+                                @Model.Phone
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             PERSONAL & ACADEMIC INFORMATION
+             ================================================= -->
+
+        <div class="col-lg-8">
+
+            <div class="info-card h-100">
+
+
+                <!-- =========================================
+                     CARD HEADER
+                     ========================================= -->
+
+                <div class="info-card-header">
+
+                    <div class="d-flex align-items-center">
+
+                        <div class="info-icon">
+
+                            <i class="bi bi-person-vcard"></i>
+
+                        </div>
+
+
+                        <h5 class="info-card-title">
+
+                            Personal & Academic Information
+
+                        </h5>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     CARD BODY
+                     ========================================= -->
+
+                <div class="card-body p-4">
+
+                    <div class="row">
+
+
+                        <!-- Student ID -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Student ID
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @Model.StudentIdNumber
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Full Name -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Full Name
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @Model.FullName
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Email -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Email
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @Model.Email
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Phone -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Phone
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @Model.Phone
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Date of Birth -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Date of Birth
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @if (Model.DateOfBirth.HasValue)
+                                    {
+                                        @Model.DateOfBirth.Value.ToString("dd MMMM yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Provided
+
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Gender -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Gender
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.Gender))
+                                    {
+                                        @Model.Gender
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Provided
+
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Department -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Department
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.Department))
+                                    {
+                                        @Model.Department
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Provided
+
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Semester -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-item">
+
+                                <div class="info-label">
+
+                                    Current Semester
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.Semester))
+                                    {
+                                        @Model.Semester
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Provided
+
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PHYSICAL FINANCIAL & GUARDIAN INFORMATION
+         ===================================================== -->
+
+    <div class="info-card mb-4">
+
+
+        <!-- ================================================
+             CARD HEADER
+             ================================================= -->
+
+        <div class="info-card-header">
+
+            <div class="d-flex align-items-center">
+
+                <div class="info-icon">
+
+                    <i class="bi bi-heart-pulse"></i>
+
+                </div>
+
+
+                <h5 class="info-card-title">
+
+                    Physical, Financial & Guardian Information
+
+                </h5>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================
+             CARD BODY
+             ================================================= -->
+
+        <div class="card-body p-4">
+
+            <div class="row">
+
+
+                <!-- Height -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Height
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (Model.Height.HasValue)
+                            {
+                                <span>
+
+                                    @Model.Height.Value cm
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Weight -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Weight
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (Model.Weight.HasValue)
+                            {
+                                <span>
+
+                                    @Model.Weight.Value kg
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Financial Condition -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Financial Condition
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.FinancialCondition))
+                            {
+                                @Model.FinancialCondition
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Guardian Name -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Guardian Name
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.GuardianName))
+                            {
+                                @Model.GuardianName
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Relationship -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Relationship
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.Relationship))
+                            {
+                                @Model.Relationship
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Guardian Phone -->
+
+                <div class="col-md-4">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Guardian Phone
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.GuardianPhone))
+                            {
+                                @Model.GuardianPhone
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Guardian Email -->
+
+                <div class="col-md-6">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+
+                            Guardian Email
+
+                        </div>
+
+
+                        <div class="info-value">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.GuardianEmail))
+                            {
+                                @Model.GuardianEmail
+                            }
+                            else
+                            {
+                                <span class="not-provided">
+
+                                    Not Provided
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         COUNSELING HISTORY
+         ===================================================== -->
+
+    <div class="history-card mb-4">
+
+
+        <!-- ================================================
+             HISTORY HEADER
+             ================================================= -->
+
+        <div class="info-card-header">
+
+            <div class="d-flex align-items-center">
+
+                <div class="info-icon">
+
+                    <i class="bi bi-calendar-heart"></i>
+
+                </div>
+
+
+                <h5 class="info-card-title">
+
+                    Counseling History
+
+                </h5>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================
+             HISTORY TABLE
+             ================================================= -->
+        @if (counselingHistory != null && counselingHistory.Any())
+        {
+
+            <div class="table-responsive">
+
+                <table class="table history-table align-middle">
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Date
+                            </th>
+
+                            <th>
+                                Time
+                            </th>
+
+                            <th>
+                                Psychologist
+                            </th>
+
+                            <th>
+                                Risk Level
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Follow-up
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var counseling in counselingHistory)
+                        {
+
+                            <tr>
+
+
+                                <!-- =================================
+                                     DATE
+                                     ================================= -->
+
+                                <td>
+
+                                    @counseling.CounselingDate.ToString("dd MMM yyyy")
+
+                                </td>
+
+
+
+                                <!-- =================================
+                                     TIME
+                                     ================================= -->
+
+                                <td>
+
+                                    @counseling.AppointmentTime.ToString(@"hh\:mm")
+
+                                    -
+
+                                    @counseling.AppointmentEndTime.ToString(@"hh\:mm")
+
+                                </td>
+
+
+
+                                <!-- =================================
+                                     PSYCHOLOGIST
+                                     ================================= -->
+
+                                <td>
+
+                                    @if (counseling.Psychologist != null)
+                                    {
+                                        @counseling.Psychologist.FullName
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Assigned
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+
+                                <!-- =================================
+                                     RISK LEVEL
+                                     ================================= -->
+
+                                <td>
+
+                                    @if (!string.IsNullOrWhiteSpace(counseling.RiskLevel))
+                                    {
+                                        <span class="risk-badge">
+
+                                            @counseling.RiskLevel
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Assessed
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+
+                                <!-- =================================
+                                     STATUS
+                                     ================================= -->
+
+                                <td>
+
+                                    @if (counseling.Status == "Confirmed")
+                                    {
+                                        <span class="status-badge status-confirmed">
+
+                                            Confirmed
+
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Pending")
+                                    {
+                                        <span class="status-badge status-pending">
+
+                                            Pending
+
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Completed")
+                                    {
+                                        <span class="status-badge status-completed">
+
+                                            Completed
+
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Cancelled")
+                                    {
+                                        <span class="status-badge status-cancelled">
+
+                                            Cancelled
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-default">
+
+                                            @counseling.Status
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+
+                                <!-- =================================
+                                     FOLLOW-UP
+                                     ================================= -->
+
+                                <td>
+
+                                    @if (counseling.NextFollowUpDate.HasValue)
+                                    {
+                                        @counseling.NextFollowUpDate.Value.ToString("dd MMM yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="not-provided">
+
+                                            Not Set
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        }
+        else
+        {
+
+            <!-- =============================================
+                 NO COUNSELING HISTORY
+                 ============================================= -->
+
+            <div class="empty-history">
+
+                <div class="empty-icon">
+
+                    <i class="bi bi-calendar-x fs-2"></i>
+
+                </div>
+
+
+                <h5 class="empty-title">
+
+                    No Counseling History
+
+                </h5>
+
+
+                <p class="empty-text mb-0">
+
+                    This student does not have any counseling
+                    records yet.
+
+                </p>
+
+            </div>
+
+        }
+
+    </div>
+
+
+
+    <!-- =====================================================
+         BOTTOM BACK BUTTON
+         ===================================================== -->
+
+    <div class="text-end mb-4">
+
+        <a asp-controller="Department"
+           asp-action="Students"
+           class="back-btn">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back to Students
+
+        </a>
+
+    </div>
+
+</div>

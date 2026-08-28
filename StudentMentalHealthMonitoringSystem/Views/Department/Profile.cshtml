@@ -1,27 +1,419 @@
 ﻿@{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Department Profile";
+
+    var departmentName =
+        ViewBag.DepartmentName as string ?? "Department";
+
+    var email =
+        ViewBag.Email as string ?? "Not Provided";
+
+    var phone =
+        ViewBag.Phone as string ?? "Not Provided";
+
+    var headOfDepartment =
+        ViewBag.HeadOfDepartment as string ?? "Not Provided";
 }
 
-<div class="container mt-4">
 
-    <div class="card shadow">
+<!-- =========================================================
+     DEPARTMENT PROFILE PAGE STYLE
+     ========================================================= -->
 
-        <div class="card-header bg-primary text-white">
+<style>
 
-            <h3>Department Profile</h3>
+    /* =====================================================
+           PAGE HEADER
+           ===================================================== */
+
+    .profile-header {
+        background: linear-gradient( 135deg, #B9DFF0, #CADFEA, #DED6E9 );
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.08);
+    }
+
+
+    .profile-title {
+        color: #405F70;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+
+
+    .profile-subtitle {
+        color: #78909E;
+        font-size: 14px;
+    }
+
+
+    /* =====================================================
+           MAIN PROFILE CARD
+           ===================================================== */
+
+    .profile-card {
+        background: #FFFFFF;
+        border: 1px solid #E0E9ED;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.07);
+        overflow: hidden;
+    }
+
+
+    /* =====================================================
+           PROFILE TOP
+           ===================================================== */
+
+    .profile-top {
+        text-align: center;
+        padding: 35px 20px;
+        background: linear-gradient( 180deg, #F1F8FB, #FFFFFF );
+    }
+
+
+    .department-icon {
+        width: 85px;
+        height: 85px;
+        margin: auto;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient( 135deg, #DDEEF5, #E8E1F0 );
+        color: #66899A;
+        font-size: 34px;
+        box-shadow: 0 8px 25px rgba(70, 100, 120, 0.10);
+    }
+
+
+    .department-name {
+        color: #4C6878;
+        font-size: 22px;
+        font-weight: 700;
+        margin-top: 17px;
+    }
+
+
+    .department-label {
+        color: #91A0A8;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+
+    /* =====================================================
+           INFORMATION SECTION
+           ===================================================== */
+
+    .profile-info {
+        padding: 25px 30px;
+    }
+
+
+    .info-item {
+        padding: 16px 0;
+        border-bottom: 1px solid #EFF3F5;
+    }
+
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+
+    .info-label {
+        color: #95A2A9;
+        font-size: 11px;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+
+    .info-value {
+        color: #526A79;
+        font-size: 14px;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+
+    /* =====================================================
+           INFO ICON
+           ===================================================== */
+
+    .info-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: #EAF3F7;
+        color: #668B9D;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+
+    /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+    @@media (max-width: 768px) {
+
+        .profile-header {
+            border-radius: 20px;
+        }
+
+        .profile-info {
+            padding: 20px;
+        }
+    }
+
+</style>
+
+
+
+<div class="container-fluid">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="profile-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div>
+
+                <div class="profile-subtitle mb-1">
+
+                    Department Administration
+
+                </div>
+
+
+                <h2 class="profile-title mb-1">
+
+                    Department Profile
+
+                </h2>
+
+
+                <p class="profile-subtitle mb-0">
+
+                    View your department's registered information.
+
+                </p>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered">
 
-                <tr><th>Department</th><td>CSE</td></tr>
-                <tr><th>Faculty</th><td>Dr. ABC</td></tr>
-                <tr><th>Email</th><td>cse@university.edu</td></tr>
-                <tr><th>Phone</th><td>017XXXXXXXX</td></tr>
 
-            </table>
+    <!-- =====================================================
+         PROFILE CARD
+         ===================================================== -->
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-8 col-lg-9">
+
+            <div class="profile-card">
+
+
+                <!-- =================================================
+                     DEPARTMENT PROFILE HEADER
+                     ================================================= -->
+
+                <div class="profile-top">
+
+                    <div class="department-icon">
+
+                        <i class="bi bi-building"></i>
+
+                    </div>
+
+
+                    <div class="department-name">
+
+                        @departmentName
+
+                    </div>
+
+
+                    <div class="department-label">
+
+                        Academic Department
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     DEPARTMENT INFORMATION
+                     ================================================= -->
+
+                <div class="profile-info">
+
+
+                    <!-- =============================================
+                         DEPARTMENT NAME
+                         ============================================= -->
+
+                    <div class="info-item">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="info-icon">
+
+                                <i class="bi bi-building"></i>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="info-label">
+
+                                    Department
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @departmentName
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         HEAD OF DEPARTMENT
+                         ============================================= -->
+
+                    <div class="info-item">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="info-icon">
+
+                                <i class="bi bi-person-badge"></i>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="info-label">
+
+                                    Head of Department
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @headOfDepartment
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         EMAIL
+                         ============================================= -->
+
+                    <div class="info-item">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="info-icon">
+
+                                <i class="bi bi-envelope"></i>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="info-label">
+
+                                    Department Email
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @email
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         PHONE
+                         ============================================= -->
+
+                    <div class="info-item">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="info-icon">
+
+                                <i class="bi bi-telephone"></i>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="info-label">
+
+                                    Phone
+
+                                </div>
+
+
+                                <div class="info-value">
+
+                                    @phone
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 

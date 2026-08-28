@@ -1,0 +1,714 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.ObservationReport
+
+@using StudentMentalHealthMonitoringSystem.Models
+
+@{
+    Layout = "_DepartmentLayout";
+    ViewData["Title"] = "Observation Report";
+
+    var observations =
+        ViewBag.Observations as List<CounselingObservation>
+        ?? new List<CounselingObservation>();
+
+    var latestObservation =
+        observations.LastOrDefault();
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="d-flex
+        justify-content-between
+        align-items-center
+        flex-wrap
+        gap-3
+        mb-4">
+
+        <div>
+
+            <h2 class="mb-2"
+                style="
+                color:#405B6B;
+                font-weight:700;">
+
+                Observation Report
+
+            </h2>
+
+            <p class="mb-0"
+               style="
+                color:#7B8E99;
+                font-size:14px;">
+
+                Counseling and follow-up observation history.
+
+            </p>
+
+        </div>
+
+
+        <a asp-controller="Department"
+           asp-action="ObservationReports"
+           class="btn rounded-3 px-4"
+           style="
+            background:#658296;
+            color:white;">
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back to Reports
+
+        </a>
+
+    </div>
+
+
+    <!-- ================= STUDENT INFORMATION ================= -->
+
+    <div class="card border-0 shadow-sm mb-4"
+         style="border-radius:20px;">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8F1F5;">
+
+            <h5 class="mb-0"
+                style="
+                color:#526A79;
+                font-weight:700;">
+
+                Student Information
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Student
+                    </small>
+
+                    <strong style="color:#526A79;">
+
+                        @(Model.Student?.FullName ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Student ID
+                    </small>
+
+                    <strong>
+
+                        @(Model.Student?.StudentIdNumber ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Psychologist
+                    </small>
+
+                    <strong>
+
+                        @(Model.Psychologist?.FullName ?? "-")
+
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-3">
+
+                    <small class="text-muted d-block">
+                        Report Status
+                    </small>
+
+                    @if (Model.IsFinal)
+                    {
+                        <span class="badge
+                            bg-success
+                            rounded-pill
+                            px-3 py-2">
+
+                            Final
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge
+                            rounded-pill
+                            px-3 py-2"
+                              style="
+                            background:#FFF3CD;
+                            color:#795F00;">
+
+                            Ongoing
+
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= SESSION HISTORY ================= -->
+
+    <div class="card border-0 shadow-sm mb-4"
+         style="border-radius:20px;">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8F1F5;">
+
+            <h5 class="mb-0"
+                style="
+                color:#526A79;
+                font-weight:700;">
+
+                <i class="bi bi-clock-history me-2"></i>
+
+                Counseling &amp; Follow-up History
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            @if (observations.Any())
+            {
+                var sessionNumber = 1;
+
+                @foreach (var item in observations)
+                {
+                    var counseling =
+                        item.Counseling;
+
+
+                    <div class="card mb-4"
+                         style="
+                        border-radius:16px;
+                        border:1px solid #DDE7EC;">
+
+                        <div class="card-header border-0 py-3"
+                             style="
+                            background:#F5F9FB;">
+
+                            <div class="d-flex
+                                justify-content-between
+                                flex-wrap
+                                gap-2">
+
+                                <strong style="color:#526A79;">
+
+                                    Counseling Session @sessionNumber
+
+                                </strong>
+
+
+                                @if (counseling != null)
+                                {
+                                    <span class="text-muted">
+
+                                        @counseling.CounselingDate.ToString(
+                                            "dd MMM yyyy")
+
+                                        |
+
+                                        @DateTime.Today
+                                        .Add(
+                                        counseling.AppointmentTime)
+                                        .ToString("h:mm tt")
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="card-body p-4">
+
+                            <div class="row g-4">
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Overall Progress
+                                    </small>
+
+                                    <strong>
+                                        @item.OverallProgressStatus
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Current Mental Health Status
+                                    </small>
+
+                                    <strong>
+                                        @item.CurrentMentalHealthStatus
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-4">
+
+                                    <small class="text-muted d-block">
+                                        PHQ-9 Score
+                                    </small>
+
+                                    <strong>
+                                        @(item.PHQScore?.ToString()
+                                            ?? "Not Available")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-4">
+
+                                    <small class="text-muted d-block">
+                                        PHQ-9 Official Interpretation
+                                    </small>
+
+                                    <strong>
+                                        @(item.PHQOfficialInterpretation
+                                            ?? "Not Available")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-4">
+
+                                    <small class="text-muted d-block">
+                                        PHQ-9 Project Status
+                                    </small>
+
+                                    <strong>
+                                        @(item.PHQProjectStatus
+                                            ?? "Not Assessed")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        C-SSRS Risk
+                                    </small>
+
+                                    <strong>
+                                        @(item.CSSRSRiskLevel
+                                            ?? "Not Available")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        C-SSRS Project Status
+                                    </small>
+
+                                    <strong>
+                                        @(item.CSSRSProjectStatus
+                                            ?? "Not Assessed")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Current Safety Risk
+                                    </small>
+
+                                    <strong>
+                                        @item.CurrentSafetyRisk
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Student-Reported Improvement
+                                    </small>
+
+                                    <strong>
+                                        @item.StudentReportedImprovement
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <hr class="my-4" />
+
+
+                            <h6 class="mb-3"
+                                style="
+                                color:#526A79;
+                                font-weight:700;">
+
+                                Functional Status
+
+                            </h6>
+
+
+                            <div class="row g-3">
+
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">
+                                        Academic Functioning
+                                    </small>
+                                    <strong>@item.AcademicFunctioning</strong>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">
+                                        Sleep Condition
+                                    </small>
+                                    <strong>@item.SleepCondition</strong>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">
+                                        Social Interaction
+                                    </small>
+                                    <strong>@item.SocialInteraction</strong>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">
+                                        Daily Activities
+                                    </small>
+                                    <strong>@item.DailyActivities</strong>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">
+                                        Emotional Regulation
+                                    </small>
+                                    <strong>@item.EmotionalRegulation</strong>
+                                </div>
+
+                            </div>
+
+
+                            <hr class="my-4" />
+
+
+                            <div class="mb-3">
+
+                                <small class="text-muted d-block mb-1">
+                                    Assessment Basis
+                                </small>
+
+                                <div>
+                                    @item.AssessmentBasis.Replace(
+                                        " | ",
+                                        ", ")
+                                </div>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <small class="text-muted d-block mb-1">
+                                    Clinical Observation
+                                </small>
+
+                                <div style="white-space:pre-line;">
+                                    @item.ClinicalObservation
+                                </div>
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <small class="text-muted d-block mb-1">
+                                    Assessment Summary
+                                </small>
+
+                                <div style="white-space:pre-line;">
+                                    @item.AssessmentSummary
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <small class="text-muted d-block mb-1">
+                                    Recommended Action
+                                </small>
+
+                                <div>
+                                    @item.RecommendedAction.Replace(
+                                        " | ",
+                                        ", ")
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    sessionNumber++;
+                }
+            }
+            else
+            {
+                <div class="text-center text-muted py-4">
+
+                    No counseling observations are available.
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= LATEST / FINAL CONDITION ================= -->
+
+    <div class="card border-0 shadow-sm"
+         style="border-radius:20px;">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E2EFE8;">
+
+            <h5 class="mb-0"
+                style="
+                color:#506B5B;
+                font-weight:700;">
+
+                <i class="bi bi-activity me-2"></i>
+
+                @(Model.IsFinal
+                    ? "Final Updated Condition"
+                    : "Latest Updated Condition")
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <div class="row g-4">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Initial Status
+                    </small>
+
+                    <strong>
+                        @Model.InitialStatus
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Current Status
+                    </small>
+
+                    <strong>
+                        @Model.CurrentStatus
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Overall Progress
+                    </small>
+
+                    <strong>
+                        @Model.OverallProgressStatus
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Latest PHQ-9 Status
+                    </small>
+
+                    <strong>
+                        @(latestObservation?.PHQProjectStatus
+                            ?? "Not Assessed")
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Latest C-SSRS Risk
+                    </small>
+
+                    <strong>
+                        @(latestObservation?.CSSRSRiskLevel
+                            ?? "Not Available")
+                    </strong>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted d-block">
+                        Current Safety Risk
+                    </small>
+
+                    <strong>
+                        @Model.CurrentSafetyRisk
+                    </strong>
+
+                </div>
+
+
+                @if (latestObservation != null)
+                {
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Academic Functioning
+                        </small>
+
+                        <strong>
+                            @latestObservation.AcademicFunctioning
+                        </strong>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Sleep Condition
+                        </small>
+
+                        <strong>
+                            @latestObservation.SleepCondition
+                        </strong>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <small class="text-muted d-block">
+                            Emotional Regulation
+                        </small>
+
+                        <strong>
+                            @latestObservation.EmotionalRegulation
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+
+            <hr class="my-4" />
+
+
+            <div class="mb-3">
+
+                <small class="text-muted d-block mb-1">
+                    Assessment Basis
+                </small>
+
+                <div>
+                    @Model.LatestAssessmentBasis.Replace(
+                        " | ",
+                        ", ")
+                </div>
+
+            </div>
+
+
+            <div class="mb-3">
+
+                <small class="text-muted d-block mb-1">
+                    Latest Assessment Summary
+                </small>
+
+                <div style="white-space:pre-line;">
+                    @Model.LatestConditionSummary
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <small class="text-muted d-block mb-1">
+                    Recommended Action
+                </small>
+
+                <div>
+                    @Model.LatestRecommendedAction.Replace(
+                        " | ",
+                        ", ")
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

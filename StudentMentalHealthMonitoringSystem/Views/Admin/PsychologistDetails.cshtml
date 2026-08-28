@@ -1,0 +1,283 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Psychologist
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Psychologist Details";
+}
+
+<div class="container-fluid">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        Psychologist Details
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        View psychologist profile and professional information.
+
+                    </p>
+                </div>
+
+                <a asp-controller="Admin"
+                   asp-action="Psychologists"
+                   class="btn rounded-3 px-4"
+                   style="background:#8A7563;color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Profile ================= -->
+
+    <div class="row">
+
+        <!-- Profile Card -->
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body text-center p-4">
+
+                    @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                    {
+                        <img src="@Model.ProfileImage"
+                             width="180"
+                             height="180"
+                             class="rounded-circle border shadow-sm mb-3"
+                             style="object-fit:cover;">
+                    }
+                    else
+                    {
+                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.FullName)&background=B89B7A&color=fff&size=180"
+                             width="180"
+                             height="180"
+                             class="rounded-circle shadow-sm mb-3">
+                    }
+
+                    <h3 style="color:#5F5146;">
+
+                        @Model.FullName
+
+                    </h3>
+
+                    <p class="text-muted mb-3">
+
+                        @Model.Specialization
+
+                    </p>
+
+                    <span class="badge rounded-pill px-3 py-2"
+                          style="background:#EEE4DA;
+                        color:#705F50;">
+
+                        Psychologist
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Information Card -->
+
+        <div class="col-lg-8 mb-4">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header border-0 py-3"
+                     style="background:#E8DDD2;">
+
+                    <h4 class="mb-0"
+                        style="color:#5F5146;">
+
+                        Professional Information
+
+                    </h4>
+
+                </div>
+
+                <div class="card-body p-4">
+
+                    <div class="row">
+
+                        <!-- Full Name -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Full Name
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.FullName
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Email
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.Email
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Phone -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Phone
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.Phone
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Specialization -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Specialization
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.Specialization
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Qualification -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Qualification
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.Qualification
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Experience -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <small class="text-muted">
+                                Experience
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                @Model.Experience years
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Action Buttons ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-body text-end">
+
+            <a asp-controller="Admin"
+               asp-action="EditPsychologist"
+               asp-route-id="@Model.PsychologistId"
+               class="btn rounded-3 px-4 me-2"
+               style="background:#E5D3B3;
+                color:#665438;">
+
+                <i class="bi bi-pencil me-1"></i>
+
+                Edit Psychologist
+
+            </a>
+
+            <a asp-controller="Admin"
+               asp-action="DeletePsychologist"
+               asp-route-id="@Model.PsychologistId"
+               class="btn rounded-3 px-4"
+               style="background:#E7C4BD;
+                color:#7A4038;">
+
+                <i class="bi bi-trash me-1"></i>
+
+                Delete Psychologist
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

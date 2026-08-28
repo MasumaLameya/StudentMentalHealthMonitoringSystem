@@ -1,0 +1,737 @@
+﻿@{
+    ViewData["Title"] = "Guardian Dashboard";
+
+    var student = ViewBag.Student;
+
+    var phqReports = ViewBag.PHQReports;
+
+    var cssrsReports = ViewBag.CSSRSReports;
+}
+
+
+<style>
+
+    .guardian-page {
+        padding: 30px 15px;
+    }
+
+    /* ================= HEADER ================= */
+
+    .guardian-header {
+        background: linear-gradient( 135deg, #A9D5E8, #C7DDE8, #DCD1E7 );
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 8px 28px rgba(70,100,120,0.09);
+    }
+
+        .guardian-header h2 {
+            color: #405F70;
+            font-weight: 700;
+        }
+
+        .guardian-header p {
+            color: #718894;
+            font-size: 14px;
+        }
+
+
+    /* ================= LOGOUT ================= */
+
+    .logout-btn {
+        display: inline-block;
+        background: rgba(255,255,255,0.78);
+        color: #5D7887;
+        border: 1px solid #D6E3E8;
+        border-radius: 11px;
+        padding: 9px 16px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+        .logout-btn:hover {
+            background: white;
+            color: #526A79;
+        }
+
+
+    /* ================= STUDENT CARD ================= */
+
+    .student-card {
+        background: white;
+        border: 1px solid #E1EAEE;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 7px 24px rgba(70,100,120,0.06);
+    }
+
+    .student-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 16px;
+        background: #E7F3F8;
+        color: #62869A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 23px;
+    }
+
+    .student-label {
+        color: #97A5AC;
+        font-size: 11px;
+        margin-bottom: 4px;
+    }
+
+    .student-value {
+        color: #526A79;
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+
+    /* ================= REPORT CARD ================= */
+
+    .report-card {
+        background: white;
+        border: 1px solid #E1EAEE;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 7px 24px rgba(70,100,120,0.06);
+    }
+
+    .report-header {
+        padding: 20px 22px;
+        background: #F5F9FA;
+        border-bottom: 1px solid #E7EEF1;
+    }
+
+        .report-header h5 {
+            color: #526A79;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .report-header p {
+            color: #97A5AC;
+            font-size: 11px;
+            margin: 4px 0 0;
+        }
+
+    .report-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+    }
+
+
+    /* ================= REPORT ROW ================= */
+
+    .report-row {
+        padding: 19px 22px;
+        border-bottom: 1px solid #EEF2F4;
+    }
+
+        .report-row:last-child {
+            border-bottom: none;
+        }
+
+    .semester {
+        color: #526A79;
+        font-size: 14px;
+        font-weight: 650;
+    }
+
+    .report-date {
+        color: #98A5AC;
+        font-size: 11px;
+    }
+
+
+    /* ================= SCORE ================= */
+
+    .score-box {
+        background: #F8FAFB;
+        border: 1px solid #E6EDF0;
+        border-radius: 13px;
+        padding: 10px 15px;
+        text-align: center;
+    }
+
+    .score-label {
+        color: #98A5AC;
+        font-size: 9px;
+        margin-bottom: 3px;
+    }
+
+    .score-value {
+        color: #526A79;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+
+    /* ================= BADGES ================= */
+
+    .report-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 650;
+    }
+
+    .phq-badge {
+        background: #EEEAF7;
+        color: #766A99;
+    }
+
+    .cssrs-badge {
+        background: #E6F2EB;
+        color: #64806F;
+    }
+
+
+    /* ================= EMPTY ================= */
+
+    .empty-state {
+        padding: 45px 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        width: 60px;
+        height: 60px;
+        margin: auto;
+        border-radius: 18px;
+        background: #EDF5F8;
+        color: #7191A2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .empty-title {
+        color: #526A79;
+        font-weight: 650;
+        margin-top: 13px;
+    }
+
+    .empty-text {
+        color: #98A5AC;
+        font-size: 12px;
+    }
+
+
+    /* ================= NOTICE ================= */
+
+    .guardian-notice {
+        background: #F3F7F8;
+        border: none;
+        border-radius: 17px;
+        color: #647A85;
+    }
+
+</style>
+
+
+<div class="container-fluid guardian-page">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="guardian-header mb-4">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-8">
+
+                <div style="
+                    color:#718894;
+                    font-size:12px;
+                    margin-bottom:5px;
+                    ">
+
+                    Guardian Portal
+
+                </div>
+
+
+                <h2 class="mb-2">
+
+                    Guardian Dashboard
+
+                </h2>
+
+
+                <p class="mb-0">
+
+                    View your student's mental health
+                    assessment reports.
+
+                </p>
+
+            </div>
+
+
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                <a asp-controller="Guardian"
+                   asp-action="Logout"
+                   class="logout-btn">
+
+                    <i class="bi bi-box-arrow-right me-1"></i>
+
+                    Logout
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         STUDENT INFORMATION
+         ===================================================== -->
+
+    <div class="student-card mb-4">
+
+        <div class="row align-items-center g-4">
+
+
+            <div class="col-auto">
+
+                <div class="student-icon">
+
+                    <i class="bi bi-person-vcard"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="col">
+
+                <div class="student-label">
+
+                    STUDENT NAME
+
+                </div>
+
+                <div class="student-value"
+                     style="font-size:18px;">
+
+                    @student.FullName
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <div class="student-label">
+
+                    STUDENT ID
+
+                </div>
+
+                <div class="student-value">
+
+                    @student.StudentIdNumber
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-3">
+
+                <div class="student-label">
+
+                    DEPARTMENT
+
+                </div>
+
+                <div class="student-value">
+
+                    @student.Department
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PHQ-9 REPORT
+         ===================================================== -->
+
+    <div class="report-card mb-4">
+
+
+        <div class="report-header">
+
+            <div class="d-flex
+                align-items-center
+                justify-content-between">
+
+                <div>
+
+                    <h5>
+
+                        <i class="bi bi-heart-pulse me-2"></i>
+
+                        PHQ-9 Reports
+
+                    </h5>
+
+
+                    <p>
+
+                        Semester-wise depression screening results
+
+                    </p>
+
+                </div>
+
+
+                <div class="report-icon"
+                     style="
+                    background:#EEEAF7;
+                    color:#766A99;
+                    ">
+
+                    <i class="bi bi-heart-pulse"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        @if (phqReports != null &&
+             phqReports.Count > 0)
+        {
+
+            foreach (var report in phqReports)
+            {
+
+                <div class="report-row">
+
+                    <div class="row align-items-center g-3">
+
+
+                        <!-- Semester -->
+
+                        <div class="col-md-4">
+
+                            <div class="semester">
+
+                                @report.Semester
+
+                            </div>
+
+
+                            <div class="report-date">
+
+                                @report.AssessmentDate.ToString(
+                                    "dd MMM yyyy")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Score -->
+
+                        <div class="col-md-4">
+
+                            <div class="score-box">
+
+                                <div class="score-label">
+
+                                    PHQ-9 SCORE
+
+                                </div>
+
+
+                                <div class="score-value">
+
+                                    @report.TotalScore
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Severity -->
+
+                        <div class="col-md-4 text-md-end">
+
+                            <span class="report-badge phq-badge">
+
+                                @report.SeverityLevel
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            }
+
+        }
+        else
+        {
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <i class="bi bi-file-medical"></i>
+
+                </div>
+
+
+                <div class="empty-title">
+
+                    No PHQ-9 Reports
+
+                </div>
+
+
+                <div class="empty-text">
+
+                    No PHQ-9 assessment has been recorded
+                    for this student yet.
+
+                </div>
+
+            </div>
+
+        }
+
+    </div>
+
+
+
+    <!-- =====================================================
+         C-SSRS REPORT
+         ===================================================== -->
+
+    <div class="report-card mb-4">
+
+
+        <div class="report-header">
+
+            <div class="d-flex
+                align-items-center
+                justify-content-between">
+
+                <div>
+
+                    <h5>
+
+                        <i class="bi bi-shield-check me-2"></i>
+
+                        C-SSRS Reports
+
+                    </h5>
+
+
+                    <p>
+
+                        Semester-wise suicide risk screening results
+
+                    </p>
+
+                </div>
+
+
+                <div class="report-icon"
+                     style="
+                    background:#E6F2EB;
+                    color:#64806F;
+                    ">
+
+                    <i class="bi bi-shield-check"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        @if (cssrsReports != null &&
+             cssrsReports.Count > 0)
+        {
+
+            foreach (var report in cssrsReports)
+            {
+
+                <div class="report-row">
+
+                    <div class="row align-items-center g-3">
+
+
+                        <!-- Semester -->
+
+                        <div class="col-md-4">
+
+                            <div class="semester">
+
+                                @report.Semester
+
+                            </div>
+
+
+                            <div class="report-date">
+
+                                @report.AssessmentDate.ToString(
+                                    "dd MMM yyyy")
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Risk -->
+
+                        <div class="col-md-4">
+
+                            <div class="score-box">
+
+                                <div class="score-label">
+
+                                    RISK LEVEL
+
+                                </div>
+
+
+                                <div class="score-value"
+                                     style="
+                                    font-size:14px;
+                                    ">
+
+                                    @report.RiskLevel
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Status -->
+
+                        <div class="col-md-4 text-md-end">
+
+                            <span class="report-badge cssrs-badge">
+
+                                Assessment Completed
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            }
+
+        }
+        else
+        {
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <i class="bi bi-shield"></i>
+
+                </div>
+
+
+                <div class="empty-title">
+
+                    No C-SSRS Reports
+
+                </div>
+
+
+                <div class="empty-text">
+
+                    No C-SSRS assessment has been recorded
+                    for this student yet.
+
+                </div>
+
+            </div>
+
+        }
+
+    </div>
+
+
+
+    <!-- =====================================================
+         READ ONLY NOTICE
+         ===================================================== -->
+
+    <div class="alert guardian-notice mb-0">
+
+        <div class="d-flex align-items-start">
+
+            <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+
+
+            <div>
+
+                <strong>
+
+                    Guardian Access
+
+                </strong>
+
+
+                <div class="small mt-1">
+
+                    This portal is read-only.
+                    Guardians can view the student's
+                    PHQ-9 and C-SSRS reports but cannot
+                    modify assessment information.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

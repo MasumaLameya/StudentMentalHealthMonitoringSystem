@@ -1,57 +1,378 @@
-﻿@{
-    ViewData["Title"] = "Departments";
+@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Department Management";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-warning">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F3EAE2;">
 
-            <h3>Departments</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5C5148;">
+
+                        🏛️ Department Management
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        View departments and the number of registered students.
+
+                    </p>
+
+                </div>
+
+                <div class="text-end">
+
+                    <div class="small text-muted">
+                        Total Departments
+                    </div>
+
+                    <h4 class="fw-bold mb-0"
+                        style="color:#8A7563;">
+
+                        @Model.Count()
+
+                    </h4>
+
+                </div>
+
+            </div>
 
         </div>
 
+    </div>
+
+
+    <!-- ================= Search ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
         <div class="card-body">
 
-            <table class="table table-bordered">
+            <label for="departmentSearch"
+                   class="form-label fw-semibold"
+                   style="color:#5C5148;">
 
-                <tr>
+                Search Department
 
-                    <th>Department</th>
+            </label>
 
-                    <th>Total Students</th>
+            <div class="input-group">
 
-                    <th>High Risk</th>
+                <span class="input-group-text"
+                      style="background:#F3EAE2;
+                    border-color:#DDD2C8;">
 
-                    <th>Action</th>
+                    <i class="bi bi-search"
+                       style="color:#8A7563;"></i>
 
-                </tr>
+                </span>
 
-                <tr>
+                <input type="text"
+                       id="departmentSearch"
+                       class="form-control"
+                       placeholder="Search department..."
+                       autocomplete="off"
+                       style="border-color:#DDD2C8;" />
 
-                    <td>CSE</td>
+                <button type="button"
+                        id="clearDepartmentSearch"
+                        class="btn"
+                        style="background:#E7DDD5;
+                    color:#5C5148;
+                    display:none;">
 
-                    <td>350</td>
+                    <i class="bi bi-x-lg"></i>
 
-                    <td>18</td>
+                </button>
 
-                    <td>
+            </div>
 
-                        <button class="btn btn-primary btn-sm">
+        </div>
 
-                            View
+    </div>
 
-                        </button>
 
-                    </td>
+    <!-- ================= Department Cards ================= -->
 
-                </tr>
+    <div class="row"
+         id="departmentContainer">
 
-            </table>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var department in Model)
+            {
+                <div class="col-xl-4 col-lg-6 mb-4 department-item">
+
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                        <div class="card-body p-4">
+
+                            <div class="d-flex align-items-center">
+
+                                <div class="rounded-4 d-flex align-items-center justify-content-center me-3"
+                                     style="width:60px;
+                                    height:60px;
+                                    background:#E6D6C8;">
+
+                                    <i class="bi bi-building"
+                                       style="font-size:27px;
+                                    color:#806C5D;"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <h4 class="fw-bold mb-1"
+                                        style="color:#5C5148;">
+
+                                        @department.DepartmentName
+
+                                    </h4>
+
+                                    <small class="text-muted">
+
+                                        Academic Department
+
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <hr class="my-4">
+
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Registered Students
+                                    </small>
+
+                                    <h3 class="fw-bold mb-0"
+                                        style="color:#8A7563;">
+
+                                        @department.TotalStudents
+
+                                    </h3>
+
+                                </div>
+
+                                <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width:55px;
+                                    height:55px;
+                                    background:#F1E7DE;">
+
+                                    <i class="bi bi-people"
+                                       style="font-size:24px;
+                                    color:#806C5D;"></i>
+
+                                </div>
+
+                                <a asp-controller="Admin" asp-action="Students" asp-route-department="@department.DepartmentName" class="btn rounded-3 fw-bold px-3 py-2 text-white shadow-sm" style="background:#8A7563;">
+                                    <i class="bi bi-people me-1"></i> View Students (@department.TotalStudents)
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm rounded-4">
+
+                    <div class="card-body text-center py-5">
+
+                        <i class="bi bi-building-x"
+                           style="font-size:45px;
+                        color:#B8AAA0;"></i>
+
+                        <h5 class="mt-3"
+                            style="color:#5C5148;">
+
+                            No Departments Found
+
+                        </h5>
+
+                        <p class="text-muted mb-0">
+
+                            No department information is currently available.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+
+    <!-- ================= No Search Result ================= -->
+
+    <div id="noDepartmentResult"
+         class="card border-0 shadow-sm rounded-4"
+         style="display:none;">
+
+        <div class="card-body text-center py-5">
+
+            <i class="bi bi-search"
+               style="font-size:40px;
+            color:#B8AAA0;"></i>
+
+            <h5 class="mt-3"
+                style="color:#5C5148;">
+
+                No Matching Department
+
+            </h5>
+
+            <p class="text-muted mb-0">
+
+                Try searching with another department name.
+
+            </p>
 
         </div>
 
     </div>
 
 </div>
+
+
+<!-- ================= Search Script ================= -->
+
+<script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const searchInput =
+                document.getElementById("departmentSearch");
+
+            const clearButton =
+                document.getElementById("clearDepartmentSearch");
+
+            const departmentItems =
+                document.querySelectorAll(".department-item");
+
+            const noResult =
+                document.getElementById("noDepartmentResult");
+
+
+            function normalizeText(text) {
+
+                return text
+                    .toLowerCase()
+                    .trim()
+                    .replace(/\s+/g, " ");
+
+            }
+
+
+            function searchDepartments() {
+
+                const searchValue =
+                    normalizeText(searchInput.value);
+
+                let visibleCount = 0;
+
+
+                departmentItems.forEach(function(item) {
+
+                    const departmentText =
+                        normalizeText(item.textContent);
+
+                    if (
+                        searchValue === "" ||
+                        departmentText.includes(searchValue)
+                    ) {
+
+                        item.style.display = "";
+
+                        visibleCount++;
+
+                    }
+                    else {
+
+                        item.style.display = "none";
+
+                    }
+
+                });
+
+
+                if (
+                    visibleCount === 0 &&
+                    searchValue !== ""
+                ) {
+
+                    noResult.style.display = "";
+
+                }
+                else {
+
+                    noResult.style.display = "none";
+
+                }
+
+
+                if (searchValue !== "") {
+
+                    clearButton.style.display = "block";
+
+                }
+                else {
+
+                    clearButton.style.display = "none";
+
+                }
+
+            }
+
+
+            searchInput.addEventListener(
+                "input",
+                searchDepartments
+            );
+
+
+            clearButton.addEventListener(
+                "click",
+                function() {
+
+                    searchInput.value = "";
+
+                    searchDepartments();
+
+                    searchInput.focus();
+
+                }
+            );
+
+        });
+
+</script>

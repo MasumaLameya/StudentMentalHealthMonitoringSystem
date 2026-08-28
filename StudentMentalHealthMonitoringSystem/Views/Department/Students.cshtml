@@ -1,53 +1,835 @@
-﻿@{
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+
+@{
+    Layout = "_DepartmentLayout";
+
     ViewData["Title"] = "Students";
+
+    var departmentName =
+        ViewBag.DepartmentName as string ?? "Department";
+
+    var search =
+        ViewBag.Search as string;
 }
 
-<div class="container mt-4">
 
-    <div class="card shadow">
+<!-- =========================================================
+     STUDENTS PAGE STYLE
+     ========================================================= -->
 
-        <div class="card-header bg-primary text-white">
+<style>
 
-            <h3>Students</h3>
+    /* =====================================================
+           PAGE HEADER
+           ===================================================== */
+
+    .students-page-header {
+        background: linear-gradient( 135deg, #B9DFF0, #CADFEA, #DED6E9 );
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.08);
+    }
+
+
+    .students-page-title {
+        color: #405F70;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+
+
+    .students-page-subtitle {
+        color: #78909E;
+        font-size: 14px;
+    }
+
+
+    /* =====================================================
+           TOTAL STUDENT BOX
+           ===================================================== */
+
+    .total-student-box {
+        min-width: 120px;
+        padding: 13px 18px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.65);
+        border: 1px solid rgba(255,255,255,0.75);
+        text-align: center;
+    }
+
+
+    .total-student-label {
+        color: #78909E;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .6px;
+    }
+
+
+    .total-student-number {
+        color: #4B6B7D;
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+
+    /* =====================================================
+           MAIN STUDENT CARD
+           ===================================================== */
+
+    .student-main-card {
+        border: 1px solid #E2EAEE;
+        border-radius: 22px;
+        background: #FFFFFF;
+        box-shadow: 0 8px 30px rgba(70, 100, 120, 0.07);
+    }
+
+
+    /* =====================================================
+           SEARCH INPUT
+           ===================================================== */
+
+    .student-search-box {
+        border: 1px solid #DCE6EB;
+        border-radius: 13px;
+        background: #FFFFFF;
+        padding: 11px 15px;
+        color: #526A79;
+        height: 46px;
+    }
+
+
+        .student-search-box::placeholder {
+            color: #A0ADB5;
+        }
+
+
+        .student-search-box:focus {
+            border-color: #9EC8DC;
+            box-shadow: 0 0 0 3px rgba(126, 184, 211, 0.13);
+        }
+
+
+    /* =====================================================
+           SEARCH BUTTON
+           ===================================================== */
+
+    .student-search-btn {
+        background: #78B9D8;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 21px;
+        height: 46px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+        .student-search-btn:hover {
+            background: #66A9CA;
+            color: white;
+        }
+
+
+    /* =====================================================
+           CLEAR BUTTON
+           ===================================================== */
+
+    .student-clear-btn {
+        background: #EDF3F6;
+        color: #607987;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 18px;
+        height: 46px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+
+        .student-clear-btn:hover {
+            background: #E2EBEF;
+            color: #506D7C;
+        }
+
+
+    /* =====================================================
+           TABLE
+           ===================================================== */
+
+    .students-table {
+        margin-bottom: 0;
+    }
+
+
+        .students-table thead th {
+            background: #F6F9FA;
+            color: #718794;
+            font-size: 12px;
+            font-weight: 650;
+            padding: 16px;
+            border-bottom: 1px solid #E6EDF0;
+            white-space: nowrap;
+        }
+
+
+        .students-table tbody td {
+            color: #526A79;
+            padding: 17px 16px;
+            border-bottom: 1px solid #EFF3F5;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+
+        .students-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        .students-table tbody tr {
+            transition: background .2s ease;
+        }
+
+
+            .students-table tbody tr:hover {
+                background: #FAFCFD;
+            }
+
+
+    /* =====================================================
+           STUDENT AVATAR
+           ===================================================== */
+
+    .student-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        object-fit: cover;
+        background: #EAF3F7;
+        border: 1px solid #E1EBEF;
+    }
+
+
+    .student-avatar-placeholder {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: #EAF3F7;
+        color: #7092A4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #E1EBEF;
+    }
+
+
+    /* =====================================================
+           STUDENT NAME
+           ===================================================== */
+
+    .student-name {
+        color: #506B7A;
+        font-weight: 650;
+        font-size: 13px;
+    }
+
+
+    .student-gender {
+        color: #98A6AE;
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+
+    /* =====================================================
+           STUDENT ID
+           ===================================================== */
+
+    .student-id {
+        color: #607987;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+
+    /* =====================================================
+           SEMESTER BADGE
+           ===================================================== */
+
+    .student-semester-badge {
+        display: inline-block;
+        background: #EEEAF6;
+        color: #766D96;
+        border-radius: 30px;
+        padding: 7px 12px;
+        font-size: 11px;
+        font-weight: 650;
+    }
+
+
+    /* =====================================================
+           DETAILS BUTTON
+           ===================================================== */
+
+    .student-details-btn {
+        background: #EDF5F8;
+        color: #5E8092;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 13px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+
+        .student-details-btn:hover {
+            background: #E1EEF3;
+            color: #4F7184;
+        }
+
+
+    /* =====================================================
+           EMPTY STATE
+           ===================================================== */
+
+    .students-empty-box {
+        padding: 70px 20px;
+        text-align: center;
+    }
+
+
+    .students-empty-icon {
+        width: 75px;
+        height: 75px;
+        border-radius: 23px;
+        background: #EAF3F7;
+        color: #7595A6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 18px;
+    }
+
+
+    .students-empty-title {
+        color: #526A79;
+        font-weight: 650;
+    }
+
+
+    /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+    @@media (max-width: 768px) {
+
+        .students-page-header {
+            border-radius: 20px;
+        }
+
+        .total-student-box {
+            width: 100%;
+            text-align: left;
+        }
+    }
+
+</style>
+
+
+
+<div class="container-fluid">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+
+    <div class="students-page-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-4">
+
+
+                <!-- =========================================
+                     HEADER TEXT
+                     ========================================= -->
+
+                <div>
+
+                    <div class="students-page-subtitle mb-1">
+
+                        @departmentName Department
+
+                    </div>
+
+
+                    <h2 class="students-page-title mb-1">
+
+                        Students
+
+                    </h2>
+
+
+                    <p class="students-page-subtitle mb-0">
+
+                        View and monitor students belonging to
+                        your department.
+
+                    </p>
+
+                </div>
+
+
+                <!-- =========================================
+                     TOTAL STUDENTS
+                     ========================================= -->
+
+                <div class="total-student-box">
+
+                    <div class="total-student-label">
+
+                        Total Students
+
+                    </div>
+
+
+                    <div class="total-student-number">
+
+                        @Model.Count()
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered table-striped">
 
-                <tr>
 
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Semester</th>
-                    <th>Risk</th>
-                    <th>Status</th>
-                    <th>Action</th>
+    <!-- =====================================================
+         STUDENT LIST CARD
+         ===================================================== -->
 
-                </tr>
+    <div class="student-main-card">
 
-                <tr>
+        <div class="card-body p-4">
 
-                    <td>221031001</td>
-                    <td>Masuma</td>
-                    <td>3</td>
-                    <td>Severe</td>
-                    <td>Pending</td>
 
-                    <td>
+            <!-- =================================================
+                 SEARCH SECTION
+                 ================================================= -->
 
-                        <button class="btn btn-primary btn-sm">
+            <form asp-controller="Department"
+                  asp-action="Students"
+                  method="get"
+                  class="mb-4">
 
-                            View
+                <div class="row g-2">
+
+
+                    <!-- =========================================
+                         SEARCH INPUT
+                         ========================================= -->
+
+                    <div class="col-md-8">
+
+                        <div class="position-relative">
+
+                            <i class="bi bi-search
+                            position-absolute"
+                               style="
+                            left:15px;
+                            top:14px;
+                            color:#8FA3AE;
+                            "></i>
+
+
+                            <input type="text"
+                                   name="search"
+                                   value="@search"
+                                   class="form-control
+                            student-search-box
+                            ps-5"
+                                   placeholder="Search by name, student ID, email, phone or semester..." />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         SEARCH BUTTON
+                         ========================================= -->
+
+                    <div class="col-md-auto">
+
+                        <button type="submit"
+                                class="btn
+                            student-search-btn">
+
+                            <i class="bi bi-search me-1"></i>
+
+                            Search
 
                         </button>
 
-                    </td>
+                    </div>
 
-                </tr>
 
-            </table>
+                    <!-- =========================================
+                         CLEAR SEARCH
+                         ========================================= -->
+                    @if (!string.IsNullOrWhiteSpace(search))
+                    {
+
+                        <div class="col-md-auto">
+
+                            <a asp-controller="Department"
+                               asp-action="Students"
+                               class="btn
+                                student-clear-btn">
+
+                                <i class="bi bi-x-lg me-1"></i>
+
+                                Clear
+
+                            </a>
+
+                        </div>
+
+                    }
+
+                </div>
+
+            </form>
+
+
+
+            <!-- =================================================
+                 STUDENT TABLE
+                 ================================================= -->
+            @if (Model.Any())
+            {
+
+                <div class="table-responsive">
+
+                    <table class="table
+                        align-middle
+                        students-table">
+
+
+                        <!-- =====================================
+                             TABLE HEADER
+                             ===================================== -->
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+
+                                    Student
+
+                                </th>
+
+
+                                <th>
+
+                                    Student ID
+
+                                </th>
+
+
+                                <th>
+
+                                    Email
+
+                                </th>
+
+
+                                <th>
+
+                                    Phone
+
+                                </th>
+
+
+                                <th>
+
+                                    Semester
+
+                                </th>
+
+
+                                <th class="text-end">
+
+                                    Action
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <!-- =====================================
+                             TABLE BODY
+                             ===================================== -->
+
+                        <tbody>
+
+                            @foreach (var student in Model)
+                            {
+
+                                <tr>
+
+
+                                    <!-- =================================
+                                         STUDENT
+                                         ================================= -->
+
+                                    <td>
+
+                                        <div class="d-flex
+                                            align-items-center">
+
+
+                                            @if (!string.IsNullOrWhiteSpace(
+                                                student.ProfileImage))
+                                            {
+
+                                                <img src="@student.ProfileImage"
+                                                     class="student-avatar me-3"
+                                                     alt="Student Profile" />
+
+                                            }
+                                            else
+                                            {
+
+                                                <div class="
+                                                    student-avatar-placeholder
+                                                    me-3">
+
+                                                    <i class="
+                                                        bi bi-person
+                                                        fs-5">
+                                                    </i>
+
+                                                </div>
+
+                                            }
+
+
+                                            <div>
+
+                                                <div class="student-name">
+
+                                                    @student.FullName
+
+                                                </div>
+
+
+                                                <div class="student-gender">
+
+                                                    @student.Gender
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+
+                                    <!-- =================================
+                                         STUDENT ID
+                                         ================================= -->
+
+                                    <td>
+
+                                        <span class="student-id">
+
+                                            @student.StudentIdNumber
+
+                                        </span>
+
+                                    </td>
+
+
+
+                                    <!-- =================================
+                                         EMAIL
+                                         ================================= -->
+
+                                    <td>
+
+                                        @student.Email
+
+                                    </td>
+
+
+
+                                    <!-- =================================
+                                         PHONE
+                                         ================================= -->
+
+                                    <td>
+
+                                        @student.Phone
+
+                                    </td>
+
+
+
+                                    <!-- =================================
+                                         SEMESTER
+                                         ================================= -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            student.Semester))
+                                        {
+
+                                            <span class="
+                                                student-semester-badge">
+
+                                                @student.Semester
+
+                                            </span>
+
+                                        }
+                                        else
+                                        {
+
+                                            <span style="
+                                                color:#AAB5BB;
+                                                font-size:12px;
+                                                ">
+
+                                                Not Available
+
+                                            </span>
+
+                                        }
+
+                                    </td>
+
+
+
+                                    <!-- =================================
+                                         DETAILS
+                                         ================================= -->
+
+                                    <td class="text-end">
+
+                                        <a asp-controller="Department"
+                                           asp-action="StudentDetails"
+                                           asp-route-id="@student.StudentId"
+                                           class="
+                                            student-details-btn">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            Details
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            }
+            else
+            {
+
+                <!-- =================================================
+                     EMPTY STATE
+                     ================================================= -->
+
+                <div class="students-empty-box">
+
+                    <div class="students-empty-icon">
+
+                        <i class="bi bi-people fs-2"></i>
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(search))
+                    {
+
+                        <h5 class="students-empty-title">
+
+                            No Students Found
+
+                        </h5>
+
+
+                        <p class="students-page-subtitle mb-3">
+
+                            No student matched your search
+                            "<strong>@search</strong>".
+
+                        </p>
+
+
+                        <a asp-controller="Department"
+                           asp-action="Students"
+                           class="student-clear-btn">
+
+                            <i class="bi bi-people me-1"></i>
+
+                            Show All Students
+
+                        </a>
+
+                    }
+                    else
+                    {
+
+                        <h5 class="students-empty-title">
+
+                            No Students Available
+
+                        </h5>
+
+
+                        <p class="students-page-subtitle mb-0">
+
+                            There are currently no students
+                            registered in this department.
+
+                        </p>
+
+                    }
+
+                </div>
+
+            }
 
         </div>
 

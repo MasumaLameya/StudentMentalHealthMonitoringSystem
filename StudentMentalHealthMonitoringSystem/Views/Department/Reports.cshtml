@@ -1,36 +1,501 @@
-﻿@{
+﻿@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentRiskReportViewModel
+
+@{
     ViewData["Title"] = "Reports";
 }
 
-<div class="container mt-4">
+<style>
 
-    <div class="card shadow">
+    .report-header {
+        background: linear-gradient(135deg, #F5E7ED, #E9E1F1, #E7F0EC);
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(95,81,70,.07);
+    }
 
-        <div class="card-header bg-dark text-white">
+    .main-card {
+        background: #FFFFFF;
+        border: none;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(95,81,70,.07);
+    }
 
-            <h3>Department Reports</h3>
+    .page-title {
+        color: #5F5146;
+        font-weight: 700;
+    }
+
+    .page-subtitle {
+        color: #9A8B7D;
+        font-size: 14px;
+    }
+
+    .stat-card {
+        background: #FCFAF8;
+        border: 1px solid #EEE6DF;
+        border-radius: 18px;
+        padding: 22px;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #E9E0F0;
+        color: #917A9B;
+    }
+
+    .stat-number {
+        color: #5F5146;
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .risk-badge {
+        background: #F2DDE1;
+        color: #8D626A;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .semester-badge {
+        background: #E9E0F0;
+        color: #76627F;
+        border-radius: 10px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .student-card {
+        background: #FCFAF8;
+        border: 1px solid #EEE6DF;
+        border-radius: 18px;
+    }
+
+    .mail-btn {
+        background: #9B839F;
+        color: white;
+        border: none;
+        border-radius: 11px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+        .mail-btn:hover {
+            background: #846D88;
+            color: white;
+        }
+
+    .empty-box {
+        text-align: center;
+        padding: 55px 20px;
+    }
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        margin: auto;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #E7F0EC;
+        color: #71877B;
+    }
+
+</style>
+
+
+<div class="container-fluid">
+
+    <!-- =========================================================
+         Header
+         ========================================================= -->
+
+    <div class="report-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div class="d-flex justify-content-between
+                align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <div class="page-subtitle mb-1">
+
+                        @Model.DepartmentName Department
+
+                    </div>
+
+                    <h2 class="page-title mb-1">
+
+                        Mental Health Reports
+
+                    </h2>
+
+                    <p class="page-subtitle mb-0">
+
+                        Monitor student mental health assessment
+                        results and high-risk cases.
+
+                    </p>
+
+                </div>
+
+
+                <div style="font-size:42px;color:#9B839F;">
+
+                    <i class="bi bi-file-earmark-medical"></i>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <button class="btn btn-primary w-100 mb-3">
 
-                Pending Screening Report
+    <!-- =========================================================
+         Statistics
+         ========================================================= -->
 
-            </button>
+    <div class="row g-4 mb-4">
 
-            <button class="btn btn-success w-100 mb-3">
 
-                Counseling Report
+        <!-- ================= Total Students ================= -->
 
-            </button>
+        <div class="col-md-4">
 
-            <button class="btn btn-danger w-100">
+            <div class="stat-card">
 
-                Risk Report
+                <div class="d-flex align-items-center">
 
-            </button>
+                    <div class="stat-icon me-3">
+
+                        <i class="bi bi-people fs-5"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="page-subtitle">
+
+                            Total Students
+
+                        </div>
+
+                        <div class="stat-number">
+
+                            @Model.TotalStudents
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= High Risk Students ================= -->
+
+        <div class="col-md-4">
+
+            <div class="stat-card">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="stat-icon me-3">
+
+                        <i class="bi bi-exclamation-triangle fs-5"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="page-subtitle">
+
+                            High Risk Students
+
+                        </div>
+
+                        <div class="stat-number">
+
+                            @Model.HighRiskStudents
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= Report Condition ================= -->
+
+        <div class="col-md-4">
+
+            <div class="stat-card">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="stat-icon me-3">
+
+                        <i class="bi bi-shield-exclamation fs-5"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="page-subtitle">
+
+                            Report Condition
+
+                        </div>
+
+                        <div class="stat-number"
+                             style="font-size:22px;">
+
+                            Severe / Extremely Severe
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         High Risk Students
+         ========================================================= -->
+
+    <div class="main-card">
+
+        <div class="card-body p-4 p-lg-5">
+
+            <div class="mb-4">
+
+                <h5 class="page-title mb-1">
+
+                    High-Risk Students
+
+                </h5>
+
+                <p class="page-subtitle mb-0">
+
+                    Students identified with Severe or
+                    Extremely Severe screening results.
+
+                </p>
+
+            </div>
+
+
+            @if (Model.Students != null && Model.Students.Any())
+            {
+                <div class="row g-3">
+
+                    @foreach (var student in Model.Students)
+                    {
+                        <div class="col-12">
+
+                            <div class="student-card p-4">
+
+                                <div class="row align-items-center g-4">
+
+
+                                    <!-- ================= Student ================= -->
+
+                                    <div class="col-lg-3">
+
+                                        <div class="fw-semibold"
+                                             style="color:#5F5146;">
+
+                                            @student.FullName
+
+                                        </div>
+
+                                        <div class="page-subtitle">
+
+                                            @student.StudentIdNumber
+
+                                        </div>
+
+                                        <div class="page-subtitle">
+
+                                            @student.Email
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================= High Risk Semester ================= -->
+
+                                    <div class="col-lg-3">
+
+                                        <div class="page-subtitle mb-2">
+
+                                            High Risk Semester
+
+                                        </div>
+
+
+                                        <span class="semester-badge">
+
+                                            @student.HighRiskSemester
+
+                                        </span>
+
+
+                                        <div class="page-subtitle mt-2">
+
+                                            Assessment:
+                                            @student.AssessmentDate.ToString("dd MMM yyyy")
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================= Risk Level ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-2">
+
+                                            Risk Level
+
+                                        </div>
+
+                                        <span class="risk-badge">
+
+                                            @(student.TriggerSeverity
+                                                ?? student.RiskLevel)
+
+                                        </span>
+
+
+                                        <div class="page-subtitle mt-2">
+
+                                            Source:
+
+                                            <strong>
+
+                                                @(student.TriggerSource
+                                                    ?? "N/A")
+
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================= Guardian ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-1">
+
+                                            Guardian
+
+                                        </div>
+
+                                        <div class="fw-semibold"
+                                             style="color:#6F6258;">
+
+                                            @(student.GuardianName
+                                                ?? "Not provided")
+
+                                        </div>
+
+                                        <div class="page-subtitle">
+
+                                            @(student.GuardianEmail
+                                                ?? "No email")
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ================= Email ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            student.Email))
+                                        {
+                                            <a href="mailto:@student.Email"
+                                               class="mail-btn text-decoration-none">
+
+                                                <i class="bi bi-envelope me-1"></i>
+
+                                                Student
+
+                                            </a>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <!-- ================= No High Risk Student ================= -->
+
+                <div class="empty-box">
+
+                    <div class="empty-icon mb-3">
+
+                        <i class="bi bi-shield-check fs-2"></i>
+
+                    </div>
+
+                    <h5 class="page-title">
+
+                        No High-Risk Cases
+
+                    </h5>
+
+                    <p class="page-subtitle mb-0">
+
+                        No student currently has a
+                        Severe or Extremely Severe screening result.
+
+                    </p>
+
+                </div>
+            }
 
         </div>
 

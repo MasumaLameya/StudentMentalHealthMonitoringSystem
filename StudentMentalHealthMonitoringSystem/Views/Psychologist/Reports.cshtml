@@ -1,5 +1,7 @@
-﻿@{
-    ViewData["Title"] = "Reports";
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+
+@{
+    ViewData["Title"] = "Counseling Reports";
 }
 
 <div class="container mt-4">
@@ -8,23 +10,108 @@
 
         <div class="card-header bg-dark text-white">
 
-            <h3>Reports</h3>
+            <h3>Counseling Reports</h3>
 
         </div>
 
         <div class="card-body">
 
-            <button class="btn btn-primary w-100 mb-3">
-                Student Counseling Report
-            </button>
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
 
-            <button class="btn btn-success w-100 mb-3">
-                Monthly High Risk Report
-            </button>
+                    No Report Available.
 
-            <button class="btn btn-danger w-100">
-                Recovery Report
-            </button>
+                </div>
+            }
+            else
+            {
+                <table class="table table-bordered table-striped">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Student</th>
+
+                            <th>Psychologist</th>
+
+                            <th>Date</th>
+
+                            <th>Risk Level</th>
+
+                            <th>Status</th>
+
+                            <th>Recommendation</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    @item.Student?.FullName
+
+                                </td>
+
+                                <td>
+
+                                    @item.Psychologist?.FullName
+
+                                </td>
+
+                                <td>
+
+                                    @item.CounselingDate.ToString("dd MMM yyyy")
+
+                                </td>
+
+                                <td>
+
+                                    @item.RiskLevel
+
+                                </td>
+
+                                <td>
+
+                                    @if (item.Status == "Completed")
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Completed
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+
+                                            Pending
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    @item.Recommendation
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+            }
 
         </div>
 

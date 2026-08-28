@@ -1,0 +1,497 @@
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.CSSRSAssessment>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "High Risk Report";
+}
+
+<div class="container-fluid">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F2E6E2;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#654B47;">
+
+                        ⚠️ High Risk Report
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Students identified with elevated mental health risk.
+
+                    </p>
+
+                </div>
+
+                <a asp-controller="Admin"
+                   asp-action="Reports"
+                   class="btn rounded-3 px-4"
+                   style="background:#806C5D;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Reports
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Summary Cards ================= -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <small class="text-muted">
+                        Total High Risk Records
+                    </small>
+
+                    <h2 class="fw-bold mb-0"
+                        style="color:#A45E53;">
+
+                        @Model.Count()
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <small class="text-muted">
+                        High Risk
+                    </small>
+
+                    <h2 class="fw-bold mb-0"
+                        style="color:#A45E53;">
+
+                        @Model.Count(x =>
+                            x.RiskLevel == "High")
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4 mb-3">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <small class="text-muted">
+                        Severe / Extremely Severe
+                    </small>
+
+                    <h2 class="fw-bold mb-0"
+                        style="color:#7D4540;">
+
+                        @Model.Count(x =>
+                            x.RiskLevel == "Severe" ||
+                            x.RiskLevel == "Extremely Severe")
+
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Search ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body">
+
+            <label for="riskSearch"
+                   class="form-label fw-semibold"
+                   style="color:#654B47;">
+
+                Search High Risk Records
+
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text"
+                      style="background:#F2E6E2;
+                    border-color:#DECAC5;">
+
+                    <i class="bi bi-search"
+                       style="color:#A45E53;"></i>
+
+                </span>
+
+                <input type="text"
+                       id="riskSearch"
+                       class="form-control"
+                       placeholder="Search by student ID, risk level or date..."
+                       autocomplete="off"
+                       style="border-color:#DECAC5;" />
+
+                <button type="button"
+                        id="clearRiskSearch"
+                        class="btn"
+                        style="background:#E8D8D3;
+                    color:#654B47;
+                    display:none;">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Report Table ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#EADBD6;">
+
+            <h5 class="mb-0"
+                style="color:#654B47;">
+
+                High Risk Students
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0"
+                       id="riskTable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th class="px-4">
+                                #
+                            </th>
+
+                            <th>
+                                Student ID
+                            </th>
+
+                            <th>
+                                Risk Level
+                            </th>
+
+                            <th>
+                                Assessment Date
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            var serial = 1;
+
+                            foreach (var assessment in Model)
+                            {
+                                <tr class="risk-row">
+
+                                    <td class="px-4">
+
+                                        @serial
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="fw-semibold"
+                                              style="color:#654B47;">
+
+                                            @assessment.StudentId
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (assessment.RiskLevel == "High")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="background:#E7C4BD;
+                                                color:#7A4038;">
+
+                                                High
+
+                                            </span>
+                                        }
+                                        else if (assessment.RiskLevel == "Severe")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="background:#DDB4AD;
+                                                color:#693B36;">
+
+                                                Severe
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="background:#CFA09A;
+                                                color:#572D29;">
+
+                                                @assessment.RiskLevel
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @assessment.AssessmentDate.ToString("dd MMM yyyy")
+
+                                    </td>
+
+                                    <td>
+
+                                        <a asp-controller="Admin"
+                                           asp-action="StudentDetails"
+                                           asp-route-id="@assessment.StudentId"
+                                           class="btn btn-sm rounded-3"
+                                           style="background:#D8C7B8;
+                                            color:#55483D;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View Student
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                serial++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="5"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-shield-check"
+                                       style="font-size:45px;
+                                    color:#B8AAA0;"></i>
+
+                                    <h5 class="mt-3"
+                                        style="color:#654B47;">
+
+                                        No High Risk Records
+
+                                    </h5>
+
+                                    <p class="text-muted mb-0">
+
+                                        No high-risk assessment records
+                                        are currently available.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= No Search Result ================= -->
+
+    <div id="noRiskResult"
+         class="card border-0 shadow-sm rounded-4 mt-4"
+         style="display:none;">
+
+        <div class="card-body text-center py-4">
+
+            <i class="bi bi-search"
+               style="font-size:35px;
+            color:#B8AAA0;"></i>
+
+            <h5 class="mt-2"
+                style="color:#654B47;">
+
+                No Matching Record Found
+
+            </h5>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= Search Script ================= -->
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const searchInput =
+            document.getElementById("riskSearch");
+
+        const clearButton =
+            document.getElementById("clearRiskSearch");
+
+        const rows =
+            document.querySelectorAll(".risk-row");
+
+        const noResult =
+            document.getElementById("noRiskResult");
+
+
+        function normalizeText(text) {
+
+            return text
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, " ");
+
+        }
+
+
+        function searchRiskRecords() {
+
+            const value =
+                normalizeText(searchInput.value);
+
+            let visibleRows = 0;
+
+
+            rows.forEach(function(row) {
+
+                const rowText =
+                    normalizeText(row.textContent);
+
+                if (
+                    value === "" ||
+                    rowText.includes(value)
+                ) {
+
+                    row.style.display = "";
+
+                    visibleRows++;
+
+                }
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+
+            if (
+                value !== "" &&
+                visibleRows === 0
+            ) {
+
+                noResult.style.display = "";
+
+            }
+            else {
+
+                noResult.style.display = "none";
+
+            }
+
+
+            clearButton.style.display =
+                value !== "" ? "block" : "none";
+
+        }
+
+
+        searchInput.addEventListener(
+            "input",
+            searchRiskRecords
+        );
+
+
+        clearButton.addEventListener(
+            "click",
+            function() {
+
+                searchInput.value = "";
+
+                searchRiskRecords();
+
+                searchInput.focus();
+
+            }
+        );
+
+    });
+
+</script>

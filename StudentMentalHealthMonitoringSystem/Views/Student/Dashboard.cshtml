@@ -1,468 +1,521 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+@model StudentMentalHealthMonitoringSystem.Models.Student
 
 @{
     ViewData["Title"] = "Student Dashboard";
 
-    bool phqCompleted =
-        ViewBag.PHQCompleted == true;
+    bool phqCompleted = ViewBag.PHQCompleted == true;
+    bool cssrsCompleted = ViewBag.CSSRSCompleted == true;
+    bool feelingsCompleted = ViewBag.FeelingsCompleted == true;
+    bool screeningCompleted = ViewBag.ScreeningCompleted == true;
 
-    bool cssrsCompleted =
-        ViewBag.CSSRSCompleted == true;
+    string riskLevel = ViewBag.RiskLevel?.ToString() ?? "Not Assessed";
+    int counselingCount = ViewBag.CounselingCount != null ? Convert.ToInt32(ViewBag.CounselingCount) : 0;
+    var nextCounseling = ViewBag.NextCounseling as StudentMentalHealthMonitoringSystem.Models.Counseling;
 
-    bool feelingsCompleted =
-        ViewBag.FeelingsCompleted == true;
+    string nextCounselingDateText = string.Empty;
+    string nextCounselingStartTimeText = string.Empty;
+    string nextCounselingEndTimeText = string.Empty;
 
-    bool availableTimeCompleted =
-        ViewBag.AvailableTimeCompleted == true;
-
-    bool screeningCompleted =
-        ViewBag.ScreeningCompleted == true;
-
-    string riskLevel =
-        ViewBag.RiskLevel?.ToString() ?? "Not Assessed";
-
-    string riskCardClass = "bg-secondary text-white";
-
-    if (riskLevel == "No Risk Identified")
+    if (nextCounseling != null)
     {
-        riskCardClass = "bg-success text-white";
-    }
-    else if (riskLevel == "Low")
-    {
-        riskCardClass = "bg-info text-dark";
-    }
-    else if (riskLevel == "Moderate")
-    {
-        riskCardClass = "bg-warning text-dark";
-    }
-    else if (riskLevel == "High")
-    {
-        riskCardClass = "bg-danger text-white";
+        nextCounselingDateText = nextCounseling.CounselingDate.ToString("dd MMM yyyy");
+        nextCounselingStartTimeText = DateTime.Today.Add(nextCounseling.AppointmentTime).ToString("h:mm tt");
+        nextCounselingEndTimeText = DateTime.Today.Add(nextCounseling.AppointmentEndTime).ToString("h:mm tt");
     }
 
-    string screeningCardClass =
-        screeningCompleted
-            ? "bg-success text-white"
-            : "bg-warning";
+    string riskBadgeClass = riskLevel switch
+    {
+        "Normal" => "bg-success-subtle text-success border border-success",
+        "Moderate" => "bg-warning-subtle text-warning border border-warning",
+        "Severe" or "Extremely Severe" => "bg-danger-subtle text-danger border border-danger",
+        _ => "bg-secondary-subtle text-secondary border border-secondary"
+    };
+
+    string riskIconClass = riskLevel switch
+    {
+        "Normal" => "bi-check-circle-fill text-success",
+        "Moderate" => "bi-exclamation-triangle-fill text-warning",
+        "Severe" or "Extremely Severe" => "bi-exclamation-octagon-fill text-danger",
+        _ => "bi-info-circle-fill text-secondary"
+    };
 }
 
-<div class="container-fluid">
+<style>
+    .student-app-bg {
+        background: #F4F8F5;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
 
-    <div class="row">
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 77, 37, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        <!-- Sidebar -->
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 77, 37, 0.09);
+    }
 
-        <div class="col-lg-3">
+    .student-sidebar {
+        background: #EBF4EE;
+        border-radius: 1.25rem;
+        padding: 1.5rem 1rem;
+        border: 1px solid #D1E2D7;
+    }
 
-            <div class="card shadow">
+    .student-sidebar .list-group-item {
+        border: none;
+        border-radius: 0.9rem;
+        margin-bottom: 0.45rem;
+        padding: 0.95rem 1.35rem;
+        font-weight: 700;
+        font-size: 1.15rem; /* Large readable text */
+        color: #1E293B;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: transparent;
+    }
 
-                <div class="card-body">
+    .student-sidebar .list-group-item i {
+        font-size: 1.45rem;
+        color: #006837;
+        width: 30px;
+        text-align: center;
+    }
 
-                    <div class="text-center">
+    .student-sidebar .list-group-item:hover {
+        background: #D1EBD9;
+        color: #004D25;
+        transform: translateX(4px);
+    }
 
+    .student-sidebar .list-group-item.active {
+        background: #FFFFFF;
+        color: #004D25;
+        font-weight: 800;
+        box-shadow: 0 4px 16px rgba(0, 77, 37, 0.12);
+    }
+
+    .student-sidebar .list-group-item.active i {
+        color: #006837;
+    }
+
+    .stat-card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+    }
+
+    .stat-label {
+        font-size: 0.825rem;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+
+    .stat-value {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #0F172A;
+    }
+
+    .table th {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #004D25;
+    }
+
+    .table td {
+        font-size: 1.08rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- ================= Sidebar ================= -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 text-center student-sidebar">
+                    <div class="position-relative d-inline-block mb-3">
                         @if (!string.IsNullOrEmpty(Model.ProfileImage))
                         {
-                            <img src="@Url.Content(Model.ProfileImage)"
-                                 class="rounded-circle mb-3"
-                                 width="120"
-                                 height="120"
-                                 style="object-fit:cover;">
+                            <img src="@Url.Content(Model.ProfileImage)" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" style="object-fit:cover;" alt="Avatar" />
                         }
                         else
                         {
-                            <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=0d6efd&color=fff&size=120"
-                                 class="rounded-circle mb-3"
-                                 width="120"
-                                 height="120">
+                            <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=006837&color=fff&size=110" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" alt="Avatar" />
                         }
-
-                        <h4>@Model.FullName</h4>
-
-                        <p class="text-muted">
-                            ID : @Model.StudentIdNumber
-                        </p>
-
+                        <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-light rounded-circle" title="Active Student"></span>
                     </div>
 
-                    <hr>
-
-                    <div class="list-group">
-
-                        <a href="/Student/Dashboard"
-                           class="list-group-item list-group-item-action active">
-                            Dashboard
-                        </a>
-
-                        <a href="/Student/Profile"
-                           class="list-group-item list-group-item-action">
-                            Profile
-                        </a>
-
-                        <a href="/Student/SemesterScreening"
-                           class="list-group-item list-group-item-action">
-                            Semester Screening
-                        </a>
-
-                        <a href="/Student/PHQ"
-                           class="list-group-item list-group-item-action">
-                            PHQ-9 Assessment
-                        </a>
-
-                        <a href="/Student/CSRRS"
-                           class="list-group-item list-group-item-action">
-                            C-SSRS Assessment
-                        </a>
-
-                        <a href="/Student/Feelings"
-                           class="list-group-item list-group-item-action">
-                            Feelings
-                        </a>
-
-                        <a href="/Student/AIChat"
-                           class="list-group-item list-group-item-action">
-                            AI Chat
-                        </a>
-
-                        <a href="/Student/Appointment"
-                           class="list-group-item list-group-item-action">
-                            Counseling Appointment
-                        </a>
-
-                        <a href="/Student/History"
-                           class="list-group-item list-group-item-action">
-                            History
-                        </a>
-
-                        <a href="/Student/Progress"
-                           class="list-group-item list-group-item-action">
-                            Progress
-                        </a>
-
-                        <a href="/Student/Reports"
-                           class="list-group-item list-group-item-action">
-                            Reports
-                        </a>
-
+                    <h4 class="fw-bold mb-1" style="color: #004D25;">@Model.FullName</h4>
+                    <p class="text-secondary fs-6 mb-3"><i class="bi bi-person-vcard me-1" style="color: #006837;"></i>ID: @Model.StudentIdNumber</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-white text-dark border px-3 py-2 rounded-pill"><i class="bi bi-building me-1 text-secondary"></i>@Model.Department</span>
+                        <span class="badge bg-white text-dark border px-3 py-2 rounded-pill"><i class="bi bi-mortarboard me-1 text-secondary"></i>@Model.ActiveSemester</span>
                     </div>
 
+                    <hr class="my-3 opacity-25" />
+
+                    <div class="list-group list-group-flush text-start">
+                        <a href="/Student/Dashboard" class="list-group-item active">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/Student/Profile" class="list-group-item">
+                            <i class="bi bi-person-badge"></i> My Profile
+                        </a>
+                        <a href="/Student/SemesterScreening" class="list-group-item">
+                            <i class="bi bi-journal-check"></i> Semester Screening
+                        </a>
+                        <a href="/Student/PHQ" class="list-group-item">
+                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
+                        </a>
+                        <a href="/Student/CSRRS" class="list-group-item">
+                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
+                        </a>
+                        <a href="/Student/Feelings" class="list-group-item">
+                            <i class="bi bi-emoji-smile"></i> Daily Feelings
+                        </a>
+                        <a href="/Student/AIChat" class="list-group-item">
+                            <i class="bi bi-robot"></i> AI Companion Chat
+                        </a>
+                        <a href="/VoiceBot/Index" class="list-group-item">
+                            <i class="bi bi-mic"></i> Live Voice Bot
+                        </a>
+                        <a href="/Student/Appointment" class="list-group-item">
+                            <i class="bi bi-calendar-event"></i> Counseling Session
+                        </a>
+                        <a href="/Student/History" class="list-group-item">
+                            <i class="bi bi-clock-history"></i> History Records
+                        </a>
+                        <a href="/Student/Progress" class="list-group-item">
+                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
+                        </a>
+                        <a href="/Student/Reports" class="list-group-item">
+                            <i class="bi bi-file-earmark-medical"></i> Official Reports
+                        </a>
+                        <a href="/Student/Logout" class="list-group-item text-danger fw-bold border-top mt-2">
+                            <i class="bi bi-box-arrow-right text-danger me-1"></i> Logout
+                        </a>
+                    </div>
                 </div>
-
             </div>
 
-        </div>
+            <!-- ================= Main Content ================= -->
+            <div class="col-lg-9">
 
-        <!-- Main -->
-
-        <div class="col-lg-9">
-
-            <h2 class="mb-4">
-                Student Dashboard
-            </h2>
-
-            <div class="row">
-
-                <!-- Current Semester -->
-
-                <div class="col-md-3 mb-4">
-
-                    <div class="card bg-primary text-white shadow">
-
-                        <div class="card-body">
-
-                            <h6>Current Semester</h6>
-
-                            <h3>@Model.Semester</h3>
-
+                <!-- Header Banner in Green Shade -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: #ffffff; border: none; border-bottom: 3px solid #FFC20E;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <span class="text-uppercase fw-bold text-white-50 small tracking-wide">STUDENT DASHBOARD</span>
+                            <h2 class="fw-bold mb-1 text-white">
+                                Welcome Back, @Model.FullName! <i class="bi bi-stars text-warning me-1"></i>
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Monitor student mental health, counseling and follow-up activities.</p>
                         </div>
-
+                        <a href="/Student/SemesterScreening" class="btn bg-white text-dark btn-lg rounded-3 px-4 py-2.5 fw-bold shadow-sm border-0">
+                            <i class="bi bi-clipboard-plus me-1" style="color: #006837;"></i> Start Screening
+                        </a>
                     </div>
-
                 </div>
 
-                <!-- Risk Level -->
-
-                <div class="col-md-3 mb-4">
-
-                    <div class="card @riskCardClass shadow">
-
-                        <div class="card-body">
-
-                            <h6>Risk Level</h6>
-
-                            <h3>@riskLevel</h3>
-
+                <!-- Mandatory Semester Screening Compliance Warning -->
+                @if (ViewBag.IsScreeningComplete == false)
+                {
+                    <div class="alert alert-warning border-2 border-warning shadow-sm rounded-4 mb-4 p-3.5 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle p-2.5 bg-warning text-dark">
+                                <i class="bi bi-shield-exclamation fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">
+                                    <i class="bi bi-eye-fill me-1 text-warning"></i>Mandatory @(Model.ActiveSemester) Continuous Observation Screening Pending!
+                                </h6>
+                                <p class="mb-0 text-secondary small">
+                                    Under continuous mental health observation (Batch @(Model.AdmissionYear?.ToString() ?? "Registration")), you must complete both <strong>PHQ-9</strong> and <strong>C-SSRS</strong> assessments for @(Model.ActiveSemester) to maintain status compliance.
+                                </p>
+                            </div>
                         </div>
+                        <a href="/Student/SemesterScreening" class="btn btn-warning text-dark rounded-3 px-3.5 py-2 fw-bold shadow-sm ms-auto">
+                            Complete Screening Now <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                }
 
+                <!-- Metrics Cards Row -->
+                <div class="row g-3 mb-4">
+                    <!-- Current Semester -->
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="glass-card p-3 h-100">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="stat-label">Current Semester</div>
+                                    <div class="stat-value text-truncate mt-1">@Model.ActiveSemester</div>
+                                </div>
+                                <div class="stat-card-icon bg-primary-subtle text-primary">
+                                    <i class="bi bi-mortarboard"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- Risk Level -->
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="glass-card p-3 h-100">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="stat-label">Screening Risk</div>
+                                    <span class="badge rounded-pill px-2.5 py-1.5 mt-1 d-inline-flex align-items-center @riskBadgeClass" style="font-size: 0.825rem; font-weight: 700;">
+                                        <i class="bi @riskIconClass me-1"></i>@riskLevel
+                                    </span>
+                                </div>
+                                <div class="stat-card-icon bg-warning-subtle text-warning">
+                                    <i class="bi bi-activity"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Screening Status -->
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="glass-card p-3 h-100">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="stat-label">Screening Status</div>
+                                    @if (screeningCompleted)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-2.5 py-1.5 mt-1 d-inline-flex align-items-center" style="font-size: 0.825rem; font-weight: 700;">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-2.5 py-1.5 mt-1 d-inline-flex align-items-center" style="font-size: 0.825rem; font-weight: 700;">
+                                            <i class="bi bi-clock-fill me-1"></i>Pending
+                                        </span>
+                                    }
+                                </div>
+                                <div class="stat-card-icon bg-info-subtle text-info">
+                                    <i class="bi bi-journal-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Counseling Sessions -->
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="glass-card p-3 h-100">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="overflow-hidden">
+                                    <div class="stat-label">Total Sessions</div>
+                                    <div class="stat-value mt-1">@counselingCount</div>
+                                </div>
+                                <div class="stat-card-icon bg-danger-subtle text-danger">
+                                    <i class="bi bi-heart-pulse"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Screening -->
+                <div class="row g-4">
+                    <!-- Left Column: Assessment Status & Recent Activity -->
+                    <div class="col-lg-8">
+                        <!-- Screening Assessment Summary -->
+                        <div class="glass-card p-4 mb-4">
+                            <h5 class="fw-bold mb-3" style="color:#5F5146;">
+                                <i class="bi bi-card-checklist me-2 text-primary"></i>Assessment Completion Status
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Assessment Module</th>
+                                            <th>Required Standard</th>
+                                            <th class="text-center">Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="bi bi-clipboard-pulse text-primary me-2"></i>PHQ-9 Depression Scale
+                                            </td>
+                                            <td class="small text-muted">9 Questions (0-27 Pts)</td>
+                                            <td class="text-center">
+                                                @if (phqCompleted)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1">
+                                                        <i class="bi bi-hourglass-split me-1"></i>Pending
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/Student/PHQ" class="btn btn-sm btn-outline-primary rounded-3 px-3">
+                                                    @(phqCompleted ? "View Result" : "Start PHQ")
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="bi bi-shield-check text-danger me-2"></i>C-SSRS Suicide Risk Assessment
+                                            </td>
+                                            <td class="small text-muted">6 Safety Questions</td>
+                                            <td class="text-center">
+                                                @if (cssrsCompleted)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1">
+                                                        <i class="bi bi-hourglass-split me-1"></i>Pending
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/Student/CSRRS" class="btn btn-sm btn-outline-danger rounded-3 px-3">
+                                                    @(cssrsCompleted ? "View Result" : "Start C-SSRS")
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="bi bi-emoji-smile text-warning me-2"></i>Daily Mood & Feelings Log
+                                            </td>
+                                            <td class="small text-muted">Self-Reported Log</td>
+                                            <td class="text-center">
+                                                @if (feelingsCompleted)
+                                                {
+                                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Logged
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1">
+                                                        <i class="bi bi-hourglass-split me-1"></i>Pending
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/Student/Feelings" class="btn btn-sm btn-outline-warning text-dark rounded-3 px-3">
+                                                    Log Feelings
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="col-md-3 mb-4">
+                    <!-- Right Column: Quick Actions & Next Appointment -->
+                    <div class="col-lg-4">
+                        <!-- Quick Actions Card -->
+                        <div class="glass-card p-4 mb-4">
+                            <h5 class="fw-bold mb-3" style="color:#5F5146;">
+                                <i class="bi bi-lightning-charge me-2 text-warning"></i>Quick Shortcuts
+                            </h5>
+                            <div class="d-grid gap-2">
+                                <a href="/Student/AIChat" class="btn btn-outline-dark text-start rounded-3 py-2 px-3 d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-robot text-primary me-2"></i>AI Companion Chat</span>
+                                    <i class="bi bi-chevron-right small text-muted"></i>
+                                </a>
+                                <a href="/VoiceBot/Index" class="btn btn-outline-dark text-start rounded-3 py-2 px-3 d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-mic text-danger me-2"></i>Live Voice Bot</span>
+                                    <i class="bi bi-chevron-right small text-muted"></i>
+                                </a>
+                                <a href="/Student/Appointment" class="btn btn-outline-dark text-start rounded-3 py-2 px-3 d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-calendar-event text-success me-2"></i>Counseling Session</span>
+                                    <i class="bi bi-chevron-right small text-muted"></i>
+                                </a>
+                                <a href="/Student/Progress" class="btn btn-outline-dark text-start rounded-3 py-2 px-3 d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-graph-up-arrow text-info me-2"></i>View Recovery Graph</span>
+                                    <i class="bi bi-chevron-right small text-muted"></i>
+                                </a>
+                            </div>
+                        </div>
 
-                    <div class="card @screeningCardClass shadow">
-
-                        <div class="card-body">
-
-                            <h6>Screening</h6>
-
-                            @if (screeningCompleted)
+                        <!-- Next Counseling Session Card -->
+                        <div class="glass-card p-4">
+                            <h5 class="fw-bold mb-3" style="color:#5F5146;">
+                                <i class="bi bi-calendar-heart me-2 text-danger"></i>Next Counseling Session
+                            </h5>
+                            @if (nextCounseling != null)
                             {
-                                <h3>Completed</h3>
+                                @if (nextCounseling.AppointmentSource == "AutoAssignment")
+                                {
+                                    <div class="mb-3">
+                                        <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-1">
+                                            <i class="bi bi-lightning-fill me-1"></i>Auto Assigned Session
+                                        </span>
+                                    </div>
+                                }
+                                <div class="p-3 rounded-3 mb-3" style="background:#F9F7F5;">
+                                    <small class="text-muted d-block mb-1">Assigned Psychologist</small>
+                                    <strong class="text-dark fs-6"><i class="bi bi-person-badge me-2 text-primary"></i>@(nextCounseling.Psychologist?.FullName ?? "Assigned Psychologist")</strong>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="p-2 border rounded-3 text-center">
+                                            <small class="text-muted d-block">Date</small>
+                                            <strong class="small text-dark">@nextCounselingDateText</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 border rounded-3 text-center">
+                                            <small class="text-muted d-block">Time Slot</small>
+                                            <strong class="small text-dark">@nextCounselingStartTimeText</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="text-muted small">Appointment Status:</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3">
+                                        @nextCounseling.Status
+                                    </span>
+                                </div>
                             }
                             else
                             {
-                                <h3>Pending</h3>
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-calendar-x display-6 d-block mb-2 text-secondary opacity-50"></i>
+                                    <p class="mb-0 small">No upcoming counseling appointment scheduled.</p>
+                                    <a href="/Student/Appointment" class="btn btn-sm btn-outline-primary rounded-3 mt-3">Book Appointment</a>
+                                </div>
                             }
-
                         </div>
-
                     </div>
-
-                </div>
-
-                <!-- Counseling -->
-
-                <div class="col-md-3 mb-4">
-
-                    <div class="card bg-danger text-white shadow">
-
-                        <div class="card-body">
-
-                            <h6>Counseling</h6>
-
-                            <h3>0</h3>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="row">
-
-                <div class="col-md-8">
-
-                    <!-- Screening Status -->
-
-                    <div class="card shadow mb-4">
-
-                        <div class="card-header bg-primary text-white">
-                            Screening Status
-                        </div>
-
-                        <div class="card-body">
-
-                            <table class="table table-bordered">
-
-                                <tr>
-
-                                    <th>PHQ-9</th>
-
-                                    <td>
-
-                                        @if (phqCompleted)
-                                        {
-                                            <span class="badge bg-success">
-                                                Completed
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                Pending
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>C-SSRS</th>
-
-                                    <td>
-
-                                        @if (cssrsCompleted)
-                                        {
-                                            <span class="badge bg-success">
-                                                Completed
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                Pending
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Feelings Submission</th>
-
-                                    <td>
-
-                                        @if (feelingsCompleted)
-                                        {
-                                            <span class="badge bg-success">
-                                                Completed
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                Pending
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Available Time</th>
-
-                                    <td>
-
-                                        @if (availableTimeCompleted)
-                                        {
-                                            <span class="badge bg-success">
-                                                Completed
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">
-                                                Pending
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Recent Activity -->
-
-                    <div class="card shadow">
-
-                        <div class="card-header bg-success text-white">
-                            Recent Activity
-                        </div>
-
-                        <div class="card-body">
-
-                            <ul>
-
-                                <li>Registration Completed</li>
-
-                                <li>
-                                    PHQ-9:
-                                    @(phqCompleted ? "Completed" : "Pending")
-                                </li>
-
-                                <li>
-                                    C-SSRS:
-                                    @(cssrsCompleted ? "Completed" : "Pending")
-                                </li>
-
-                                <li>
-                                    Feelings:
-                                    @(feelingsCompleted ? "Submitted" : "Pending")
-                                </li>
-
-                            </ul>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <!-- Quick Actions -->
-
-                    <div class="card shadow mb-4">
-
-                        <div class="card-header bg-danger text-white">
-                            Quick Actions
-                        </div>
-
-                        <div class="card-body d-grid gap-2">
-
-                            <a href="/Student/PHQ"
-                               class="btn btn-outline-primary">
-
-                                @(phqCompleted
-                                    ? "View PHQ Result"
-                                    : "Start PHQ")
-
-                            </a>
-
-                            <a href="/Student/CSRRS"
-                               class="btn btn-outline-danger">
-
-                                @(cssrsCompleted
-                                    ? "View C-SSRS Result"
-                                    : "Start C-SSRS")
-
-                            </a>
-
-                            <a href="/Student/AIChat"
-                               class="btn btn-outline-dark">
-
-                                AI Chat
-
-                            </a>
-
-                            <a href="/Student/Appointment"
-                               class="btn btn-outline-success">
-
-                                Counseling Appointment
-
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Next Counseling -->
-
-                    <div class="card shadow">
-
-                        <div class="card-header bg-info text-white">
-                            Next Counseling
-                        </div>
-
-                        <div class="card-body">
-
-                            No Appointment Scheduled
-
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
 
         </div>
-
     </div>
-
 </div>

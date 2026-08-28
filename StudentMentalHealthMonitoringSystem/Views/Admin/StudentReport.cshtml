@@ -1,0 +1,795 @@
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Student Report";
+
+    // =========================================================
+    // PREPARE REPORT VALUES
+    // =========================================================
+
+    var studentList =
+        Model?.ToList()
+        ?? new List<StudentMentalHealthMonitoringSystem.Models.Student>();
+
+    var totalStudents =
+        studentList.Count;
+
+    var departmentCount =
+        studentList
+            .Select(s => s.Department)
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .Distinct()
+            .Count();
+
+    var reportDate =
+        DateTime.Now.ToString("dd MMM yyyy");
+}
+
+
+<div class="container-fluid">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F3EAE2;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5C5148;">
+
+                        📋 Student Report
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Complete overview of registered students.
+
+                    </p>
+
+                </div>
+
+
+                <a asp-controller="Admin"
+                   asp-action="Reports"
+                   class="btn rounded-3 px-4"
+                   style="
+                    background:#8A7563;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Reports
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ===================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        <!-- ================= Total Students ================= -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex
+                        justify-content-between
+                        align-items-center">
+
+                        <div>
+
+                            <small class="text-muted d-block mb-2">
+
+                                Total Students
+
+                            </small>
+
+
+                            <h2 class="fw-bold mb-0"
+                                style="color:#8A7563;">
+
+                                @totalStudents
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#F3EAE2;">
+
+                            <i class="bi bi-people fs-4"
+                               style="color:#8A7563;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= Departments ================= -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex
+                        justify-content-between
+                        align-items-center">
+
+                        <div>
+
+                            <small class="text-muted d-block mb-2">
+
+                                Departments
+
+                            </small>
+
+
+                            <h2 class="fw-bold mb-0"
+                                style="color:#718471;">
+
+                                @departmentCount
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#EAF0EA;">
+
+                            <i class="bi bi-building fs-4"
+                               style="color:#718471;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= Report Date ================= -->
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex
+                        justify-content-between
+                        align-items-center">
+
+                        <div>
+
+                            <small class="text-muted d-block mb-2">
+
+                                Report Date
+
+                            </small>
+
+
+                            <h5 class="fw-bold mb-0"
+                                style="color:#806C5D;">
+
+                                @reportDate
+
+                            </h5>
+
+                        </div>
+
+
+                        <div class="rounded-circle
+                            d-flex
+                            align-items-center
+                            justify-content-center"
+                             style="
+                            width:52px;
+                            height:52px;
+                            background:#EEF2F4;">
+
+                            <i class="bi bi-calendar3 fs-4"
+                               style="color:#71899A;">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- SEARCH -->
+    <!-- ===================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+        <div class="card-body p-4">
+
+            <label for="studentReportSearch"
+                   class="form-label fw-semibold"
+                   style="color:#5C5148;">
+
+                Search Student Report
+
+            </label>
+
+
+            <div class="input-group">
+
+                <span class="input-group-text"
+                      style="
+                    background:#F3EAE2;
+                    border-color:#DDD2C8;">
+
+                    <i class="bi bi-search"
+                       style="color:#8A7563;">
+                    </i>
+
+                </span>
+
+
+                <input type="text"
+                       id="studentReportSearch"
+                       class="form-control"
+                       placeholder="Search by ID, name, department or email..."
+                       autocomplete="off"
+                       style="border-color:#DDD2C8;" />
+
+
+                <button type="button"
+                        id="clearReportSearch"
+                        class="btn"
+                        style="
+                    background:#E7DDD5;
+                    color:#5C5148;
+                    display:none;">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- STUDENT REPORT TABLE -->
+    <!-- ===================================================== -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5C5148;">
+
+                <i class="bi bi-table me-2"></i>
+
+                Student Information
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table
+                    table-hover
+                    align-middle
+                    mb-0"
+                       id="studentReportTable">
+
+                    <!-- ================= Table Header ================= -->
+
+                    <thead style="background:#F8F5F1;">
+
+                        <tr>
+
+                            <th class="px-4 py-3">
+                                #
+                            </th>
+
+                            <th class="py-3">
+                                Student ID
+                            </th>
+
+                            <th class="py-3">
+                                Name
+                            </th>
+
+                            <th class="py-3">
+                                Department
+                            </th>
+
+                            <th class="py-3">
+                                Semester
+                            </th>
+
+                            <th class="py-3">
+                                Gender
+                            </th>
+
+                            <th class="py-3">
+                                Email
+                            </th>
+
+                            <th class="py-3">
+                                Phone
+                            </th>
+
+                            <th class="py-3 text-center">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <!-- ================= Table Body ================= -->
+
+                    <tbody>
+
+                        @if (studentList.Any())
+                        {
+                            var serial = 1;
+
+                            foreach (var student in studentList)
+                            {
+                                <tr class="report-row">
+
+                                    <!-- ================= Serial ================= -->
+
+                                    <td class="px-4 py-3">
+
+                                        @serial
+
+                                    </td>
+
+
+                                    <!-- ================= Student ID ================= -->
+
+                                    <td class="py-3">
+
+                                        <span class="fw-semibold"
+                                              style="color:#5C5148;">
+
+                                            @(student.StudentIdNumber ?? "-")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================= Student Name ================= -->
+
+                                    <td class="py-3">
+
+                                        <strong style="color:#5C5148;">
+
+                                            @(student.FullName ?? "-")
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- ================= Department ================= -->
+
+                                    <td class="py-3">
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            student.Department))
+                                        {
+                                            <span class="badge
+                                                rounded-pill
+                                                px-3
+                                                py-2"
+                                                  style="
+                                                background:#EAF0EA;
+                                                color:#607360;">
+
+                                                @student.Department
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                -
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Semester ================= -->
+
+                                    <td class="py-3">
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            student.Semester))
+                                        {
+                                            <span class="badge
+                                                rounded-pill
+                                                px-3
+                                                py-2"
+                                                  style="
+                                                background:#EEF2F4;
+                                                color:#5F7480;">
+
+                                                @student.Semester
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                -
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Gender ================= -->
+
+                                    <td class="py-3">
+
+                                        @(student.Gender ?? "-")
+
+                                    </td>
+
+
+                                    <!-- ================= Email ================= -->
+
+                                    <td class="py-3">
+
+                                        @student.Email
+
+                                    </td>
+
+
+                                    <!-- ================= Phone ================= -->
+
+                                    <td class="py-3">
+
+                                        @student.Phone
+
+                                    </td>
+
+
+                                    <!-- ================= Action ================= -->
+
+                                    <td class="py-3 text-center">
+
+                                        <a asp-controller="Admin"
+                                           asp-action="StudentDetails"
+                                           asp-route-id="@student.StudentId"
+                                           class="btn btn-sm rounded-3 px-3"
+                                           style="
+                                            background:#D8C7B8;
+                                            color:#55483D;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                serial++;
+                            }
+                        }
+                        else
+                        {
+                            <!-- ================= Empty Report ================= -->
+
+                            <tr>
+
+                                <td colspan="9"
+                                    class="text-center py-5">
+
+                                    <div class="rounded-circle
+                                        d-flex
+                                        align-items-center
+                                        justify-content-center
+                                        mx-auto
+                                        mb-3"
+                                         style="
+                                        width:70px;
+                                        height:70px;
+                                        background:#F3EAE2;">
+
+                                        <i class="bi bi-file-earmark-x fs-2"
+                                           style="color:#A99687;">
+                                        </i>
+
+                                    </div>
+
+
+                                    <h5 style="color:#5C5148;">
+
+                                        No Student Records
+
+                                    </h5>
+
+
+                                    <p class="text-muted mb-0">
+
+                                        No student records are currently available.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- NO SEARCH RESULT -->
+    <!-- ===================================================== -->
+
+    <div id="noReportResult"
+         class="card border-0 shadow-sm rounded-4 mt-4"
+         style="display:none;">
+
+        <div class="card-body text-center py-4">
+
+            <div class="rounded-circle
+                d-flex
+                align-items-center
+                justify-content-center
+                mx-auto
+                mb-3"
+                 style="
+                width:60px;
+                height:60px;
+                background:#F3EAE2;">
+
+                <i class="bi bi-search fs-4"
+                   style="color:#A18D7D;">
+                </i>
+
+            </div>
+
+
+            <h5 style="color:#5C5148;">
+
+                No Matching Student Found
+
+            </h5>
+
+
+            <p class="text-muted mb-0">
+
+                Try searching with another student ID,
+                name, department or email.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- SEARCH SCRIPT -->
+<!-- ========================================================= -->
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+            // ================= Elements =================
+
+            const searchInput =
+                document.getElementById(
+                    "studentReportSearch"
+                );
+
+
+            const clearButton =
+                document.getElementById(
+                    "clearReportSearch"
+                );
+
+
+            const rows =
+                document.querySelectorAll(
+                    ".report-row"
+                );
+
+
+            const noResult =
+                document.getElementById(
+                    "noReportResult"
+                );
+
+
+            // ================= Normalize Text =================
+
+            function normalizeText(text) {
+                return text
+                    .toLowerCase()
+                    .trim()
+                    .replace(
+                        /\s+/g,
+                        " "
+                    );
+            }
+
+
+            // ================= Search =================
+
+            function searchReport() {
+                const value =
+                    normalizeText(
+                        searchInput.value
+                    );
+
+
+                let visibleRows =
+                    0;
+
+
+                rows.forEach(
+                    function(row) {
+                        const rowText =
+                            normalizeText(
+                                row.textContent
+                            );
+
+
+                        if (
+                            value === "" ||
+                            rowText.includes(value)
+                        ) {
+                            row.style.display =
+                                "";
+
+                            visibleRows++;
+                        }
+                        else {
+                            row.style.display =
+                                "none";
+                        }
+                    }
+                );
+
+
+                // ================= No Result =================
+
+                if (
+                    value !== "" &&
+                    visibleRows === 0
+                ) {
+                    noResult.style.display =
+                        "";
+                }
+                else {
+                    noResult.style.display =
+                        "none";
+                }
+
+
+                // ================= Clear Button =================
+
+                clearButton.style.display =
+                    value !== ""
+                        ? "block"
+                        : "none";
+            }
+
+
+            // ================= Search Input =================
+
+            searchInput.addEventListener(
+                "input",
+                searchReport
+            );
+
+
+            // ================= Clear Search =================
+
+            clearButton.addEventListener(
+                "click",
+                function() {
+                    searchInput.value =
+                        "";
+
+                    searchReport();
+
+                    searchInput.focus();
+                }
+            );
+        }
+    );
+
+</script>

@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentMentalHealthMonitoringSystem.Data;
 using StudentMentalHealthMonitoringSystem.Models;
+using StudentMentalHealthMonitoringSystem.Services;
+using StudentMentalHealthMonitoringSystem.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace StudentMentalHealthMonitoringSystem.Controllers
@@ -12,39 +17,67 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly GeminiChatService _geminiChatService;
+        private readonly CounselingSchedulerService _counselingSchedulerService;
 
         public StudentController(
             ApplicationDbContext context,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            GeminiChatService geminiChatService,
+            CounselingSchedulerService counselingSchedulerService)
         {
             _context = context;
             _environment = environment;
+            _geminiChatService = geminiChatService;
+            _counselingSchedulerService = counselingSchedulerService;
         }
 
-        // ================= Login =================
+        // =====================================================
+        // LOGIN
+        // =====================================================
+
+        // ================= Login GET =================
 
         [HttpGet]
         public IActionResult Login()
         {
+            if (HttpContext.Session.GetInt32("StudentId") != null)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
             return View();
         }
 
+        // ================= Login POST =================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Login(string email, string password)
+        public IActionResult Login(
+            string email,
+            string password)
         {
-            var student = _context.Students
-                .FirstOrDefault(s => s.Email == email);
+            var student =
+                _context.Students
+                    .FirstOrDefault(
+                        s => s.Email == email
+                    );
 
             if (student == null)
             {
-                ViewBag.Error = "Invalid Email or Password";
+                ViewBag.Error =
+                    "Invalid Email or Password";
+
                 return View();
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(password, student.Password))
+            if (!BCrypt.Net.BCrypt.Verify(
+                password,
+                student.Password))
             {
-                ViewBag.Error = "Invalid Email or Password";
+                ViewBag.Error =
+                    "Invalid Email or Password";
+
                 return View();
             }
 
@@ -58,10 +91,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 student.FullName
             );
 
-            return RedirectToAction("Dashboard");
+            return RedirectToAction(
+                "Dashboard"
+            );
         }
 
-        // ================= Register =================
+        // =====================================================
+        // REGISTER
+        // =====================================================
+
+        // ================= Register GET =================
 
         [HttpGet]
         public IActionResult Register()
@@ -69,25 +108,36 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             return View();
         }
 
+        // ================= Register POST =================
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(Student student)
+        public async Task<IActionResult> Register(
+            Student student)
         {
-            // Model Validation
+            // ================= Model Validation =================
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
+                var errors =
+                    ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
 
-                ViewBag.Errors = string.Join(" | ", errors);
+                ViewBag.Errors =
+                    string.Join(
+                        " | ",
+                        errors
+                    );
 
                 return View(student);
             }
 
-            // Duplicate Email Check
-            if (_context.Students.Any(s => s.Email == student.Email))
+            // ================= Duplicate Email =================
+
+            if (_context.Students.Any(
+                s => s.Email == student.Email))
             {
                 ModelState.AddModelError(
                     "Email",
@@ -97,9 +147,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(student);
             }
 
-            // Duplicate Student ID Check
+            // ================= Duplicate Student ID =================
+
             if (_context.Students.Any(
-                s => s.StudentIdNumber == student.StudentIdNumber))
+                s =>
+                    s.StudentIdNumber ==
+                    student.StudentIdNumber))
             {
                 ModelState.AddModelError(
                     "StudentIdNumber",
@@ -111,24 +164,33 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             try
             {
-                // Password Hash
+                // ================= Password Hash =================
+
                 student.Password =
-                    BCrypt.Net.BCrypt.HashPassword(student.Password);
+                    BCrypt.Net.BCrypt.HashPassword(
+                        student.Password
+                    );
 
                 // ================= Upload Image =================
 
                 if (student.ImageFile != null &&
                     student.ImageFile.Length > 0)
                 {
-                    // Allow only image files
                     var allowedExtensions =
-                        new[] { ".jpg", ".jpeg", ".png" };
+                        new[]
+                        {
+                            ".jpg",
+                            ".jpeg",
+                            ".png"
+                        };
 
-                    var extension = Path
-                        .GetExtension(student.ImageFile.FileName)
-                        .ToLower();
+                    var extension =
+                        Path.GetExtension(
+                            student.ImageFile.FileName
+                        ).ToLower();
 
-                    if (!allowedExtensions.Contains(extension))
+                    if (!allowedExtensions.Contains(
+                        extension))
                     {
                         ModelState.AddModelError(
                             "ImageFile",
@@ -138,120 +200,281 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                         return View(student);
                     }
 
-                    var uploadFolder = Path.Combine(
-                        _environment.WebRootPath,
-                        "images",
-                        "students"
-                    );
+                    var uploadFolder =
+                        Path.Combine(
+                            _environment.WebRootPath,
+                            "images",
+                            "students"
+                        );
 
-                    // Create folder if not exists
-                    if (!Directory.Exists(uploadFolder))
+                    if (!Directory.Exists(
+                        uploadFolder))
                     {
-                        Directory.CreateDirectory(uploadFolder);
+                        Directory.CreateDirectory(
+                            uploadFolder
+                        );
                     }
 
                     var fileName =
                         $"{Guid.NewGuid()}{extension}";
 
-                    var fullPath = Path.Combine(
-                        uploadFolder,
-                        fileName
-                    );
+                    var fullPath =
+                        Path.Combine(
+                            uploadFolder,
+                            fileName
+                        );
 
-                    await using var stream = new FileStream(
-                        fullPath,
-                        FileMode.Create
-                    );
+                    await using var stream =
+                        new FileStream(
+                            fullPath,
+                            FileMode.Create
+                        );
 
-                    await student.ImageFile.CopyToAsync(stream);
+                    await student.ImageFile
+                        .CopyToAsync(stream);
 
-                    // Save image path into database
                     student.ProfileImage =
                         $"/images/students/{fileName}";
                 }
 
-                // Save Student
-                _context.Students.Add(student);
+                // Format Semester with Year (e.g., Spring 2026)
+                if (!string.IsNullOrWhiteSpace(student.Semester) && student.AdmissionYear.HasValue)
+                {
+                    if (!student.Semester.Contains(student.AdmissionYear.Value.ToString()))
+                    {
+                        student.Semester = $"{student.Semester} {student.AdmissionYear.Value}";
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(student.Semester) && !student.Semester.Any(char.IsDigit))
+                {
+                    student.Semester = $"{student.Semester} {DateTime.Now.Year}";
+                }
+
+                // ================= Save Student =================
+
+                _context.Students.Add(
+                    student
+                );
 
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] =
-                    "Registration Successful.";
+                // Initialize continuous semester observation record
+                if (!string.IsNullOrWhiteSpace(student.Semester))
+                {
+                    try
+                    {
+                        var initialRecord = new StudentSemesterRecord
+                        {
+                            StudentId = student.StudentId,
+                            Semester = student.Semester,
+                            FeelingRiskLevel = "Normal",
+                            FeelingSummary = "Continuous Observation Initialized"
+                        };
 
-                return RedirectToAction("Login");
+                        _context.StudentSemesterRecords.Add(initialRecord);
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception) { }
+                }
+
+                TempData["Success"] =
+                    "Registration Successful. Continuous Semester Observation is now active for your account.";
+
+                return RedirectToAction(
+                    "Login"
+                );
             }
             catch (Exception ex)
             {
-                return Content(ex.ToString());
+                return Content(
+                    ex.ToString()
+                );
             }
         }
 
-        // ================= Student Dashboard =================
-
-        // ================= Student Dashboard =================
+        // =====================================================
+        // STUDENT DASHBOARD
+        // =====================================================
 
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
-            // Check Session
+            // ================= Check Session =================
+
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Student Information
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            // ================= Get Student =================
+
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
-            }
-
-            // Default Status
-            ViewBag.PHQCompleted = false;
-            ViewBag.CSSRSCompleted = false;
-            ViewBag.FeelingsCompleted = false;
-            ViewBag.AvailableTimeCompleted = false;
-            ViewBag.ScreeningCompleted = false;
-            ViewBag.RiskLevel = "Not Assessed";
-
-            // Semester না থাকলে default status দেখাবে
-            if (string.IsNullOrWhiteSpace(student.Semester))
-            {
-                return View(student);
-            }
-
-            // PHQ-9 Status
-            bool phqCompleted =
-                await _context.PHQAssessments.AnyAsync(p =>
-                    p.StudentId == student.StudentId &&
-                    p.Semester == student.Semester
+                return RedirectToAction(
+                    "Login"
                 );
+            }
 
-            // C-SSRS Assessment
+
+            // =================================================
+            // COUNSELING INFORMATION
+            // =================================================
+
+            var counselings =
+                await _context.Counselings
+                    .Include(c =>
+                        c.Psychologist)
+                    .Where(c =>
+                        c.StudentId ==
+                            student.StudentId &&
+
+                        c.Status !=
+                            "Cancelled")
+                    .OrderBy(c =>
+                        c.CounselingDate)
+                    .ThenBy(c =>
+                        c.AppointmentTime)
+                    .ToListAsync();
+
+
+            // ================= Counseling Count =================
+
+            ViewBag.CounselingCount =
+                counselings.Count;
+
+
+            // ================= Next Counseling =================
+
+            var nextCounseling =
+                counselings
+                    .Where(c =>
+                        c.Status !=
+                            "Completed" &&
+
+                        c.CounselingDate.Date
+                            .Add(
+                                c.AppointmentTime
+                            ) >=
+                            DateTime.Now
+                    )
+                    .OrderBy(c =>
+                        c.CounselingDate)
+                    .ThenBy(c =>
+                        c.AppointmentTime)
+                    .FirstOrDefault();
+
+
+            ViewBag.NextCounseling =
+                nextCounseling;
+
+
+            // ================= Default Status =================
+
+            ViewBag.PHQCompleted =
+                false;
+
+            ViewBag.CSSRSCompleted =
+                false;
+
+            ViewBag.FeelingsCompleted =
+                false;
+
+            ViewBag.ScreeningCompleted =
+                false;
+
+            ViewBag.RiskLevel =
+                "Not Assessed";
+
+
+            // ================= AI Chat Status =================
+
+            ViewBag.ChatRiskStatus =
+                student.LatestChatRiskStatus
+                ?? "Not Assessed";
+
+
+            // ================= Semester Check =================
+
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
+            {
+                return View(
+                    student
+                );
+            }
+
+
+            // =================================================
+            // PHQ STATUS
+            // =================================================
+
+            var phqAssessment =
+                await _context.PHQAssessments
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.StudentId ==
+                                student.StudentId &&
+
+                            p.Semester ==
+                                student.Semester
+                    );
+
+
+            bool phqCompleted =
+                phqAssessment != null;
+
+
+            // =================================================
+            // C-SSRS STATUS
+            // =================================================
+
             var cssrsAssessment =
                 await _context.CSSRSAssessments
-                    .FirstOrDefaultAsync(c =>
-                        c.StudentId == student.StudentId &&
-                        c.Semester == student.Semester
+                    .FirstOrDefaultAsync(
+                        c =>
+                            c.StudentId ==
+                                student.StudentId &&
+
+                            c.Semester ==
+                                student.Semester
                     );
+
 
             bool cssrsCompleted =
                 cssrsAssessment != null;
 
-            // Feelings এবং Available Time
+
+            // =================================================
+            // FEELINGS STATUS
+            // =================================================
+
             var semesterRecord =
-                await _context.StudentSemesterRecords
-                    .FirstOrDefaultAsync(r =>
-                        r.StudentId == student.StudentId &&
-                        r.Semester == student.Semester
+                await _context
+                    .StudentSemesterRecords
+                    .FirstOrDefaultAsync(
+                        r =>
+                            r.StudentId ==
+                                student.StudentId &&
+
+                            r.Semester ==
+                                student.Semester
                     );
+
 
             bool feelingsCompleted =
                 semesterRecord != null &&
@@ -259,254 +482,455 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     semesterRecord.FeelingText
                 );
 
-            bool availableTimeCompleted =
-                semesterRecord != null &&
-                !string.IsNullOrWhiteSpace(
-                    semesterRecord.AvailableDay
-                ) &&
-                semesterRecord.StartTime.HasValue &&
-                semesterRecord.EndTime.HasValue;
 
-            // Send Status to Dashboard View
-            ViewBag.PHQCompleted = phqCompleted;
-            ViewBag.CSSRSCompleted = cssrsCompleted;
-            ViewBag.FeelingsCompleted = feelingsCompleted;
-            ViewBag.AvailableTimeCompleted =
-                availableTimeCompleted;
+            // ================= Send Status =================
 
-            // সব section complete হলে Screening Completed
+            ViewBag.PHQCompleted =
+                phqCompleted;
+
+            ViewBag.CSSRSCompleted =
+                cssrsCompleted;
+
+            ViewBag.FeelingsCompleted =
+                feelingsCompleted;
+
+
+            // ================= Screening Complete =================
+
             ViewBag.ScreeningCompleted =
                 phqCompleted &&
                 cssrsCompleted &&
-                feelingsCompleted &&
-                availableTimeCompleted;
+                feelingsCompleted;
 
-            // C-SSRS Risk Level
-            ViewBag.RiskLevel =
-                cssrsAssessment?.RiskLevel
-                ?? "Not Assessed";
 
-            return View(student);
+            // =================================================
+            // PROJECT LEVEL RISK
+            // =================================================
+            //
+            // Highest available severity from:
+            //
+            // PHQ-9
+            // C-SSRS
+            // Feelings
+            // AI Chat
+            //
+            // No weighted combined score is calculated.
+            // =================================================
+
+            var projectRiskLevels =
+                new List<string>();
+
+
+            // ================= PHQ Risk =================
+
+            if (phqAssessment != null)
+            {
+                projectRiskLevels.Add(
+                    GetPHQProjectSeverity(
+                        phqAssessment.SeverityLevel
+                    )
+                );
+            }
+
+
+            // ================= C-SSRS Risk =================
+
+            if (cssrsAssessment != null)
+            {
+                projectRiskLevels.Add(
+                    GetCSSRSProjectSeverity(
+                        cssrsAssessment.RiskLevel
+                    )
+                );
+            }
+
+
+            // ================= Feelings Risk =================
+
+            if (semesterRecord != null &&
+                !string.IsNullOrWhiteSpace(
+                    semesterRecord.FeelingRiskLevel))
+            {
+                projectRiskLevels.Add(
+                    semesterRecord
+                        .FeelingRiskLevel
+                );
+            }
+
+
+            // ================= AI Chat Risk =================
+
+            if (!string.IsNullOrWhiteSpace(
+                student.LatestChatRiskStatus))
+            {
+                projectRiskLevels.Add(
+                    student.LatestChatRiskStatus
+                );
+            }
+
+
+            // ================= Highest Risk =================
+
+            if (projectRiskLevels.Contains(
+                "Extremely Severe"))
+            {
+                ViewBag.RiskLevel =
+                    "Extremely Severe";
+            }
+            else if (projectRiskLevels.Contains(
+                "Severe"))
+            {
+                ViewBag.RiskLevel =
+                    "Severe";
+            }
+            else if (projectRiskLevels.Contains(
+                "Moderate"))
+            {
+                ViewBag.RiskLevel =
+                    "Moderate";
+            }
+            else if (projectRiskLevels.Any())
+            {
+                ViewBag.RiskLevel =
+                    "Normal";
+            }
+            else
+            {
+                ViewBag.RiskLevel =
+                    "Not Assessed";
+            }
+
+            // ================= Semester Screening Compliance =================
+            var currentSemester = string.IsNullOrWhiteSpace(student.Semester) ? "Semester 1" : student.Semester;
+
+            bool hasPHQ = await _context.PHQAssessments
+                .AnyAsync(p => p.StudentId == student.StudentId && p.Semester.ToLower() == currentSemester.ToLower());
+
+            bool hasCSSRS = await _context.CSSRSAssessments
+                .AnyAsync(c => c.StudentId == student.StudentId && c.Semester.ToLower() == currentSemester.ToLower());
+
+            ViewBag.HasPHQ = hasPHQ;
+            ViewBag.HasCSSRS = hasCSSRS;
+            ViewBag.IsScreeningComplete = hasPHQ && hasCSSRS;
+
+            return View(
+                student
+            );
         }
 
-        // ================= Student Profile =================
+        // =====================================================
+        // STUDENT PROFILE
+        // =====================================================
 
         public IActionResult Profile()
         {
-            // Check Student Session
-            var studentId = HttpContext.Session.GetInt32("StudentId");
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student Information
-            var student = _context.Students
-                .FirstOrDefault(s => s.StudentId == studentId.Value);
+            var student =
+                _context.Students
+                    .FirstOrDefault(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
             return View(student);
         }
 
-        // ================= Semester Screening =================
-
-        // ================= Semester Screening =================
+        // =====================================================
+        // SEMESTER SCREENING
+        // =====================================================
 
         [HttpGet]
         public async Task<IActionResult> SemesterScreening()
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // PHQ-9 Status
+            // ================= PHQ Status =================
+
             ViewBag.PHQCompleted =
-                await _context.PHQAssessments.AnyAsync(p =>
-                    p.StudentId == student.StudentId &&
-                    p.Semester == student.Semester
-                );
-
-            // C-SSRS Status
-            ViewBag.CSSRSCompleted =
-                await _context.CSSRSAssessments.AnyAsync(c =>
-                    c.StudentId == student.StudentId &&
-                    c.Semester == student.Semester
-                );
-
-            // Get Semester Record
-            var semesterRecord =
-                await _context.StudentSemesterRecords
-                    .FirstOrDefaultAsync(r =>
-                        r.StudentId == student.StudentId &&
-                        r.Semester == student.Semester
+                await _context.PHQAssessments
+                    .AnyAsync(
+                        p =>
+                            p.StudentId ==
+                            student.StudentId &&
+                            p.Semester ==
+                            student.Semester
                     );
 
-            // Feelings Status
+            // ================= C-SSRS Status =================
+
+            ViewBag.CSSRSCompleted =
+                await _context.CSSRSAssessments
+                    .AnyAsync(
+                        c =>
+                            c.StudentId ==
+                            student.StudentId &&
+                            c.Semester ==
+                            student.Semester
+                    );
+
+            // ================= Feelings Status =================
+
+            var semesterRecord =
+                await _context
+                    .StudentSemesterRecords
+                    .FirstOrDefaultAsync(
+                        r =>
+                            r.StudentId ==
+                            student.StudentId &&
+                            r.Semester ==
+                            student.Semester
+                    );
+
             ViewBag.FeelingsCompleted =
                 semesterRecord != null &&
                 !string.IsNullOrWhiteSpace(
                     semesterRecord.FeelingText
                 );
 
-            // Available Time Status
-            ViewBag.AvailableTimeCompleted =
-                semesterRecord != null &&
-                !string.IsNullOrWhiteSpace(
-                    semesterRecord.AvailableDay
-                ) &&
-                semesterRecord.StartTime.HasValue &&
-                semesterRecord.EndTime.HasValue;
-
-            ViewBag.CurrentSemester = student.Semester;
+            ViewBag.CurrentSemester =
+                student.Semester;
 
             return View();
         }
 
-        // ================= PHQ-9 Assessment GET =================
+        // =====================================================
+        // PHQ
+        // =====================================================
+
+        // ================= PHQ GET =================
 
         [HttpGet]
         public async Task<IActionResult> PHQ()
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // Check Previous PHQ Submission
+            // ================= Previous Assessment =================
+
             var previousAssessment =
                 await _context.PHQAssessments
-                    .FirstOrDefaultAsync(p =>
-                        p.StudentId == studentId.Value &&
-                        p.Semester == student.Semester
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.StudentId ==
+                            studentId.Value &&
+                            p.Semester ==
+                            student.Semester
                     );
 
-            // Already submitted হলে previous result দেখাবে
             if (previousAssessment != null)
             {
                 return RedirectToAction(
                     "PHQResult",
                     new
                     {
-                        id = previousAssessment.AssessmentId
+                        id =
+                            previousAssessment
+                                .AssessmentId
                     }
                 );
             }
 
-            // Empty PHQ Form Model
-            var model = new PHQAssessment
-            {
-                Semester = student.Semester
-            };
+            var model =
+                new PHQAssessment
+                {
+                    Semester =
+                        student.Semester
+                };
 
             return View(model);
         }
 
-        // ================= PHQ-9 Assessment POST =================
+        // ================= PHQ POST =================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PHQ(
             PHQAssessment model)
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // StudentId এবং Semester form থেকে নেওয়া হবে না
-            // Logged-in Student থেকে নেওয়া হবে
-            model.StudentId = student.StudentId;
-            model.Semester = student.Semester;
+            // ================= Server Values =================
 
-            // Server থেকে set করা propertyগুলোর পুরোনো
-            // validation state remove করা হচ্ছে
-            ModelState.Remove(nameof(PHQAssessment.StudentId));
-            ModelState.Remove(nameof(PHQAssessment.Student));
-            ModelState.Remove(nameof(PHQAssessment.Semester));
-            ModelState.Remove(nameof(PHQAssessment.TotalScore));
-            ModelState.Remove(nameof(PHQAssessment.SeverityLevel));
-            ModelState.Remove(nameof(PHQAssessment.RequiresImmediateReview));
-            ModelState.Remove(nameof(PHQAssessment.AssessmentDate));
+            model.StudentId =
+                student.StudentId;
 
-            // Check Every Question
+            model.Semester =
+                student.Semester;
+
+            // ================= Remove Validation =================
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment.StudentId
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment.Student
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment.Semester
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment.TotalScore
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment.SeverityLevel
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment
+                        .RequiresImmediateReview
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    PHQAssessment
+                        .AssessmentDate
+                )
+            );
+
+            // ================= Questions Check =================
+
             if (model.Question1Score == null ||
                 model.Question2Score == null ||
                 model.Question3Score == null ||
@@ -525,33 +949,37 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(model);
             }
 
-            // Check Model Validation
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Check Duplicate Submission
+            // ================= Duplicate Check =================
+
             var previousAssessment =
                 await _context.PHQAssessments
-                    .FirstOrDefaultAsync(p =>
-                        p.StudentId == student.StudentId &&
-                        p.Semester == student.Semester
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.StudentId ==
+                            student.StudentId &&
+                            p.Semester ==
+                            student.Semester
                     );
 
-            // আগে submit করা থাকলে previous result দেখাবে
             if (previousAssessment != null)
             {
                 return RedirectToAction(
                     "PHQResult",
                     new
                     {
-                        id = previousAssessment.AssessmentId
+                        id =
+                            previousAssessment
+                                .AssessmentId
                     }
                 );
             }
 
-            // ================= Calculate Total Score =================
+            // ================= Total Score =================
 
             model.TotalScore =
                 model.Question1Score.Value +
@@ -564,22 +992,55 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 model.Question8Score.Value +
                 model.Question9Score.Value;
 
-            // Calculate Severity
-            model.SeverityLevel =
-                GetPHQSeverity(model.TotalScore);
+            // ================= Severity =================
 
-            // Question 9 score 0-এর বেশি হলে review required
+            model.SeverityLevel =
+                GetPHQSeverity(
+                    model.TotalScore
+                );
+
+            // ================= Immediate Review =================
+
             model.RequiresImmediateReview =
                 model.Question9Score.Value > 0;
 
-            model.AssessmentDate = DateTime.Now;
+            model.AssessmentDate =
+                DateTime.Now;
 
             try
             {
-                // Save PHQ Assessment
-                _context.PHQAssessments.Add(model);
+                _context.PHQAssessments.Add(
+                    model
+                );
 
                 await _context.SaveChangesAsync();
+
+
+                // =================================================
+                // PROJECT SEVERITY
+                // =================================================
+
+                var projectSeverity =
+                    GetPHQProjectSeverity(
+                        model.SeverityLevel
+                    );
+
+
+                // =================================================
+                // AUTO PSYCHOLOGIST ASSIGNMENT
+                // =================================================
+
+                if (projectSeverity == "Severe" ||
+                    projectSeverity == "Extremely Severe")
+                {
+                    await _counselingSchedulerService
+                        .AutoAssignPsychologistAsync(
+                            student.StudentId,
+                            projectSeverity,
+                            "PHQ-9"
+                        );
+                }
+
 
                 TempData["Success"] =
                     "PHQ-9 assessment submitted successfully.";
@@ -588,48 +1049,58 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "PHQResult",
                     new
                     {
-                        id = model.AssessmentId
+                        id =
+                            model.AssessmentId
                     }
                 );
             }
             catch (DbUpdateException ex)
             {
-                // Database error দেখা যাবে
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
             }
             catch (Exception ex)
             {
-                // অন্য error দেখা যাবে
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
             }
         }
 
-        // ================= PHQ-9 Result =================
+        // ================= PHQ Result =================
 
         [HttpGet]
-        public async Task<IActionResult> PHQResult(int id)
+        public async Task<IActionResult> PHQResult(
+            int id)
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Student নিজের result শুধু দেখতে পারবে
             var assessment =
                 await _context.PHQAssessments
-                    .FirstOrDefaultAsync(p =>
-                        p.AssessmentId == id &&
-                        p.StudentId == studentId.Value
+                    .FirstOrDefaultAsync(
+                        p =>
+                            p.AssessmentId == id &&
+                            p.StudentId ==
+                            studentId.Value
                     );
 
             if (assessment == null)
@@ -637,12 +1108,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
-            return View(assessment);
+            return View(
+                assessment
+            );
         }
 
-        // ================= Calculate PHQ Severity =================
+        // ================= PHQ Severity =================
 
-        private string GetPHQSeverity(int totalScore)
+        private string GetPHQSeverity(
+            int totalScore)
         {
             if (totalScore <= 4)
             {
@@ -666,119 +1140,221 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
         }
 
-        // ================= C-SSRS Assessment GET =================
+
+        // =====================================================
+        // PHQ PROJECT SEVERITY
+        // =====================================================
+
+        private string GetPHQProjectSeverity(
+            string? severityLevel)
+        {
+            if (string.IsNullOrWhiteSpace(
+                severityLevel))
+            {
+                return "Normal";
+            }
+
+
+            if (severityLevel == "Moderate")
+            {
+                return "Moderate";
+            }
+
+
+            if (severityLevel ==
+                "Moderately Severe")
+            {
+                return "Severe";
+            }
+
+
+            if (severityLevel ==
+                "Severe")
+            {
+                return "Extremely Severe";
+            }
+
+
+            return "Normal";
+        }
+
+        // =====================================================
+        // C-SSRS
+        // =====================================================
+
+        // ================= C-SSRS GET =================
 
         [HttpGet]
         public async Task<IActionResult> CSRRS()
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // Check Previous C-SSRS Submission
+            // ================= Previous Assessment =================
+
             var previousAssessment =
                 await _context.CSSRSAssessments
-                    .FirstOrDefaultAsync(c =>
-                        c.StudentId == student.StudentId &&
-                        c.Semester == student.Semester
+                    .FirstOrDefaultAsync(
+                        c =>
+                            c.StudentId ==
+                            student.StudentId &&
+                            c.Semester ==
+                            student.Semester
                     );
 
-            // আগে submit করা থাকলে আগের result দেখাবে
             if (previousAssessment != null)
             {
                 return RedirectToAction(
                     "CSRRSResult",
                     new
                     {
-                        id = previousAssessment.AssessmentId
+                        id =
+                            previousAssessment
+                                .AssessmentId
                     }
                 );
             }
 
-            // Empty C-SSRS Form Model
-            var model = new CSSRSAssessment
-            {
-                Semester = student.Semester
-            };
+            var model =
+                new CSSRSAssessment
+                {
+                    Semester =
+                        student.Semester
+                };
 
             return View(model);
         }
 
-        // ================= C-SSRS Assessment POST =================
+        // ================= C-SSRS POST =================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CSRRS(
             CSSRSAssessment model)
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // StudentId এবং Semester logged-in student থেকে
-            model.StudentId = student.StudentId;
-            model.Semester = student.Semester;
+            // ================= Server Values =================
 
-            // Server থেকে set করা propertyগুলোর
-            // validation state remove করা হচ্ছে
-            ModelState.Remove(nameof(CSSRSAssessment.StudentId));
-            ModelState.Remove(nameof(CSSRSAssessment.Student));
-            ModelState.Remove(nameof(CSSRSAssessment.Semester));
-            ModelState.Remove(nameof(CSSRSAssessment.RiskLevel));
-            ModelState.Remove(nameof(CSSRSAssessment.RequiresImmediateAction));
-            ModelState.Remove(nameof(CSSRSAssessment.AssessmentDate));
+            model.StudentId =
+                student.StudentId;
 
-            // Question 1, 2 এবং 6 সবসময় answer করতে হবে
+            model.Semester =
+                student.Semester;
+
+            // ================= Remove Validation =================
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment.StudentId
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment.Student
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment.Semester
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment.RiskLevel
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment
+                        .RequiresImmediateAction
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    CSSRSAssessment
+                        .AssessmentDate
+                )
+            );
+
+            // ================= Required Questions =================
+
             if (model.Question1Answer == null ||
                 model.Question2Answer == null ||
                 model.Question6Answer == null)
@@ -791,7 +1367,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(model);
             }
 
-            // Question 2 Yes হলে Question 3, 4 এবং 5 answer করতে হবে
+            // ================= Question 2 =================
+
             if (model.Question2Answer == true &&
                 (model.Question3Answer == null ||
                  model.Question4Answer == null ||
@@ -805,27 +1382,41 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(model);
             }
 
-            // Question 2 No হলে Question 3, 4 এবং 5 skip হবে
             if (model.Question2Answer == false)
             {
-                model.Question3Answer = false;
-                model.Question4Answer = false;
-                model.Question5Answer = false;
+                model.Question3Answer =
+                    false;
+
+                model.Question4Answer =
+                    false;
+
+                model.Question5Answer =
+                    false;
 
                 ModelState.Remove(
-                    nameof(CSSRSAssessment.Question3Answer)
+                    nameof(
+                        CSSRSAssessment
+                            .Question3Answer
+                    )
                 );
 
                 ModelState.Remove(
-                    nameof(CSSRSAssessment.Question4Answer)
+                    nameof(
+                        CSSRSAssessment
+                            .Question4Answer
+                    )
                 );
 
                 ModelState.Remove(
-                    nameof(CSSRSAssessment.Question5Answer)
+                    nameof(
+                        CSSRSAssessment
+                            .Question5Answer
+                    )
                 );
             }
 
-            // Question 6 Yes হলে recent behaviour answer করতে হবে
+            // ================= Question 6 =================
+
             if (model.Question6Answer == true &&
                 model.RecentBehavior == null)
             {
@@ -837,58 +1428,97 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(model);
             }
 
-            // Question 6 No হলে RecentBehavior false হবে
             if (model.Question6Answer == false)
             {
-                model.RecentBehavior = false;
+                model.RecentBehavior =
+                    false;
 
                 ModelState.Remove(
-                    nameof(CSSRSAssessment.RecentBehavior)
+                    nameof(
+                        CSSRSAssessment
+                            .RecentBehavior
+                    )
                 );
             }
 
-            // Check Model Validation
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Check Duplicate Submission
+            // ================= Duplicate Check =================
+
             var previousAssessment =
                 await _context.CSSRSAssessments
-                    .FirstOrDefaultAsync(c =>
-                        c.StudentId == student.StudentId &&
-                        c.Semester == student.Semester
+                    .FirstOrDefaultAsync(
+                        c =>
+                            c.StudentId ==
+                            student.StudentId &&
+                            c.Semester ==
+                            student.Semester
                     );
 
-            // আগে submit করা থাকলে previous result দেখাবে
             if (previousAssessment != null)
             {
                 return RedirectToAction(
                     "CSRRSResult",
                     new
                     {
-                        id = previousAssessment.AssessmentId
+                        id =
+                            previousAssessment
+                                .AssessmentId
                     }
                 );
             }
 
-            // Calculate Risk Level
+            // ================= Calculate Risk =================
+
             model.RiskLevel =
-                GetCSSRSRiskLevel(model);
+                GetCSSRSRiskLevel(
+                    model
+                );
 
-            // High risk হলে immediate action প্রয়োজন
             model.RequiresImmediateAction =
-                model.RiskLevel == "High";
+                model.RiskLevel ==
+                "High";
 
-            model.AssessmentDate = DateTime.Now;
+            model.AssessmentDate =
+                DateTime.Now;
 
             try
             {
-                // Save C-SSRS Assessment
-                _context.CSSRSAssessments.Add(model);
+                _context.CSSRSAssessments.Add(
+                    model
+                );
 
                 await _context.SaveChangesAsync();
+
+
+                // =================================================
+                // PROJECT SEVERITY
+                // =================================================
+
+                var projectSeverity =
+                    GetCSSRSProjectSeverity(
+                        model.RiskLevel
+                    );
+
+
+                // =================================================
+                // AUTO PSYCHOLOGIST ASSIGNMENT
+                // =================================================
+
+                if (projectSeverity == "Severe" ||
+                    projectSeverity == "Extremely Severe")
+                {
+                    await _counselingSchedulerService
+                        .AutoAssignPsychologistAsync(
+                            student.StudentId,
+                            projectSeverity,
+                            "C-SSRS"
+                        );
+                }
+
 
                 TempData["Success"] =
                     "C-SSRS assessment submitted successfully.";
@@ -897,46 +1527,58 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "CSRRSResult",
                     new
                     {
-                        id = model.AssessmentId
+                        id =
+                            model.AssessmentId
                     }
                 );
             }
             catch (DbUpdateException ex)
             {
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
             }
             catch (Exception ex)
             {
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
             }
         }
 
         // ================= C-SSRS Result =================
 
         [HttpGet]
-        public async Task<IActionResult> CSRRSResult(int id)
+        public async Task<IActionResult> CSRRSResult(
+            int id)
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Student নিজের assessment শুধু দেখতে পারবে
             var assessment =
                 await _context.CSSRSAssessments
-                    .FirstOrDefaultAsync(c =>
-                        c.AssessmentId == id &&
-                        c.StudentId == studentId.Value
+                    .FirstOrDefaultAsync(
+                        c =>
+                            c.AssessmentId == id &&
+                            c.StudentId ==
+                            studentId.Value
                     );
 
             if (assessment == null)
@@ -944,15 +1586,18 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
-            return View(assessment);
+            return View(
+                assessment
+            );
         }
 
-        // ================= Calculate C-SSRS Risk =================
+        // ================= C-SSRS Risk =================
 
         private string GetCSSRSRiskLevel(
             CSSRSAssessment model)
         {
-            // High Risk
+            // ================= High Risk =================
+
             if (model.Question4Answer == true ||
                 model.Question5Answer == true ||
                 (model.Question6Answer == true &&
@@ -961,14 +1606,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return "High";
             }
 
-            // Moderate Risk
+            // ================= Moderate Risk =================
+
             if (model.Question3Answer == true ||
                 model.Question6Answer == true)
             {
                 return "Moderate";
             }
 
-            // Low Risk
+            // ================= Low Risk =================
+
             if (model.Question1Answer == true ||
                 model.Question2Answer == true)
             {
@@ -978,62 +1625,110 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             return "No Risk Identified";
         }
 
-        // ================= Feelings =================
+
+        // =====================================================
+        // C-SSRS PROJECT SEVERITY
+        // =====================================================
+
+        private string GetCSSRSProjectSeverity(
+            string? riskLevel)
+        {
+            if (string.IsNullOrWhiteSpace(
+                riskLevel))
+            {
+                return "Normal";
+            }
+
+
+            if (riskLevel == "Moderate")
+            {
+                return "Moderate";
+            }
+
+
+            if (riskLevel == "High")
+            {
+                return "Severe";
+            }
+
+
+            return "Normal";
+        }
+
+        // =====================================================
+        // FEELINGS
+        // =====================================================
 
         // ================= Feelings GET =================
 
         [HttpGet]
         public async Task<IActionResult> Feelings()
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
+                return RedirectToAction(
+                    "Dashboard"
+                );
             }
 
-            // Check Previous Semester Record
+            // ================= Semester Record =================
+
             var semesterRecord =
-                await _context.StudentSemesterRecords
-                    .FirstOrDefaultAsync(r =>
-                        r.StudentId == student.StudentId &&
-                        r.Semester == student.Semester
+                await _context
+                    .StudentSemesterRecords
+                    .FirstOrDefaultAsync(
+                        r =>
+                            r.StudentId ==
+                            student.StudentId &&
+                            r.Semester ==
+                            student.Semester
                     );
 
-            // Previous record না থাকলে empty model
             if (semesterRecord == null)
             {
-                semesterRecord = new StudentSemesterRecord
-                {
-                    Semester = student.Semester
-                };
+                semesterRecord =
+                    new StudentSemesterRecord
+                    {
+                        Semester =
+                            student.Semester
+                    };
             }
 
-            return View(semesterRecord);
+            return View(
+                semesterRecord
+            );
         }
-
 
         // ================= Feelings POST =================
 
@@ -1042,167 +1737,271 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         public async Task<IActionResult> Feelings(
             StudentSemesterRecord model)
         {
-            // Check Student Session
             var studentId =
-                HttpContext.Session.GetInt32("StudentId");
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
 
             if (studentId == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Get Logged-in Student
-            var student = await _context.Students
-                .FirstOrDefaultAsync(
-                    s => s.StudentId == studentId.Value
-                );
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
 
             if (student == null)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(
+                    "Login"
+                );
             }
 
-            // Check Current Semester
-            if (string.IsNullOrWhiteSpace(student.Semester))
+            if (string.IsNullOrWhiteSpace(
+                student.Semester))
             {
                 TempData["Error"] =
                     "Current semester information was not found.";
 
-                return RedirectToAction("Dashboard");
-            }
-
-            // Student এবং Semester server থেকে set হবে
-            model.StudentId = student.StudentId;
-            model.Semester = student.Semester;
-
-            // Server-side property validation remove
-            ModelState.Remove(
-                nameof(StudentSemesterRecord.StudentId)
-            );
-
-            ModelState.Remove(
-                nameof(StudentSemesterRecord.Student)
-            );
-
-            ModelState.Remove(
-                nameof(StudentSemesterRecord.Semester)
-            );
-
-            ModelState.Remove(
-                nameof(StudentSemesterRecord.SubmittedAt)
-            );
-
-            ModelState.Remove(
-                nameof(StudentSemesterRecord.UpdatedAt)
-            );
-
-            bool hasFeeling =
-                !string.IsNullOrWhiteSpace(model.FeelingText);
-
-            bool hasAnyAvailableTime =
-                !string.IsNullOrWhiteSpace(model.AvailableDay) ||
-                model.StartTime.HasValue ||
-                model.EndTime.HasValue;
-
-            // কিছুই না দিলে submit হবে না
-            if (!hasFeeling && !hasAnyAvailableTime)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Please write your feelings or provide your available time."
+                return RedirectToAction(
+                    "Dashboard"
                 );
             }
 
-            // Available Time দিলে সব field দিতে হবে
-            if (hasAnyAvailableTime &&
-                (string.IsNullOrWhiteSpace(model.AvailableDay) ||
-                 !model.StartTime.HasValue ||
-                 !model.EndTime.HasValue))
+            // ================= Server Values =================
+
+            model.StudentId =
+                student.StudentId;
+
+            model.Semester =
+                student.Semester;
+
+            // ================= Remove Server Validation =================
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .StudentId
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .Student
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .Semester
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .SubmittedAt
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .UpdatedAt
+                )
+            );
+
+            // Old Semester Availability Fields
+            // are not used for appointments anymore.
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .AvailableDay
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .StartTime
+                )
+            );
+
+            ModelState.Remove(
+                nameof(
+                    StudentSemesterRecord
+                        .EndTime
+                )
+            );
+
+            // ================= Feelings Validation =================
+
+            if (string.IsNullOrWhiteSpace(
+                model.FeelingText))
             {
                 ModelState.AddModelError(
-                    "",
-                    "Please select day, start time and end time."
-                );
-            }
-
-            // End Time অবশ্যই Start Time-এর পরে হতে হবে
-            if (model.StartTime.HasValue &&
-                model.EndTime.HasValue &&
-                model.EndTime.Value <= model.StartTime.Value)
-            {
-                ModelState.AddModelError(
-                    nameof(StudentSemesterRecord.EndTime),
-                    "End time must be later than start time."
-                );
-            }
-
-            // Allowed Counseling Days
-            var allowedDays = new[]
-            {
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday"
-    };
-
-            if (!string.IsNullOrWhiteSpace(model.AvailableDay) &&
-                !allowedDays.Contains(model.AvailableDay))
-            {
-                ModelState.AddModelError(
-                    nameof(StudentSemesterRecord.AvailableDay),
-                    "Please select a valid day."
+                    nameof(
+                        StudentSemesterRecord
+                            .FeelingText
+                    ),
+                    "Please write your feelings."
                 );
             }
 
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View(
+                    model
+                );
             }
 
-            // Check Previous Semester Record
+            // ================= Clean Feeling Text =================
+
+            model.FeelingText =
+                model.FeelingText?.Trim();
+
+
+            // =====================================================
+            // ANALYZE FEELINGS
+            // =====================================================
+
+            GeminiFeelingsResult feelingsResult;
+
+            try
+            {
+                feelingsResult =
+                    await _geminiChatService
+                        .AnalyzeFeelingsAsync(
+                            model.FeelingText
+                            ?? string.Empty
+                        );
+            }
+            catch
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Your feelings could not be analyzed right now. Please try again."
+                );
+
+                return View(
+                    model
+                );
+            }
+
+
+            // ================= Analysis Result =================
+
+            model.FeelingRiskLevel =
+                feelingsResult.RiskLevel;
+
+            model.FeelingSummary =
+                feelingsResult.Summary;
+
+
+            // ================= Existing Record =================
+
             var existingRecord =
-                await _context.StudentSemesterRecords
-                    .FirstOrDefaultAsync(r =>
-                        r.StudentId == student.StudentId &&
-                        r.Semester == student.Semester
+                await _context
+                    .StudentSemesterRecords
+                    .FirstOrDefaultAsync(
+                        r =>
+                            r.StudentId ==
+                            student.StudentId &&
+                            r.Semester ==
+                            student.Semester
                     );
 
             try
             {
                 if (existingRecord == null)
                 {
-                    // Create New Record
-                    model.FeelingText =
-                        model.FeelingText?.Trim();
+                    model.SubmittedAt =
+                        DateTime.Now;
 
-                    model.SubmittedAt = DateTime.Now;
+                    model.AvailableDay =
+                        null;
 
-                    _context.StudentSemesterRecords.Add(model);
+                    model.StartTime =
+                        null;
+
+                    model.EndTime =
+                        null;
+
+                    _context
+                        .StudentSemesterRecords
+                        .Add(
+                            model
+                        );
                 }
                 else
                 {
-                    // Update Existing Record
                     existingRecord.FeelingText =
-                        model.FeelingText?.Trim();
+                        model.FeelingText;
 
-                    existingRecord.AvailableDay =
-                        model.AvailableDay;
+                    existingRecord.FeelingRiskLevel =
+                        feelingsResult.RiskLevel;
 
-                    existingRecord.StartTime =
-                        model.StartTime;
-
-                    existingRecord.EndTime =
-                        model.EndTime;
+                    existingRecord.FeelingSummary =
+                        feelingsResult.Summary;
 
                     existingRecord.UpdatedAt =
                         DateTime.Now;
+
+                    existingRecord.AvailableDay =
+                        null;
+
+                    existingRecord.StartTime =
+                        null;
+
+                    existingRecord.EndTime =
+                        null;
                 }
+
+
+                // ================= Save Feelings =================
 
                 await _context.SaveChangesAsync();
 
+
+                // =================================================
+                // AUTO PSYCHOLOGIST ASSIGNMENT
+                // =================================================
+
+                if (feelingsResult.RiskLevel ==
+                        "Severe" ||
+                    feelingsResult.RiskLevel ==
+                        "Extremely Severe")
+                {
+                    try
+                    {
+                        await _counselingSchedulerService
+                            .AutoAssignPsychologistAsync(
+                                student.StudentId,
+                                feelingsResult.RiskLevel,
+                                "Feelings"
+                            );
+                    }
+                    catch
+                    {
+                        // Feelings have already been saved.
+                        // Scheduling failure should not remove
+                        // the saved screening information.
+                    }
+                }
+
+
                 TempData["Success"] =
-                    "Your feelings and available time have been saved successfully.";
+                    "Your feelings have been saved successfully.";
 
                 return RedirectToAction(
                     "SemesterScreening"
@@ -1211,52 +2010,1280 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             catch (DbUpdateException ex)
             {
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
             }
             catch (Exception ex)
             {
                 string errorMessage =
-                    ex.InnerException?.Message ?? ex.Message;
+                    ex.InnerException?.Message
+                    ?? ex.Message;
 
-                return Content(errorMessage);
+                return Content(
+                    errorMessage
+                );
+            }
+        }
+        // =====================================================
+        // AI CHAT
+        // =====================================================
+
+        // ================= AI Chat GET =================
+
+        [HttpGet]
+        public async Task<IActionResult> AIChat()
+        {
+            // ================= Check Student Session =================
+
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
+
+            if (studentId == null)
+            {
+                return RedirectToAction(
+                    "Login"
+                );
+            }
+
+            // ================= Get Student =================
+
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
+
+            if (student == null)
+            {
+                return RedirectToAction(
+                    "Login"
+                );
+            }
+
+            // ================= Get Active Chat Session =================
+
+            var chatSession =
+                await _context.ChatSessions
+                    .Where(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value &&
+                            s.IsActive
+                    )
+                    .OrderByDescending(
+                        s => s.StartedAt
+                    )
+                    .FirstOrDefaultAsync();
+
+            // ================= Create Session =================
+
+            if (chatSession == null)
+            {
+                chatSession =
+                    new ChatSession
+                    {
+                        StudentId =
+                            studentId.Value,
+
+                        StartedAt =
+                            DateTime.Now,
+
+                        IsActive =
+                            true,
+
+                        Summary =
+                            string.Empty
+                    };
+
+                _context.ChatSessions.Add(
+                    chatSession
+                );
+
+                await _context.SaveChangesAsync();
+            }
+
+            // ================= Get Messages =================
+
+            var messages =
+                await _context.ChatMessages
+                    .Where(
+                        m =>
+                            m.ChatSessionId ==
+                            chatSession.ChatSessionId
+                    )
+                    .OrderBy(
+                        m => m.CreatedAt
+                    )
+                    .ToListAsync();
+
+            // ================= Latest Assessment =================
+
+            var latestRisk =
+                await _context
+                    .ChatRiskAssessments
+                    .Where(
+                        r =>
+                            r.StudentId ==
+                            studentId.Value
+                    )
+                    .OrderByDescending(
+                        r => r.CreatedAt
+                    )
+                    .FirstOrDefaultAsync();
+
+            // ================= Send Data To View =================
+
+            ViewBag.StudentName =
+                student.FullName;
+
+            ViewBag.ChatSessionId =
+                chatSession.ChatSessionId;
+
+            ViewBag.ChatMessages =
+                messages;
+
+            ViewBag.ChatRiskStatus =
+                latestRisk?.RiskStatus
+                ?? "Not Assessed";
+
+            return View();
+        }
+
+        // =====================================================
+        // SEND AI MESSAGE
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendAIMessage(
+            string message)
+        {
+            // ================= Check Student Session =================
+
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
+
+            if (studentId == null)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Your session has expired. Please login again."
+                    }
+                );
+            }
+
+            // ================= Validate Message =================
+
+            if (string.IsNullOrWhiteSpace(
+                message))
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Please write a message."
+                    }
+                );
+            }
+
+            message =
+                message.Trim();
+
+            if (message.Length > 2000)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Message is too long."
+                    }
+                );
+            }
+
+            // ================= Get Student =================
+
+            var student =
+                await _context.Students
+                    .FirstOrDefaultAsync(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value
+                    );
+
+            if (student == null)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Student account was not found."
+                    }
+                );
+            }
+
+            // ================= Get Active Session =================
+
+            var chatSession =
+                await _context.ChatSessions
+                    .Where(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value &&
+                            s.IsActive
+                    )
+                    .OrderByDescending(
+                        s => s.StartedAt
+                    )
+                    .FirstOrDefaultAsync();
+
+            // ================= Create Session =================
+
+            if (chatSession == null)
+            {
+                chatSession =
+                    new ChatSession
+                    {
+                        StudentId =
+                            studentId.Value,
+
+                        StartedAt =
+                            DateTime.Now,
+
+                        IsActive =
+                            true,
+
+                        Summary =
+                            string.Empty
+                    };
+
+                _context.ChatSessions.Add(
+                    chatSession
+                );
+
+                await _context.SaveChangesAsync();
+            }
+
+            // =====================================================
+            // LOAD CURRENT CHAT MEMORY
+            // =====================================================
+
+            var recentMessages =
+                await _context.ChatMessages
+                    .Where(
+                        m =>
+                            m.ChatSessionId ==
+                            chatSession.ChatSessionId
+                    )
+                    .OrderByDescending(
+                        m => m.CreatedAt
+                    )
+                    .Take(20)
+                    .OrderBy(
+                        m => m.CreatedAt
+                    )
+                    .ToListAsync();
+
+            // =====================================================
+            // LOAD PREVIOUS ASSESSMENT CONTEXT
+            // =====================================================
+
+            var previousRisk =
+                await _context
+                    .ChatRiskAssessments
+                    .Where(
+                        r =>
+                            r.StudentId ==
+                            studentId.Value
+                    )
+                    .OrderByDescending(
+                        r => r.CreatedAt
+                    )
+                    .FirstOrDefaultAsync();
+
+            // ================= Save Student Message =================
+
+            var studentMessage =
+                new ChatMessage
+                {
+                    ChatSessionId =
+                        chatSession.ChatSessionId,
+
+                    Sender =
+                        "Student",
+
+                    MessageText =
+                        message,
+
+                    CreatedAt =
+                        DateTime.Now
+                };
+
+            _context.ChatMessages.Add(
+                studentMessage
+            );
+
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                // =====================================================
+                // SEND MESSAGE + MEMORY TO GEMINI
+                // =====================================================
+
+                var aiResult =
+                    await _geminiChatService
+                        .SendMessageAsync(
+                            student.FullName,
+                            recentMessages,
+                            message,
+                            chatSession.Summary,
+                            previousRisk?.RiskStatus,
+                            previousRisk?.Summary
+                        );
+
+                // ================= Validate AI Reply =================
+
+                if (string.IsNullOrWhiteSpace(
+                    aiResult.Reply))
+                {
+                    aiResult.Reply =
+                        "I am here to listen. Please tell me a little more about how you are feeling.";
+                }
+
+                // ================= Normalize Risk =================
+
+                string riskStatus =
+                    NormalizeChatRiskStatus(
+                        aiResult.RiskStatus
+                    );
+
+                // ================= Save AI Reply =================
+
+                var aiMessage =
+                    new ChatMessage
+                    {
+                        ChatSessionId =
+                            chatSession.ChatSessionId,
+
+                        Sender =
+                            "AI",
+
+                        MessageText =
+                            aiResult.Reply.Trim(),
+
+                        CreatedAt =
+                            DateTime.Now
+                    };
+
+                _context.ChatMessages.Add(
+                    aiMessage
+                );
+
+                // ================= Save Risk Assessment =================
+
+                var riskAssessment =
+                    new ChatRiskAssessment
+                    {
+                        ChatSessionId =
+                            chatSession.ChatSessionId,
+
+                        StudentId =
+                            student.StudentId,
+
+                        RiskStatus =
+                            riskStatus,
+
+                        Summary =
+                            aiResult.AssessmentSummary
+                            ?? string.Empty,
+
+                        CreatedAt =
+                            DateTime.Now
+                    };
+
+                _context.ChatRiskAssessments.Add(
+                    riskAssessment
+                );
+
+                // ================= Update Conversation Memory =================
+
+                if (!string.IsNullOrWhiteSpace(
+                    aiResult.ConversationSummary))
+                {
+                    chatSession.Summary =
+                        aiResult
+                            .ConversationSummary
+                            .Trim();
+                }
+
+                // ================= Update Student Latest Status =================
+
+                student.LatestChatRiskStatus =
+                    riskStatus;
+
+                student.LatestChatRiskUpdatedAt =
+                    DateTime.Now;
+
+                // ================= Save Everything =================
+
+                await _context.SaveChangesAsync();
+
+
+                // =====================================================
+                // AUTO PSYCHOLOGIST ASSIGNMENT
+                // =====================================================
+
+                if (riskStatus == "Severe" ||
+                    riskStatus == "Extremely Severe")
+                {
+                    try
+                    {
+                        await _counselingSchedulerService
+                            .AutoAssignPsychologistAsync(
+                                student.StudentId,
+                                riskStatus,
+                                "AI Chat"
+                            );
+                    }
+                    catch
+                    {
+                        // AI chat response should continue
+                        // even if appointment scheduling fails.
+                    }
+                }
+
+
+                // ================= Return Result =================
+
+                return Json(
+                    new
+                    {
+                        success = true,
+
+                        reply =
+                            aiResult.Reply,
+
+                        riskStatus =
+                            riskStatus,
+
+                        createdAt =
+                            DateTime.Now.ToString(
+                                "hh:mm tt"
+                            )
+                    }
+                );
+            }
+            catch (Exception)
+            {
+                return Json(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "The support assistant could not respond right now. Please try again."
+                    }
+                );
             }
         }
 
-        // ================= AI Chat =================
+        // =====================================================
+        // START NEW AI CHAT
+        // =====================================================
 
-        public IActionResult AIChat()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartNewAIChat()
         {
-            return View();
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
+
+            if (studentId == null)
+            {
+                return RedirectToAction(
+                    "Login"
+                );
+            }
+
+            // ================= Close Active Sessions =================
+
+            var activeSessions =
+                await _context.ChatSessions
+                    .Where(
+                        s =>
+                            s.StudentId ==
+                            studentId.Value &&
+                            s.IsActive
+                    )
+                    .ToListAsync();
+
+            foreach (var session
+                in activeSessions)
+            {
+                session.IsActive =
+                    false;
+
+                session.EndedAt =
+                    DateTime.Now;
+            }
+
+            // ================= Create New Session =================
+
+            var newSession =
+                new ChatSession
+                {
+                    StudentId =
+                        studentId.Value,
+
+                    StartedAt =
+                        DateTime.Now,
+
+                    IsActive =
+                        true,
+
+                    Summary =
+                        string.Empty
+                };
+
+            _context.ChatSessions.Add(
+                newSession
+            );
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(
+                "AIChat"
+            );
         }
 
-        // ================= Appointment =================
+        // =====================================================
+        // NORMALIZE CHATBOT ASSESSMENT
+        // =====================================================
 
+        private string NormalizeChatRiskStatus(
+            string? riskStatus)
+        {
+            if (string.IsNullOrWhiteSpace(
+                riskStatus))
+            {
+                return "Normal";
+            }
+
+            var status =
+                riskStatus
+                    .Trim()
+                    .ToLowerInvariant();
+
+            // ================= Normal =================
+
+            if (status == "normal" ||
+                status == "stable")
+            {
+                return "Normal";
+            }
+
+            // ================= Moderate =================
+
+            if (status == "moderate" ||
+                status == "stress" ||
+                status == "stressed" ||
+                status == "possible stress")
+            {
+                return "Moderate";
+            }
+
+            // ================= Severe =================
+
+            if (status == "severe" ||
+                status == "depressed" ||
+                status == "possible depression" ||
+                status == "depressive signs")
+            {
+                return "Severe";
+            }
+
+            // ================= Extremely Severe =================
+
+            if (status == "extremely severe" ||
+                status == "possible high risk" ||
+                status == "high risk" ||
+                status == "elevated risk")
+            {
+                return "Extremely Severe";
+            }
+
+            return "Normal";
+        }
+
+        // =====================================================
+        // APPOINTMENT
+        // =====================================================
+
+        // ================= Appointment GET =================
+
+        [HttpGet]
         public IActionResult Appointment()
         {
-            return View();
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
+
+            if (studentId == null)
+            {
+                return RedirectToAction(
+                    "Login"
+                );
+            }
+
+            var model =
+                new AppointmentViewModel
+                {
+                    PreferredDate =
+                        DateTime.Today
+                };
+
+            return View(
+                model
+            );
         }
 
-        // ================= Progress =================
+        /// ================= Appointment POST =================
 
-        public IActionResult Progress()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Appointment(
+            AppointmentViewModel model)
         {
-            return View();
+            // ================= Check Student Session =================
+
+            var studentId =
+                HttpContext.Session.GetInt32(
+                    "StudentId"
+                );
+
+            if (studentId == null)
+            {
+                return RedirectToAction(
+                    "Login"
+                );
+            }
+
+
+            // ================= Allowed Working Days =================
+
+            var allowedDays = new[]
+            {
+                DayOfWeek.Saturday,
+                DayOfWeek.Sunday,
+                DayOfWeek.Monday,
+                DayOfWeek.Tuesday,
+                DayOfWeek.Wednesday
+            };
+
+
+            // ================= Fixed Counseling Slots =================
+
+            var allowedStartTimes = new[]
+            {
+                new TimeSpan(8, 30, 0),
+                new TimeSpan(9, 35, 0),
+                new TimeSpan(10, 40, 0),
+                new TimeSpan(11, 45, 0),
+                new TimeSpan(13, 10, 0),
+                new TimeSpan(14, 15, 0),
+                new TimeSpan(15, 20, 0),
+                new TimeSpan(16, 25, 0)
+            };
+
+
+            // ================= Automatic End Time =================
+
+            var endTime =
+                model.StartTime.Add(
+                    TimeSpan.FromHours(1)
+                );
+
+
+            // ================= Date Validation =================
+
+            if (model.PreferredDate.Date <
+                DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    nameof(
+                        model.PreferredDate
+                    ),
+                    "Please select today or a future date."
+                );
+            }
+
+
+            // ================= Working Day Validation =================
+
+            if (!allowedDays.Contains(
+                model.PreferredDate.DayOfWeek))
+            {
+                ModelState.AddModelError(
+                    nameof(
+                        model.PreferredDate
+                    ),
+                    "Counseling is available only from Saturday to Wednesday."
+                );
+            }
+
+
+            // ================= Fixed Time Validation =================
+
+            if (!allowedStartTimes.Contains(
+                model.StartTime))
+            {
+                ModelState.AddModelError(
+                    nameof(
+                        model.StartTime
+                    ),
+                    "Please select a valid counseling time."
+                );
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                return View(
+                    model
+                );
+            }
+
+
+            // ================= Student Double Booking =================
+
+            var studentAlreadyBooked =
+                await _context.Counselings
+                    .AnyAsync(
+                        c =>
+                            c.StudentId ==
+                                studentId.Value &&
+
+                            c.CounselingDate.Date ==
+                                model.PreferredDate.Date &&
+
+                            c.Status !=
+                                "Cancelled" &&
+
+                            model.StartTime <
+                                c.AppointmentEndTime &&
+
+                            endTime >
+                                c.AppointmentTime
+                    );
+
+
+            if (studentAlreadyBooked)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "You already have another counseling appointment during this time."
+                );
+
+                return View(
+                    model
+                );
+            }
+
+
+            // ================= Get Psychologists =================
+
+            var psychologists =
+                await _context.Psychologists
+                    .ToListAsync();
+
+
+            if (!psychologists.Any())
+            {
+                ModelState.AddModelError(
+                    "",
+                    "No psychologist account is currently available."
+                );
+
+                return View(
+                    model
+                );
+            }
+
+
+            // ================= Find Free Psychologists =================
+
+            var availablePsychologists =
+                new List<Psychologist>();
+
+
+            foreach (var psychologist
+                in psychologists)
+            {
+                // Psychologist is considered free by default.
+                // Existing appointment = unavailable.
+
+                var psychologistAlreadyBooked =
+                    await _context.Counselings
+                        .AnyAsync(
+                            c =>
+                                c.PsychologistId ==
+                                    psychologist
+                                        .PsychologistId &&
+
+                                c.CounselingDate.Date ==
+                                    model.PreferredDate.Date &&
+
+                                c.Status !=
+                                    "Cancelled" &&
+
+                                model.StartTime <
+                                    c.AppointmentEndTime &&
+
+                                endTime >
+                                    c.AppointmentTime
+                        );
+
+
+                if (psychologistAlreadyBooked)
+                {
+                    continue;
+                }
+
+
+                availablePsychologists.Add(
+                    psychologist
+                );
+            }
+
+
+            // =====================================================
+            // SELECTED TIME FULL
+            // FIND OTHER FREE TIMES
+            // =====================================================
+
+            if (!availablePsychologists.Any())
+            {
+                var suggestedTimes =
+                    new List<TimeSpan>();
+
+
+                foreach (var suggestedStartTime
+                    in allowedStartTimes)
+                {
+                    // Selected time again suggest করবে না
+
+                    if (suggestedStartTime ==
+                        model.StartTime)
+                    {
+                        continue;
+                    }
+
+
+                    // ================= Suggested End Time =================
+
+                    var suggestedEndTime =
+                        suggestedStartTime.Add(
+                            TimeSpan.FromHours(1)
+                        );
+
+
+                    // ================= Student Conflict =================
+
+                    var studentBookedAtSuggestedTime =
+                        await _context.Counselings
+                            .AnyAsync(
+                                c =>
+                                    c.StudentId ==
+                                        studentId.Value &&
+
+                                    c.CounselingDate.Date ==
+                                        model.PreferredDate.Date &&
+
+                                    c.Status !=
+                                        "Cancelled" &&
+
+                                    suggestedStartTime <
+                                        c.AppointmentEndTime &&
+
+                                    suggestedEndTime >
+                                        c.AppointmentTime
+                            );
+
+
+                    if (studentBookedAtSuggestedTime)
+                    {
+                        continue;
+                    }
+
+
+                    // ================= Check Any Psychologist =================
+
+                    bool psychologistFound =
+                        false;
+
+
+                    foreach (var psychologist
+                        in psychologists)
+                    {
+                        var psychologistBookedAtSuggestedTime =
+                            await _context.Counselings
+                                .AnyAsync(
+                                    c =>
+                                        c.PsychologistId ==
+                                            psychologist
+                                                .PsychologistId &&
+
+                                        c.CounselingDate.Date ==
+                                            model.PreferredDate.Date &&
+
+                                        c.Status !=
+                                            "Cancelled" &&
+
+                                        suggestedStartTime <
+                                            c.AppointmentEndTime &&
+
+                                        suggestedEndTime >
+                                            c.AppointmentTime
+                                );
+
+
+                        if (!psychologistBookedAtSuggestedTime)
+                        {
+                            psychologistFound =
+                                true;
+
+                            break;
+                        }
+                    }
+
+
+                    if (psychologistFound)
+                    {
+                        suggestedTimes.Add(
+                            suggestedStartTime
+                        );
+                    }
+                }
+
+
+                // ================= Send Suggestions =================
+
+                model.SuggestedTimes =
+                    suggestedTimes;
+
+
+                if (suggestedTimes.Any())
+                {
+                    model.Message =
+                        "All psychologists are busy at your selected time. Please choose one of the suggested free times below.";
+                }
+                else
+                {
+                    model.Message =
+                        "All psychologists are booked for this date. Please choose another date.";
+                }
+
+
+                return View(
+                    model
+                );
+            }
+
+
+            // =====================================================
+            // PSYCHOLOGIST PRIORITY
+            // =====================================================
+            // 1. Lowest Appointment Count
+            // 2. Same Count = Alphabetical Name
+            // =====================================================
+
+            Psychologist? selectedPsychologist =
+                null;
+
+
+            int lowestAppointmentCount =
+                int.MaxValue;
+
+
+            foreach (var psychologist
+                in availablePsychologists)
+            {
+                var appointmentCount =
+                    await _context.Counselings
+                        .CountAsync(
+                            c =>
+                                c.PsychologistId ==
+                                    psychologist
+                                        .PsychologistId &&
+
+                                c.Status !=
+                                    "Cancelled"
+                        );
+
+
+                // ================= Lower Count =================
+
+                if (appointmentCount <
+                    lowestAppointmentCount)
+                {
+                    lowestAppointmentCount =
+                        appointmentCount;
+
+
+                    selectedPsychologist =
+                        psychologist;
+                }
+
+
+                // ================= Same Count =================
+
+                else if (appointmentCount ==
+                         lowestAppointmentCount)
+                {
+                    if (selectedPsychologist == null ||
+                        string.Compare(
+                            psychologist.FullName,
+                            selectedPsychologist.FullName,
+                            StringComparison
+                                .OrdinalIgnoreCase
+                        ) < 0)
+                    {
+                        selectedPsychologist =
+                            psychologist;
+                    }
+                }
+            }
+
+
+            // ================= Final Check =================
+
+            if (selectedPsychologist == null)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "No psychologist could be assigned."
+                );
+
+                return View(
+                    model
+                );
+            }
+
+
+            // ================= Create Appointment =================
+
+            var counseling =
+                new Counseling
+                {
+                    StudentId =
+                        studentId.Value,
+
+                    PsychologistId =
+                        selectedPsychologist
+                            .PsychologistId,
+
+                    CounselingDate =
+                        model.PreferredDate.Date,
+
+                    AppointmentTime =
+                        model.StartTime,
+
+                    AppointmentEndTime =
+                        endTime,
+
+                    Observation =
+                        string.Empty,
+
+                    Assessment =
+                        string.Empty,
+
+                    Recommendation =
+                        string.Empty,
+
+                    RiskLevel =
+                        string.Empty,
+
+                    Status =
+                        "Confirmed",
+
+                    AppointmentSource =
+                        "StudentRequest",
+
+                    CreatedAt =
+                        DateTime.Now
+                };
+
+
+            // ================= Save =================
+
+            _context.Counselings.Add(
+                counseling
+            );
+
+
+            await _context.SaveChangesAsync();
+
+
+            // ================= Success =================
+
+            TempData["Success"] =
+                $"Your counseling appointment has been confirmed with {selectedPsychologist.FullName}. Time: {DateTime.Today.Add(model.StartTime):h:mm tt} - {DateTime.Today.Add(endTime):h:mm tt}.";
+
+
+            return RedirectToAction(
+                "Appointment"
+            );
+        }
+        // =====================================================
+        // PROGRESS (INDIVIDUAL STUDENT PROGRESS REPORT)
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Progress()
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+
+            List<ObservationReport> reports = new List<ObservationReport>();
+            try
+            {
+                reports = await _context.ObservationReports
+                    .Include(r => r.Student)
+                    .Include(r => r.Psychologist)
+                    .Where(r => r.StudentId == studentId.Value)
+                    .OrderByDescending(r => r.UpdatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                reports = new List<ObservationReport>();
+            }
+
+            var progressVms = new List<StudentProgressReportDetailViewModel>();
+            var processedRootIds = new HashSet<int>();
+
+            foreach (var report in reports)
+            {
+                processedRootIds.Add(report.RootCounselingId);
+
+                List<CounselingObservation> obsList = new List<CounselingObservation>();
+                try
+                {
+                    obsList = await _context.CounselingObservations
+                        .Include(o => o.Counseling)
+                        .Where(o => o.RootCounselingId == report.RootCounselingId)
+                        .OrderBy(o => o.Counseling!.CounselingDate)
+                        .ThenBy(o => o.Counseling!.AppointmentTime)
+                        .ToListAsync();
+                }
+                catch (Exception)
+                {
+                    obsList = new List<CounselingObservation>();
+                }
+
+                var vm = ProgressScoringService.BuildDetailViewModel(report, obsList);
+                progressVms.Add(vm);
+            }
+
+            // Fallback for counselings without ObservationReport yet
+            var counselings = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId.Value)
+                .OrderBy(c => c.CounselingDate)
+                .ThenBy(c => c.AppointmentTime)
+                .ToListAsync();
+
+            var unmappedCounselings = counselings
+                .Where(c => !processedRootIds.Contains(c.CounselingId))
+                .ToList();
+
+            if (unmappedCounselings.Any() && student != null)
+            {
+                var dummyReport = new ObservationReport
+                {
+                    ObservationReportId = 0,
+                    RootCounselingId = unmappedCounselings.First().CounselingId,
+                    StudentId = student.StudentId,
+                    Student = student,
+                    PsychologistId = unmappedCounselings.First().PsychologistId,
+                    Psychologist = unmappedCounselings.First().Psychologist,
+                    IsFinal = false,
+                    CreatedAt = unmappedCounselings.First().CounselingDate,
+                    UpdatedAt = unmappedCounselings.Last().CounselingDate
+                };
+
+                var dummyObsList = await _context.CounselingObservations
+                    .Include(o => o.Counseling)
+                    .Where(o => o.StudentId == student.StudentId)
+                    .OrderBy(o => o.Counseling!.CounselingDate)
+                    .ThenBy(o => o.Counseling!.AppointmentTime)
+                    .ToListAsync();
+
+                var fallbackVm = ProgressScoringService.BuildDetailViewModel(dummyReport, dummyObsList);
+                progressVms.Add(fallbackVm);
+            }
+
+            return View(progressVms);
         }
 
-        // ================= History =================
+        // =====================================================
+        // HISTORY
+        // =====================================================
 
         public IActionResult History()
         {
             return View();
         }
 
-        // ================= Reports =================
+        // =====================================================
+        // REPORTS
+        // =====================================================
 
         public IActionResult Reports()
         {
             return View();
+        }
+
+        // =====================================================
+        // LOGOUT
+        // =====================================================
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+
+            return RedirectToAction(
+                "Index",
+                "Home"
+            );
         }
     }
 }

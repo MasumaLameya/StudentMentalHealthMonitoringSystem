@@ -1,0 +1,1141 @@
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+
+@{
+    // =========================================================
+    // PAGE CONFIGURATION
+    // =========================================================
+
+    ViewData["Title"] = "Counseling";
+
+
+    // Logged-in Department Name
+    var departmentName =
+        ViewBag.DepartmentName as string ?? "Department";
+
+
+    // Existing Counseling Records
+    // Controller থেকে ViewBag-এ আসবে
+    var counselings =
+        ViewBag.Counselings as
+        IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+        ?? Enumerable.Empty<StudentMentalHealthMonitoringSystem.Models.Counseling>();
+}
+
+
+<style>
+
+    /* =========================================================
+               MAIN PAGE / HEADER
+               ========================================================= */
+
+    .counseling-header {
+        background: linear-gradient( 135deg, #F5E7ED, #E9E1F1, #E7F0EC );
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(95, 81, 70, .07);
+    }
+
+
+    /* =========================================================
+               COMMON CARD DESIGN
+               ========================================================= */
+
+    .main-card {
+        background: #FFFFFF;
+        border: none;
+        border-radius: 22px;
+        box-shadow: 0 8px 30px rgba(95, 81, 70, .07);
+    }
+
+
+    /* =========================================================
+               PAGE TITLE & SUBTITLE
+               ========================================================= */
+
+    .page-title {
+        color: #5F5146;
+        font-weight: 700;
+    }
+
+
+    .page-subtitle {
+        color: #9A8B7D;
+        font-size: 14px;
+    }
+
+
+    /* =========================================================
+               FORM LABEL
+               ========================================================= */
+
+    .form-label {
+        color: #6F6258;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+               FORM INPUTS
+               ========================================================= */
+
+    .form-control,
+    .form-select {
+        border: 1px solid #E5DCD5;
+        border-radius: 13px;
+        padding: 11px 14px;
+        color: #5F5146;
+        background: #FFFFFF;
+    }
+
+
+        /* Input focus effect */
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #B9A4BE;
+            box-shadow: 0 0 0 3px rgba(185, 164, 190, .15);
+        }
+
+
+    /* =========================================================
+               BOOKING BUTTON
+               ========================================================= */
+
+    .book-btn {
+        background: #9B839F;
+        color: #FFFFFF;
+        border: none;
+        border-radius: 13px;
+        padding: 11px 24px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+
+        .book-btn:hover {
+            background: #846D88;
+            color: #FFFFFF;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(132, 109, 136, .18);
+        }
+
+
+    /* =========================================================
+               APPOINTMENT RULE CARD
+               ========================================================= */
+
+    .rule-card {
+        background: #FBF8F6;
+        border: 1px solid #EEE6DF;
+        border-radius: 17px;
+        padding: 15px;
+        transition: all .2s ease;
+    }
+
+
+        .rule-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(95, 81, 70, .05);
+        }
+
+
+    /* Rule icon */
+
+    .rule-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #E9E0F0;
+        color: #90779A;
+        flex-shrink: 0;
+    }
+
+
+    /* =========================================================
+               EXISTING APPOINTMENT CARD
+               ========================================================= */
+
+    .appointment-card {
+        background: #FCFAF8;
+        border: 1px solid #EEE6DF;
+        border-radius: 18px;
+        transition: all .2s ease;
+    }
+
+
+        .appointment-card:hover {
+            background: #FBF8F6;
+            box-shadow: 0 6px 18px rgba(95, 81, 70, .05);
+            transform: translateY(-1px);
+        }
+
+
+    /* =========================================================
+               DATE BADGE
+               ========================================================= */
+
+    .date-badge {
+        background: #E9E0F0;
+        color: #76627F;
+        border-radius: 11px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+               TIME BADGE
+               ========================================================= */
+
+    .time-badge {
+        background: #F2E5E8;
+        color: #856873;
+        border-radius: 11px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+
+    /* =========================================================
+               CONFIRMED STATUS
+               ========================================================= */
+
+    .status-confirmed {
+        background: #E0ECE5;
+        color: #657A6B;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+
+    /* =========================================================
+               PENDING STATUS
+               ========================================================= */
+
+    .status-pending {
+        background: #F3E6D5;
+        color: #8B7157;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+
+    /* =========================================================
+               COMPLETED STATUS
+               ========================================================= */
+
+    .status-completed {
+        background: #DCE8E3;
+        color: #5F786C;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+
+    /* =========================================================
+               CANCELLED STATUS
+               ========================================================= */
+
+    .status-cancelled {
+        background: #F2DDE1;
+        color: #8D626A;
+        border-radius: 30px;
+        padding: 7px 13px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+
+    /* =========================================================
+               EMPTY STATE
+               ========================================================= */
+
+    .empty-box {
+        padding: 55px 20px;
+        text-align: center;
+    }
+
+
+    .empty-icon {
+        width: 72px;
+        height: 72px;
+        margin: auto;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #EEE6F1;
+        color: #917A9B;
+    }
+
+
+    /* =========================================================
+               RESPONSIVE DESIGN
+               ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .counseling-header {
+            border-radius: 20px;
+        }
+
+        .main-card {
+            border-radius: 18px;
+        }
+
+        .appointment-card {
+            border-radius: 16px;
+        }
+    }
+
+</style>
+
+
+<div class="container-fluid">
+
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div class="counseling-header mb-4">
+
+        <div class="p-4 p-lg-5">
+
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap gap-3">
+
+
+                <!-- ================= Header Text ================= -->
+
+                <div>
+
+                    <div class="page-subtitle mb-1">
+
+                        @departmentName Department
+
+                    </div>
+
+
+                    <h2 class="page-title mb-1">
+
+                        Counseling Management
+
+                    </h2>
+
+
+                    <p class="page-subtitle mb-0">
+
+                        Schedule counseling appointments using
+                        available fixed counseling slots.
+
+                    </p>
+
+                </div>
+
+
+                <!-- ================= Header Icon ================= -->
+
+                <div style="
+                    width:64px;
+                    height:64px;
+                    border-radius:20px;
+                    background:rgba(255,255,255,.55);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:#9B839F;
+                    font-size:30px;
+                    box-shadow:0 6px 20px rgba(95,81,70,.06);
+                    ">
+
+                    <i class="bi bi-calendar-heart"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         SUCCESS / ERROR MESSAGES
+         ========================================================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert border-0 rounded-4 mb-4"
+             style="
+            background:#E4EFE8;
+            color:#60776A;
+            ">
+
+            <i class="bi bi-check-circle me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert border-0 rounded-4 mb-4"
+             style="
+            background:#F3E0E3;
+            color:#8B626B;
+            ">
+
+            <i class="bi bi-exclamation-circle me-2"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+
+    <!-- =========================================================
+         BOOKING SECTION + APPOINTMENT RULES
+         ========================================================= -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- =====================================================
+             LEFT SIDE - CREATE APPOINTMENT
+             ===================================================== -->
+
+        <div class="col-lg-8">
+
+            <div class="main-card">
+
+                <div class="card-body p-4 p-lg-5">
+
+
+                    <div class="d-flex align-items-center gap-3 mb-2">
+
+                        <div style="
+                            width:45px;
+                            height:45px;
+                            border-radius:14px;
+                            background:#F2E4E9;
+                            color:#966F7D;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            ">
+
+                            <i class="bi bi-calendar-plus fs-5"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h5 class="page-title mb-1">
+
+                                Create Counseling Appointment
+
+                            </h5>
+
+                            <p class="page-subtitle mb-0">
+
+                                Select a student, preferred date and
+                                counseling time slot.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         BOOKING FORM
+                         ================================================= -->
+
+                    <form asp-controller="Department"
+                          asp-action="Counseling"
+                          method="post"
+                          class="mt-4">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ================= Student ================= -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label">
+
+                                <i class="bi bi-person me-1"></i>
+
+                                Student
+
+                            </label>
+
+
+                            <select name="studentId"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+
+                                    Select Student
+
+                                </option>
+
+
+                                @foreach (var student in Model)
+                                {
+                                    <option value="@student.StudentId">
+
+                                        @student.FullName
+                                        -
+                                        @student.StudentIdNumber
+
+                                    </option>
+                                }
+
+                            </select>
+
+                        </div>
+
+
+
+                        <!-- ================= Date + Slot ================= -->
+
+                        <div class="row g-4">
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+
+                                    <i class="bi bi-calendar3 me-1"></i>
+
+                                    Preferred Date
+
+                                </label>
+
+
+                                <input type="date"
+                                       name="counselingDate"
+                                       class="form-control"
+                                       min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                       required />
+
+
+                                <small class="page-subtitle">
+
+                                    Monday – Friday
+
+                                </small>
+
+                            </div>
+
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+
+                                    <i class="bi bi-clock me-1"></i>
+
+                                    Counseling Slot
+
+                                </label>
+
+
+                                <select name="startTime"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">Select Time Slot</option>
+                                    <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                    <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                    <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                    <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                    <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                    <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                    <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                    <option value="16:25:00">4:25 PM - 5:25 PM</option>
+
+                                </select>
+
+
+                                <small class="page-subtitle">
+
+                                    Fixed one-hour counseling slots
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="mt-4">
+
+                            <button type="submit"
+                                    class="book-btn">
+
+                                <i class="bi bi-search me-2"></i>
+
+                                Find & Assign Psychologist
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             RIGHT SIDE - APPOINTMENT RULES
+             ===================================================== -->
+
+        <div class="col-lg-4">
+
+            <div class="main-card h-100">
+
+                <div class="card-body p-4">
+
+
+                    <div class="d-flex align-items-center gap-3 mb-4">
+
+                        <div style="
+                            width:45px;
+                            height:45px;
+                            border-radius:14px;
+                            background:#EAE3F0;
+                            color:#8D7597;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            ">
+
+                            <i class="bi bi-info-circle fs-5"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h5 class="page-title mb-1">
+
+                                Appointment Rules
+
+                            </h5>
+
+                            <p class="page-subtitle mb-0">
+
+                                Counseling scheduling guidelines
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ================= Rule 1 ================= -->
+
+                    <div class="rule-card mb-3">
+
+                        <div class="d-flex">
+
+                            <div class="rule-icon me-3">
+
+                                <i class="bi bi-calendar3"></i>
+
+                            </div>
+
+                            <div>
+
+                                <div class="fw-semibold"
+                                     style="color:#5F5146;">
+
+                                    Counseling Days
+
+                                </div>
+
+                                <div class="page-subtitle mt-1">
+
+                                    Monday – Friday
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ================= Rule 2 ================= -->
+
+                    <div class="rule-card mb-3">
+
+                        <div class="d-flex">
+
+                            <div class="rule-icon me-3">
+
+                                <i class="bi bi-clock"></i>
+
+                            </div>
+
+                            <div>
+
+                                <div class="fw-semibold"
+                                     style="color:#5F5146;">
+
+                                    Fixed Counseling Slots
+
+                                </div>
+
+                                <div class="page-subtitle mt-1">
+
+                                    9–10 AM, 10–11 AM, 11 AM–12 PM
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ================= Rule 3 ================= -->
+
+                    <div class="rule-card mb-3">
+
+                        <div class="d-flex">
+
+                            <div class="rule-icon me-3">
+
+                                <i class="bi bi-person-check"></i>
+
+                            </div>
+
+                            <div>
+
+                                <div class="fw-semibold"
+                                     style="color:#5F5146;">
+
+                                    Availability Check
+
+                                </div>
+
+                                <div class="page-subtitle mt-1">
+
+                                    Existing counseling appointments
+                                    are checked before assignment.
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ================= Rule 4 ================= -->
+
+                    <div class="rule-card">
+
+                        <div class="d-flex">
+
+                            <div class="rule-icon me-3">
+
+                                <i class="bi bi-hourglass-split"></i>
+
+                            </div>
+
+                            <div>
+
+                                <div class="fw-semibold"
+                                     style="color:#5F5146;">
+
+                                    Maximum Session
+
+                                </div>
+
+                                <div class="page-subtitle mt-1">
+
+                                    1 hour
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================================
+         EXISTING COUNSELING APPOINTMENTS
+         ========================================================= -->
+
+    <div class="main-card">
+
+        <div class="card-body p-4 p-lg-5">
+
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap gap-3 mb-4">
+
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <div style="
+                        width:45px;
+                        height:45px;
+                        border-radius:14px;
+                        background:#E3EEE7;
+                        color:#647A6C;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        ">
+
+                        <i class="bi bi-calendar-check fs-5"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <h5 class="page-title mb-1">
+
+                            Counseling Appointments
+
+                        </h5>
+
+
+                        <p class="page-subtitle mb-0">
+
+                            Recent counseling appointments
+                            within your department.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    color:#9B839F;
+                    font-size:25px;
+                    ">
+
+                    <i class="bi bi-calendar-heart"></i>
+
+                </div>
+
+            </div>
+
+
+            @if (counselings.Any())
+            {
+                <div class="row g-3">
+
+                    @foreach (var item in counselings)
+                    {
+                        var startHour =
+                            item.AppointmentTime.Hours.ToString("00");
+
+                        var startMinute =
+                            item.AppointmentTime.Minutes.ToString("00");
+
+                        var endHour =
+                            item.AppointmentEndTime.Hours.ToString("00");
+
+                        var endMinute =
+                            item.AppointmentEndTime.Minutes.ToString("00");
+
+
+                        <div class="col-12">
+
+                            <div class="appointment-card p-4">
+
+                                <div class="row align-items-center g-4">
+
+
+                                    <!-- ================= Student ================= -->
+
+                                    <div class="col-lg-3">
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            <div style="
+                                                width:42px;
+                                                height:42px;
+                                                border-radius:13px;
+                                                background:#F2E4E9;
+                                                color:#966F7D;
+                                                display:flex;
+                                                align-items:center;
+                                                justify-content:center;
+                                                flex-shrink:0;
+                                                ">
+
+                                                <i class="bi bi-person"></i>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <div class="fw-semibold"
+                                                     style="color:#5F5146;">
+
+                                                    @item.Student?.FullName
+
+                                                </div>
+
+
+                                                <div class="page-subtitle">
+
+                                                    @item.Student?.StudentIdNumber
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                    <!-- ================= Psychologist ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-1">
+
+                                            Psychologist
+
+                                        </div>
+
+
+                                        <div class="fw-semibold"
+                                             style="color:#6F6258;">
+
+                                            @item.Psychologist?.FullName
+
+                                        </div>
+
+                                    </div>
+
+
+
+                                    <!-- ================= Date ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-2">
+
+                                            Date
+
+                                        </div>
+
+
+                                        <span class="date-badge">
+
+                                            <i class="bi bi-calendar3 me-1"></i>
+
+                                            @item.CounselingDate.ToString(
+                                                "dd MMM yyyy"
+                                            )
+
+                                        </span>
+
+                                    </div>
+
+
+
+                                    <!-- ================= Time ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-2">
+
+                                            Time
+
+                                        </div>
+
+
+                                        <span class="time-badge">
+
+                                            <i class="bi bi-clock me-1"></i>
+
+                                            @startHour:@startMinute
+
+                                            <span style="opacity:.5;">
+
+                                                –
+
+                                            </span>
+
+                                            @endHour:@endMinute
+
+                                        </span>
+
+                                    </div>
+
+
+
+                                    <!-- ================= Status ================= -->
+
+                                    <div class="col-lg-2">
+
+                                        <div class="page-subtitle mb-2">
+
+                                            Status
+
+                                        </div>
+
+
+                                        @if (item.Status == "Confirmed")
+                                        {
+                                            <span class="status-confirmed">
+
+                                                <i class="bi bi-check-circle me-1"></i>
+
+                                                Confirmed
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Pending")
+                                        {
+                                            <span class="status-pending">
+
+                                                <i class="bi bi-clock me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Completed")
+                                        {
+                                            <span class="status-completed">
+
+                                                <i class="bi bi-check2-all me-1"></i>
+
+                                                Completed
+
+                                            </span>
+                                        }
+                                        else if (item.Status == "Cancelled")
+                                        {
+                                            <span class="status-cancelled">
+
+                                                <i class="bi bi-x-circle me-1"></i>
+
+                                                Cancelled
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-pending">
+
+                                                @item.Status
+
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="empty-box">
+
+                    <div class="empty-icon mb-3">
+
+                        <i class="bi bi-calendar-x fs-2"></i>
+
+                    </div>
+
+
+                    <h5 class="page-title">
+
+                        No Counseling Appointments
+
+                    </h5>
+
+
+                    <p class="page-subtitle mb-0">
+
+                        No counseling appointment has been
+                        created for your department yet.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

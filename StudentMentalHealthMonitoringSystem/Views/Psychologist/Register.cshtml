@@ -1,0 +1,243 @@
+﻿@model StudentMentalHealthMonitoringSystem.Models.Psychologist
+
+@{
+    ViewData["Title"] = "Psychologist Registration";
+}
+
+<div class="container my-5">
+
+    <div class="card shadow-lg border-0">
+
+        <!-- ================= Header ================= -->
+
+        <div class="card-header bg-danger text-white text-center py-3">
+
+            <h2>Psychologist Registration Form</h2>
+
+        </div>
+
+        <div class="card-body">
+
+            <!-- ================= Registration Form ================= -->
+
+            <form asp-action="Register"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <!-- ================= Basic Information ================= -->
+
+                <h4 class="text-danger mb-3">
+
+                    Basic Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Full Name -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="FullName"></label>
+
+                        <input asp-for="FullName"
+                               class="form-control" />
+
+                        <span asp-validation-for="FullName"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Email -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Email"></label>
+
+                        <input asp-for="Email"
+                               type="email"
+                               class="form-control" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Password -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Password"></label>
+
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-control" />
+
+                        <span asp-validation-for="Password"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Phone -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Phone"></label>
+
+                        <input asp-for="Phone"
+                               class="form-control" />
+
+                        <span asp-validation-for="Phone"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Profile Image -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ImageFile"
+                               class="form-label">
+
+                            Profile Image
+
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,image/*" />
+
+                        <span asp-validation-for="ImageFile"
+                              class="text-danger"></span>
+
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <!-- ================= Professional Information ================= -->
+
+                <h4 class="text-danger mb-3">
+
+                    Professional Information
+
+                </h4>
+
+                <div class="row">
+
+                    <!-- Specialization -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Specialization"></label>
+
+                        <select asp-for="Specialization"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Specialization --
+                            </option>
+
+                            <option value="Clinical Psychologist">
+                                Clinical Psychologist
+                            </option>
+
+                            <option value="Counseling Psychologist">
+                                Counseling Psychologist
+                            </option>
+
+                            <option value="Educational Psychologist">
+                                Educational Psychologist
+                            </option>
+
+                            <option value="Child Psychologist">
+                                Child Psychologist
+                            </option>
+
+                            <option value="Health Psychologist">
+                                Health Psychologist
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="Specialization"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Qualification -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Qualification"></label>
+
+                        <input asp-for="Qualification"
+                               class="form-control" />
+
+                        <span asp-validation-for="Qualification"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Experience -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Experience"></label>
+
+                        <input asp-for="Experience"
+                               type="number"
+                               min="0"
+                               max="50"
+                               class="form-control" />
+
+                        <span asp-validation-for="Experience"
+                              class="text-danger"></span>
+
+                    </div>
+
+                </div>
+
+                <!-- ================= Buttons ================= -->
+
+                <div class="mt-4">
+
+                    <a asp-controller="Home"
+                       asp-action="Index"
+                       class="btn btn-secondary">
+
+                        Back
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger float-end">
+
+                        Register Psychologist
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

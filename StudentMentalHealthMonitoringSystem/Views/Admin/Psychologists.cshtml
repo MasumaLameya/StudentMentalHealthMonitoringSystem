@@ -1,57 +1,354 @@
-﻿@{
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Psychologist>
+
+@{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Psychologists";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-success text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
 
-            <h3>Psychologist List</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        Psychologist Management
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Manage registered psychologists and their information.
+
+                    </p>
+
+                </div>
+
+                <a asp-controller="Admin"
+                   asp-action="AddPsychologist"
+                   class="btn rounded-3 px-4"
+                   style="background:#B89B7A;color:white;">
+
+                    <i class="bi bi-person-plus me-1"></i>
+
+                    Add Psychologist
+
+                </a>
+
+            </div>
 
         </div>
 
+    </div>
+
+
+    <!-- ================= Search ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
         <div class="card-body">
 
-            <table class="table table-bordered table-striped">
+            <div class="row align-items-center">
 
-                <tr>
+                <div class="col-md-6">
 
-                    <th>Name</th>
+                    <label class="form-label fw-semibold"
+                           style="color:#5F5146;">
 
-                    <th>Email</th>
+                        Search Psychologist
 
-                    <th>Phone</th>
+                    </label>
 
-                    <th>Action</th>
+                    <input type="text"
+                           id="searchPsychologist"
+                           class="form-control rounded-3"
+                           placeholder="Search by name, email or specialization..." />
 
-                </tr>
+                </div>
 
-                <tr>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
 
-                    <td>Dr. Sarah Ahmed</td>
+                    <span class="text-muted">
 
-                    <td>sarah@gmail.com</td>
+                        Total Psychologists:
 
-                    <td>017XXXXXXXX</td>
+                    </span>
 
-                    <td>
+                    <strong style="color:#8A7563;">
 
-                        <button class="btn btn-primary btn-sm">View</button>
+                        @Model.Count()
 
-                        <button class="btn btn-warning btn-sm">Edit</button>
+                    </strong>
 
-                        <button class="btn btn-danger btn-sm">Delete</button>
+                </div>
 
-                    </td>
+            </div>
 
-                </tr>
+        </div>
 
-            </table>
+    </div>
+
+
+    <!-- ================= Psychologist Table ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0"
+                       id="psychologistTable">
+
+                    <thead style="background:#E8DDD2;">
+
+                        <tr>
+
+                            <th class="px-4 py-3">
+                                Photo
+                            </th>
+
+                            <th class="py-3">
+                                Name
+                            </th>
+
+                            <th class="py-3">
+                                Email
+                            </th>
+
+                            <th class="py-3">
+                                Specialization
+                            </th>
+
+                            <th class="py-3">
+                                Qualification
+                            </th>
+
+                            <th class="py-3">
+                                Experience
+                            </th>
+
+                            <th class="py-3 text-center">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var psychologist in Model)
+                            {
+                                <tr>
+
+                                    <!-- ================= Photo ================= -->
+
+                                    <td class="px-4">
+
+                                        @if (!string.IsNullOrEmpty(
+                                            psychologist.ProfileImage))
+                                        {
+                                            <img src="@psychologist.ProfileImage"
+                                                 width="55"
+                                                 height="55"
+                                                 class="rounded-circle border"
+                                                 style="object-fit:cover;">
+                                        }
+                                        else
+                                        {
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(psychologist.FullName)&background=B89B7A&color=fff&size=55"
+                                                 width="55"
+                                                 height="55"
+                                                 class="rounded-circle">
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Name ================= -->
+
+                                    <td>
+
+                                        <strong style="color:#5F5146;">
+
+                                            @psychologist.FullName
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- ================= Email ================= -->
+
+                                    <td>
+
+                                        @psychologist.Email
+
+                                    </td>
+
+
+                                    <!-- ================= Specialization ================= -->
+
+                                    <td>
+
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              style="background:#EEE4DA;
+                                            color:#705F50;">
+
+                                            @psychologist.Specialization
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================= Qualification ================= -->
+
+                                    <td>
+
+                                        @psychologist.Qualification
+
+                                    </td>
+
+
+                                    <!-- ================= Experience ================= -->
+
+                                    <td>
+
+                                        @psychologist.Experience years
+
+                                    </td>
+
+
+                                    <!-- ================= Actions ================= -->
+
+                                    <td class="text-center">
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- View -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="PsychologistDetails"
+                                               asp-route-id="@psychologist.PsychologistId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#D8C7B8;
+                                                color:#55483D;"
+                                               title="View">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- Edit -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="EditPsychologist"
+                                               asp-route-id="@psychologist.PsychologistId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#E5D3B3;
+                                                color:#665438;"
+                                               title="Edit">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+
+
+                                            <!-- Delete -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="DeletePsychologist"
+                                               asp-route-id="@psychologist.PsychologistId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#E7C4BD;
+                                                color:#7A4038;"
+                                               title="Delete">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="7"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-person-x"
+                                       style="font-size:45px;
+                                    color:#B8AAA0;"></i>
+
+                                    <p class="text-muted mt-2 mb-0">
+
+                                        No psychologists found.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+
+<!-- ================= Search Script ================= -->
+
+<script>
+
+    document
+        .getElementById("searchPsychologist")
+        .addEventListener("keyup", function() {
+
+            let searchValue =
+                this.value.toLowerCase();
+
+            document
+                .querySelectorAll("#psychologistTable tbody tr")
+                .forEach(function(row) {
+
+                    let text =
+                        row.innerText.toLowerCase();
+
+                    row.style.display =
+                        text.includes(searchValue)
+                            ? ""
+                            : "none";
+
+                });
+
+        });
+
+</script>

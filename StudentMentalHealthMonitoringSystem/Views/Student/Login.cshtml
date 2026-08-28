@@ -1,83 +1,85 @@
-﻿@{
+@{
     ViewData["Title"] = "Student Login";
 }
 
-<div class="container mt-5">
+<style>
+    .login-container {
+        min-height: calc(100vh - 180px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1rem;
+    }
 
-    <div class="row justify-content-center">
+    .login-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 30px rgba(0, 77, 37, 0.08);
+        overflow: hidden;
+        width: 100%;
+        max-width: 460px;
+    }
 
-        <div class="col-md-5">
+    .login-header {
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%);
+        border-bottom: 3px solid #FFC20E;
+        padding: 2rem 1.75rem;
+        text-align: center;
+        color: #ffffff;
+    }
+</style>
 
-            <div class="card shadow-lg">
-
-                <div class="card-header bg-primary text-white text-center">
-                    <h3>Student Login</h3>
-                </div>
-
-                <div class="card-body">
-
-                    <form asp-controller="Student"
-                          asp-action="Login"
-                          method="post">
-
-                        @Html.AntiForgeryToken()
-
-                        @if (ViewBag.Error != null)
-                        {
-                            <div class="alert alert-danger mt-3">
-                                @ViewBag.Error
-                            </div>
-                        }
-
-                        <div class="mb-3">
-
-                            <label>Email</label>
-
-                            <input type="email"
-                                   name="email"
-                                   class="form-control"
-                                   placeholder="Enter Email"
-                                   required>
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label>Password</label>
-
-                            <input type="password"
-                                   name="password"
-                                   class="form-control"
-                                   placeholder="Enter Password"
-                                   required>
-
-                        </div>
-
-                        <button type="submit"
-                                class="btn btn-primary w-100">
-
-                            Login
-
-                        </button>
-
-                    </form>
-
-                    <hr>
-
-                    <a asp-controller="Student"
-                       asp-action="Register"
-                       class="btn btn-outline-primary w-100">
-
-                        New Student? Register Here
-
-                    </a>
-
-                </div>
-
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="badge bg-white p-3 rounded-circle shadow-sm mb-3">
+                <i class="bi bi-mortarboard-fill fs-2" style="color: #006837;"></i>
             </div>
-
+            <h3 class="fw-bold mb-1 text-white">Student Portal Login</h3>
+            <p class="text-white-50 fs-6 mb-0">Sign in to access your mental wellness dashboard</p>
         </div>
 
-    </div>
+        <div class="p-4">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger border-0 rounded-3 mb-3 small">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> @ViewBag.Error
+                </div>
+            }
 
+            <form asp-controller="Student" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark fs-6 mb-1">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope fs-5" style="color: #006837;"></i></span>
+                        <input type="email" name="email" class="form-control border-start-0 ps-2 fs-6" placeholder="student1@gmail.com" required />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6 mb-1">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock fs-5" style="color: #006837;"></i></span>
+                        <input type="password" name="password" class="form-control border-start-0 ps-2 fs-6" placeholder="••••••••" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn text-white w-100 rounded-3 py-2.5 fw-bold mb-2 shadow-sm fs-6" style="background:#006837; border-color:#006837;">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Log In to Student Account
+                </button>
+            </form>
+
+            <hr class="my-3 opacity-25" />
+
+            <div class="text-center">
+                <p class="text-secondary fs-6 mb-2">Don't have a student account yet?</p>
+                <a asp-controller="Student" asp-action="Register" class="btn btn-outline-success w-100 rounded-3 py-2 fw-bold fs-6" style="color:#006837; border-color:#006837;">
+                    <i class="bi bi-person-plus-fill me-1"></i> Register New Student
+                </a>
+            </div>
+        </div>
+    </div>
 </div>

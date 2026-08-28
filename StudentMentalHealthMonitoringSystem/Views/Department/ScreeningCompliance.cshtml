@@ -1,0 +1,251 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.ScreeningComplianceViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Semester Screening Compliance Report";
+}
+
+<div class="container-fluid py-4" style="background:#F4F8F5; min-height: 90vh;">
+
+    <!-- ================= Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: white;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-journal-check me-2"></i>Semester Screening Compliance Report
+                    </h2>
+                    <p class="text-white-50 mb-0">Track student completion of mandatory PHQ-9 and C-SSRS semester mental health screening.</p>
+                </div>
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm">
+                    <i class="bi bi-building me-1"></i>@Model.SelectedDepartment
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- ================= Metric Cards ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#EBF4EE; color:#006837;">
+                        <i class="bi bi-people-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Total Students</div>
+                        <h3 class="fw-bold mb-0 text-dark">@Model.TotalStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#D1E7DD; color:#0F5132;">
+                        <i class="bi bi-check-circle-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Screening Completed</div>
+                        <h3 class="fw-bold mb-0 text-success">@Model.CompletedStudents <span class="fs-6 text-muted">(@Model.CompliancePercentage%)</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#FFF3CD; color:#664D03;">
+                        <i class="bi bi-hourglass-split fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Screening Pending</div>
+                        <h3 class="fw-bold mb-0 text-warning">@Model.PendingStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle p-3 me-3" style="background:#F8D7DA; color:#842029;">
+                        <i class="bi bi-lock-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-semibold">Blocked from Advancement</div>
+                        <h3 class="fw-bold mb-0 text-danger">@Model.PendingStudents</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Filter & Bulk Actions ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
+        <form method="get" asp-action="ScreeningCompliance" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label fw-bold text-secondary small">Filter by Semester</label>
+                <select name="semester" class="form-select rounded-3" onchange="this.form.submit()">
+                    <option value="All" selected="@(Model.SelectedSemester == "All")">All Semesters</option>
+                    @foreach (var sem in Model.AvailableSemesters)
+                    {
+                        <option value="@sem" selected="@(Model.SelectedSemester == sem)">@sem</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-bold text-secondary small">Filter by Compliance Status</label>
+                <select name="status" class="form-select rounded-3" onchange="this.form.submit()">
+                    <option value="All" selected="@(Model.SelectedStatus == "All")">All Statuses</option>
+                    <option value="Completed" selected="@(Model.SelectedStatus == "Completed")">Completed Only</option>
+                    <option value="Pending" selected="@(Model.SelectedStatus == "Pending")">Pending Only</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 text-md-end pt-md-4">
+                <form asp-action="SendBulkScreeningReminders" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="semester" value="@Model.SelectedSemester" />
+                    <button type="submit" class="btn btn-warning rounded-3 fw-bold shadow-sm" onclick="return confirm('Send email reminders to all pending students for this semester selection?');">
+                        <i class="bi bi-envelope-fill me-1"></i> Send Bulk Email Reminders
+                    </button>
+                </form>
+            </div>
+        </form>
+    </div>
+
+    <!-- ================= Compliance Table ================= -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0" style="color:#004D25;">
+                <i class="bi bi-table me-2"></i>Student Screening Compliance Details
+            </h5>
+            <span class="text-muted small">Showing @Model.Students.Count student(s)</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#EBF4EE; color:#004D25;" class="fw-bold text-uppercase small">
+                    <tr>
+                        <th class="ps-4">Student Info</th>
+                        <th>Semester</th>
+                        <th>PHQ-9 Status</th>
+                        <th>C-SSRS Status</th>
+                        <th>Advancement Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Students.Any())
+                    {
+                        foreach (var item in Model.Students)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark fs-6">@item.FullName</div>
+                                    <div class="text-muted small"><i class="bi bi-envelope me-1"></i>@item.Email</div>
+                                    <div class="text-muted small"><i class="bi bi-hash me-1"></i>ID: @item.StudentId</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-pill fw-semibold">
+                                        @item.Semester
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (item.HasPHQ)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Completed (@item.PHQSeverity)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-hourglass-split me-1"></i>Pending
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.HasCSSRS)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Completed (@item.CSSRSRiskLevel)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-hourglass-split me-1"></i>Pending
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.IsFullyScreened)
+                                    {
+                                        <span class="badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold">
+                                            <i class="bi bi-unlock-fill me-1"></i>Eligible for Next Semester
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill fw-bold">
+                                            <i class="bi bi-lock-fill me-1"></i>Blocked (Screening Required)
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (!item.IsFullyScreened)
+                                    {
+                                        <form asp-action="SendScreeningReminder" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="studentId" value="@item.StudentId" />
+                                            <button type="submit" class="btn btn-outline-warning text-dark btn-sm rounded-3 fw-bold px-3 shadow-sm">
+                                                <i class="bi bi-envelope-at me-1"></i> Send Email Reminder
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-light text-muted btn-sm rounded-3 disabled" disabled>
+                                            <i class="bi bi-check2-all me-1"></i> Fully Compliant
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                No student screening records match the selected filters.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,329 @@
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.ScreeningReport>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Screening Reports";
+}
+
+<div class="container-fluid py-3">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-file-earmark-medical me-2"></i>
+
+                        Screening Reports
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Combined screening information for students
+                        assigned to you.
+
+                    </p>
+
+                </div>
+
+
+                <a asp-controller="Psychologist"
+                   asp-action="Appointment"
+                   class="btn btn-sm rounded-3 px-3"
+                   style="
+                    background:#806C5D;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Appointments
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Screening Report List ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
+
+            <h5 class="mb-0"
+                style="color:#5F5146;">
+
+                <i class="bi bi-list-check me-2"></i>
+
+                Assigned Screening Reports
+
+            </h5>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead style="background:#F7F2ED;">
+
+                            <tr>
+
+                                <th class="px-4 py-3">
+                                    Student
+                                </th>
+
+                                <th class="py-3">
+                                    Student ID
+                                </th>
+
+                                <th class="py-3">
+                                    Trigger Source
+                                </th>
+
+                                <th class="py-3">
+                                    Severity
+                                </th>
+
+                                <th class="py-3">
+                                    Appointment
+                                </th>
+
+                                <th class="py-3">
+                                    Report Date
+                                </th>
+
+                                <th class="py-3 text-center">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                var appointmentDate =
+                                    item.Counseling != null
+                                        ? item.Counseling
+                                            .CounselingDate
+                                            .ToString("dd MMM yyyy")
+                                        : "-";
+
+
+                                var appointmentTime =
+                                    item.Counseling != null
+                                        ? DateTime.Today
+                                            .Add(
+                                                item.Counseling
+                                                    .AppointmentTime
+                                            )
+                                            .ToString("h:mm tt")
+                                        : "-";
+
+
+                                <tr>
+
+                                    <!-- ================= Student ================= -->
+
+                                    <td class="px-4 py-3">
+
+                                        <div class="fw-semibold"
+                                             style="color:#5F5146;">
+
+                                            @(item.Student?.FullName ?? "Student")
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @(item.Student?.Email ?? "-")
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================= Student ID ================= -->
+
+                                    <td class="py-3">
+
+                                        @(item.Student?.StudentIdNumber ?? "-")
+
+                                    </td>
+
+
+                                    <!-- ================= Trigger Source ================= -->
+
+                                    <td class="py-3">
+
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              style="
+                                            background:#EEE4DA;
+                                            color:#705F50;">
+
+                                            @item.TriggerSource
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================= Severity ================= -->
+
+                                    <td class="py-3">
+
+                                        @if (item.TriggerSeverity ==
+                                             "Extremely Severe")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                Extremely Severe
+
+                                            </span>
+                                        }
+                                        else if (item.TriggerSeverity ==
+                                                 "Severe")
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+
+                                                Severe
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                @item.TriggerSeverity
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Appointment ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:170px;">
+
+                                        <div class="fw-semibold"
+                                             style="color:#5F5146;">
+
+                                            @appointmentDate
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            @appointmentTime
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================= Report Date ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:160px;">
+
+                                        @item.CreatedAt.ToString(
+                                            "dd MMM yyyy, h:mm tt"
+                                        )
+
+                                    </td>
+
+
+                                    <!-- ================= Action ================= -->
+
+                                    <td class="py-3 text-center">
+
+                                        <a asp-controller="Psychologist"
+                                           asp-action="ScreeningReportDetails"
+                                           asp-route-id="@item.ScreeningReportId"
+                                           class="btn btn-sm rounded-3 px-3"
+                                           style="
+                                            background:#A67C52;
+                                            color:white;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View Screening Report
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="
+                        width:70px;
+                        height:70px;
+                        background:#EEE4DA;">
+
+                        <i class="bi bi-file-earmark-x fs-2"
+                           style="color:#806C5D;">
+                        </i>
+
+                    </div>
+
+
+                    <h5 class="fw-bold"
+                        style="color:#5F5146;">
+
+                        No Screening Reports
+
+                    </h5>
+
+
+                    <p class="text-muted mb-0">
+
+                        Screening reports for automatically assigned
+                        students will appear here.
+
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,93 +1,518 @@
-﻿@{
-    ViewData["Title"] = "Students";
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Student Management";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-primary text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
 
-            <h3>Student List</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        👨‍🎓 Student Management
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Manage registered students and their information.
+
+                    </p>
+
+                </div>
+
+                <div class="text-end">
+
+                    <div class="small text-muted">
+                        Total Students
+                    </div>
+
+                    <h4 class="fw-bold mb-0"
+                        style="color:#8A7563;">
+
+                        <span id="totalStudents">
+                            @Model.Count()
+                        </span>
+
+                    </h4>
+
+                </div>
+
+            </div>
 
         </div>
 
+    </div>
+
+
+    <!-- ================= Search & Filter ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
         <div class="card-body">
 
-            <table class="table table-bordered table-striped">
+            <form method="get" asp-action="Students" class="row g-3 align-items-center mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="color:#5F5146;"><i class="bi bi-building me-1"></i> Filter by Department</label>
+                    <select name="department" class="form-select rounded-3" onchange="this.form.submit()">
+                        <option value="All" selected="@(ViewBag.SelectedDepartment == "All" || ViewBag.SelectedDepartment == null)">All Departments</option>
+                        @if (ViewBag.AvailableDepartments != null)
+                        {
+                            foreach (var dept in (List<string>)ViewBag.AvailableDepartments)
+                            {
+                                <option value="@dept" selected="@(ViewBag.SelectedDepartment == dept)">@dept</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </form>
 
-                <thead>
+            <label for="searchStudent"
+                   class="form-label fw-semibold"
+                   style="color:#5F5146;">
 
-                    <tr>
+                Search Student
 
-                        <th>ID</th>
+            </label>
 
-                        <th>Name</th>
+            <div class="input-group">
 
-                        <th>Department</th>
+                <span class="input-group-text"
+                      style="background:#F4EEE8;
+                    border-color:#DDD0C4;">
 
-                        <th>Semester</th>
+                    <i class="bi bi-search"
+                       style="color:#8A7563;"></i>
 
-                        <th>Risk Level</th>
+                </span>
 
-                        <th>Action</th>
+                <input type="text"
+                       id="searchStudent"
+                       class="form-control"
+                       placeholder="Search by Student ID, Name, Department, Semester or Email..."
+                       autocomplete="off"
+                       style="border-color:#DDD0C4;" />
 
-                    </tr>
+                <button type="button"
+                        id="clearSearch"
+                        class="btn"
+                        style="background:#E8DDD2;
+                    color:#5F5146;
+                    display:none;">
 
-                </thead>
+                    <i class="bi bi-x-lg"></i>
 
-                <tbody>
+                </button>
 
-                    <tr>
+            </div>
 
-                        <td>221031001</td>
+            <small class="text-muted">
 
-                        <td>Masuma</td>
+                Search results update automatically.
 
-                        <td>CSE</td>
+            </small>
 
-                        <td>3</td>
+        </div>
 
-                        <td>
+    </div>
 
-                            <span class="badge bg-success">
 
-                                Normal
+    <!-- ================= Student Table ================= -->
 
-                            </span>
+    <div class="card border-0 shadow-sm rounded-4">
 
-                        </td>
+        <div class="card-body p-0">
 
-                        <td>
+            <div class="table-responsive">
 
-                            <a href="/Admin/StudentDetails" class="btn btn-primary btn-sm">
+                <table class="table table-hover align-middle mb-0"
+                       id="studentTable">
 
-                                View
+                    <thead style="background:#E8DDD2;">
 
-                            </a>
+                        <tr>
 
-                            <button class="btn btn-warning btn-sm">
+                            <th class="px-4 py-3">
+                                Photo
+                            </th>
 
-                                Edit
+                            <th class="py-3">
+                                Student ID
+                            </th>
 
-                            </button>
+                            <th class="py-3">
+                                Name
+                            </th>
 
-                            <button class="btn btn-danger btn-sm">
+                            <th class="py-3">
+                                Department
+                            </th>
 
-                                Delete
+                            <th class="py-3">
+                                Semester
+                            </th>
 
-                            </button>
+                            <th class="py-3">
+                                Email
+                            </th>
 
-                        </td>
+                            <th class="py-3 text-center">
+                                Actions
+                            </th>
 
-                    </tr>
+                        </tr>
 
-                </tbody>
+                    </thead>
 
-            </table>
+                    <tbody id="studentTableBody">
+
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var student in Model)
+                            {
+                                <tr class="student-row">
+
+                                    <!-- Photo -->
+
+                                    <td class="px-4">
+
+                                        @if (!string.IsNullOrEmpty(student.ProfileImage))
+                                        {
+                                            <img src="@student.ProfileImage"
+                                                 width="55"
+                                                 height="55"
+                                                 class="rounded-circle border shadow-sm"
+                                                 style="object-fit:cover;">
+                                        }
+                                        else
+                                        {
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(student.FullName)&background=A67C52&color=fff&size=55"
+                                                 width="55"
+                                                 height="55"
+                                                 class="rounded-circle">
+                                        }
+
+                                    </td>
+
+
+                                    <!-- Student ID -->
+
+                                    <td>
+
+                                        <span class="fw-semibold"
+                                              style="color:#5F5146;">
+
+                                            @student.StudentIdNumber
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Name -->
+
+                                    <td>
+
+                                        <strong style="color:#5F5146;">
+
+                                            @student.FullName
+
+                                        </strong>
+
+                                    </td>
+
+
+                                    <!-- Department -->
+
+                                    <td>
+
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              style="background:#EEE4DA;
+                                            color:#705F50;">
+
+                                            @student.Department
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- Semester -->
+
+                                    <td>
+
+                                        @student.Semester
+
+                                    </td>
+
+
+                                    <!-- Email -->
+
+                                    <td>
+
+                                        @student.Email
+
+                                    </td>
+
+
+                                    <!-- Actions -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <a asp-controller="Admin"
+                                               asp-action="StudentDetails"
+                                               asp-route-id="@student.StudentId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#D8C7B8;
+                                                color:#55483D;"
+                                               title="View Student">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a>
+
+
+                                            <a asp-controller="Admin"
+                                               asp-action="EditStudent"
+                                               asp-route-id="@student.StudentId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#E5D3B3;
+                                                color:#665438;"
+                                               title="Edit Student">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+
+
+                                            <a asp-controller="Admin"
+                                               asp-action="DeleteStudent"
+                                               asp-route-id="@student.StudentId"
+                                               class="btn btn-sm rounded-3"
+                                               style="background:#E7C4BD;
+                                                color:#7A4038;"
+                                               title="Delete Student">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="7"
+                                    class="text-center py-5">
+
+                                    <i class="bi bi-person-x"
+                                       style="font-size:45px;
+                                    color:#B8AAA0;"></i>
+
+                                    <p class="text-muted mt-2 mb-0">
+
+                                        No students found.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                    <!-- ================= No Search Result ================= -->
+
+                    <tbody>
+
+                        <tr id="noSearchResult"
+                            style="display:none;">
+
+                            <td colspan="7"
+                                class="text-center py-5">
+
+                                <i class="bi bi-search"
+                                   style="font-size:40px;
+                                color:#B8AAA0;"></i>
+
+                                <h5 class="mt-3"
+                                    style="color:#5F5146;">
+
+                                    No matching student found
+
+                                </h5>
+
+                                <p class="text-muted mb-0">
+
+                                    Try searching with a different name,
+                                    ID, department or email.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+
+<!-- ================= Search Script ================= -->
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const searchInput =
+            document.getElementById("searchStudent");
+
+        const clearButton =
+            document.getElementById("clearSearch");
+
+        const rows =
+            document.querySelectorAll(".student-row");
+
+        const noResult =
+            document.getElementById("noSearchResult");
+
+        const totalStudents =
+            document.getElementById("totalStudents");
+
+
+        function normalizeText(text) {
+
+            return text
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, " ");
+
+        }
+
+
+        function searchStudents() {
+
+            const searchValue =
+                normalizeText(searchInput.value);
+
+            let visibleCount = 0;
+
+
+            rows.forEach(function(row) {
+
+                const rowText =
+                    normalizeText(row.textContent);
+
+                if (
+                    searchValue === "" ||
+                    rowText.includes(searchValue)
+                ) {
+
+                    row.style.display = "";
+
+                    visibleCount++;
+
+                }
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+
+            // Show / hide no result message
+
+            if (visibleCount === 0 && searchValue !== "") {
+
+                noResult.style.display = "";
+
+            }
+            else {
+
+                noResult.style.display = "none";
+
+            }
+
+
+            // Update visible student count
+
+            totalStudents.textContent =
+                visibleCount;
+
+
+            // Show clear button
+
+            if (searchValue !== "") {
+
+                clearButton.style.display = "block";
+
+            }
+            else {
+
+                clearButton.style.display = "none";
+
+                totalStudents.textContent =
+                    rows.length;
+
+            }
+
+        }
+
+
+        // Search while typing
+
+        searchInput.addEventListener(
+            "input",
+            searchStudents
+        );
+
+
+        // Clear search
+
+        clearButton.addEventListener(
+            "click",
+            function() {
+
+                searchInput.value = "";
+
+                searchStudents();
+
+                searchInput.focus();
+
+            }
+        );
+
+    });
+
+</script>

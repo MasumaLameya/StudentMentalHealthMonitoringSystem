@@ -1,30 +1,350 @@
-﻿@{
-    ViewData["Title"] = "Profile";
+﻿@model StudentMentalHealthMonitoringSystem.Models.Admin
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Admin Profile";
 }
 
-<div class="container mt-4">
+<div class="container-fluid">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-primary text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F1EAE4;">
 
-            <h3>Admin Profile</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5C5148;">
+
+                        👤 Admin Profile
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        View and update your administrator profile information.
+
+                    </p>
+
+                </div>
+
+                <a asp-controller="Admin"
+                   asp-action="Settings"
+                   class="btn rounded-3 px-4"
+                   style="background:#8A7563;
+                    color:white;">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Back to Settings
+
+                </a>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered">
 
-                <tr><th>Name</th><td>System Administrator</td></tr>
-                <tr><th>Email</th><td>admin@university.edu</td></tr>
-                <tr><th>Phone</th><td>017XXXXXXXX</td></tr>
-                <tr><th>Role</th><td>Administrator</td></tr>
+    <!-- ================= Success Message ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4">
 
-            </table>
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+
+    <!-- ================= Profile ================= -->
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-9">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-body p-4 p-lg-5">
+
+                    <form asp-controller="Admin"
+                          asp-action="Profile"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+                        <input asp-for="AdminId"
+                               type="hidden" />
+
+                        <input asp-for="ProfileImage"
+                               type="hidden" />
+
+
+                        <!-- ================= Profile Image ================= -->
+
+                        <div class="text-center mb-5">
+
+                            @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                            {
+                                <img src="@Model.ProfileImage"
+                                     width="160"
+                                     height="160"
+                                     class="rounded-circle border shadow-sm mb-3"
+                                     style="object-fit:cover;">
+                            }
+                            else
+                            {
+                                <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.FullName ?? "Admin")&background=806C5D&color=fff&size=160"
+                                     width="160"
+                                     height="160"
+                                     class="rounded-circle shadow-sm mb-3">
+                            }
+
+                            <h3 class="fw-bold mb-1"
+                                style="color:#5C5148;">
+
+                                @Model.FullName
+
+                            </h3>
+
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:#E8DDD2;
+                                color:#705F50;">
+
+                                Administrator
+
+                            </span>
+
+                            <div class="mt-4">
+
+                                <label asp-for="ImageFile"
+                                       class="form-label fw-semibold"
+                                       style="color:#5C5148;">
+
+                                    Change Profile Picture
+
+                                </label>
+
+                                <input asp-for="ImageFile"
+                                       type="file"
+                                       class="form-control rounded-3"
+                                       accept=".jpg,.jpeg,.png,image/*" />
+
+                                <span asp-validation-for="ImageFile"
+                                      class="text-danger">
+                                </span>
+
+                                <small class="text-muted d-block mt-2">
+
+                                    JPG, JPEG or PNG image recommended.
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <hr class="my-4">
+
+
+                        <!-- ================= Personal Information ================= -->
+
+                        <h4 class="fw-bold mb-4"
+                            style="color:#5C5148;">
+
+                            Personal Information
+
+                        </h4>
+
+                        <div class="row">
+
+                            <!-- Full Name -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <label asp-for="FullName"
+                                       class="form-label fw-semibold">
+
+                                    Full Name
+
+                                </label>
+
+                                <input asp-for="FullName"
+                                       class="form-control rounded-3"
+                                       placeholder="Enter full name" />
+
+                                <span asp-validation-for="FullName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- Email -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <label asp-for="Email"
+                                       class="form-label fw-semibold">
+
+                                    Email Address
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       type="email"
+                                       class="form-control rounded-3"
+                                       placeholder="Enter email address" />
+
+                                <span asp-validation-for="Email"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- Phone -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <label asp-for="Phone"
+                                       class="form-label fw-semibold">
+
+                                    Phone Number
+
+                                </label>
+
+                                <input asp-for="Phone"
+                                       class="form-control rounded-3"
+                                       placeholder="Enter phone number" />
+
+                                <span asp-validation-for="Phone"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- Admin ID -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <label class="form-label fw-semibold">
+
+                                    Admin ID
+
+                                </label>
+
+                                <input value="@Model.AdminId"
+                                       class="form-control rounded-3"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================= Account Information ================= -->
+
+                        <div class="card border-0 rounded-4 mt-2"
+                             style="background:#F7F2ED;">
+
+                            <div class="card-body p-4">
+
+                                <div class="row">
+
+                                    <div class="col-md-6">
+
+                                        <small class="text-muted">
+                                            Account Type
+                                        </small>
+
+                                        <div class="fw-semibold mt-1"
+                                             style="color:#5C5148;">
+
+                                            Administrator
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6 mt-3 mt-md-0">
+
+                                        <small class="text-muted">
+                                            Access Level
+                                        </small>
+
+                                        <div class="fw-semibold mt-1"
+                                             style="color:#5C5148;">
+
+                                            Full Administrative Access
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================= Buttons ================= -->
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+
+                            <a asp-controller="Admin"
+                               asp-action="Settings"
+                               class="btn rounded-3 px-4"
+                               style="background:#E8DDD2;
+                                color:#5F5146;">
+
+                                <i class="bi bi-x-circle me-1"></i>
+
+                                Cancel
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn rounded-3 px-4"
+                                    style="background:#A67C52;
+                                color:white;">
+
+                                <i class="bi bi-check-circle me-1"></i>
+
+                                Save Changes
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

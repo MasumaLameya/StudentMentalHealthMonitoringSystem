@@ -1,0 +1,269 @@
+﻿@{
+    ViewData["Title"] = "Guardian Login";
+}
+
+<style>
+
+    .guardian-login-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 15px;
+    }
+
+    .guardian-login-card {
+        width: 100%;
+        max-width: 430px;
+        background: #FFFFFF;
+        border: 1px solid #E1EAEE;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(70,100,120,0.10);
+    }
+
+
+    /* =====================================================
+           HEADER
+           ===================================================== */
+
+    .guardian-login-header {
+        background: linear-gradient( 135deg, #A9D5E8, #C7DDE8, #DCD1E7 );
+        padding: 30px;
+        text-align: center;
+    }
+
+
+    .guardian-login-icon {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 15px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.78);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #587C8E;
+        font-size: 28px;
+    }
+
+
+    .guardian-login-header h3 {
+        color: #405F70;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+
+    .guardian-login-header p {
+        color: #718894;
+        font-size: 13px;
+        margin: 0;
+    }
+
+
+    /* =====================================================
+           BODY
+           ===================================================== */
+
+    .guardian-login-body {
+        padding: 30px;
+    }
+
+
+    .guardian-label {
+        color: #526A79;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 7px;
+    }
+
+
+    .guardian-input {
+        width: 100%;
+        border: 1px solid #D9E4E9;
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: #526A79;
+        outline: none;
+    }
+
+
+        .guardian-input:focus {
+            border-color: #9FCFE5;
+            box-shadow: 0 0 0 3px rgba(159,207,229,0.18);
+        }
+
+
+    /* =====================================================
+           LOGIN BUTTON
+           ===================================================== */
+
+    .guardian-login-btn {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        background: #6D9CAF;
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+
+        .guardian-login-btn:hover {
+            background: #5E8D9F;
+            color: #FFFFFF;
+        }
+
+
+    /* =====================================================
+           ERROR
+           ===================================================== */
+
+    .guardian-error {
+        background: #F9ECEF;
+        border: 1px solid #F0D8DE;
+        color: #966477;
+        border-radius: 12px;
+        padding: 11px 13px;
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+
+    /* =====================================================
+           FOOTER NOTE
+           ===================================================== */
+
+    .guardian-note {
+        color: #98A5AC;
+        font-size: 11px;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+</style>
+
+
+<div class="guardian-login-page">
+
+
+    <div class="guardian-login-card">
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <div class="guardian-login-header">
+
+
+            <div class="guardian-login-icon">
+
+                <i class="bi bi-person-heart"></i>
+
+            </div>
+
+
+            <h3>
+
+                Guardian Login
+
+            </h3>
+
+
+            <p>
+
+                Access your student's mental health reports
+
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             BODY
+             ================================================= -->
+
+        <div class="guardian-login-body">
+
+
+            <!-- Error Message -->
+            @if (ViewBag.Error != null)
+            {
+
+                <div class="guardian-error">
+
+                    <i class="bi bi-exclamation-circle me-2"></i>
+
+                    @ViewBag.Error
+
+                </div>
+
+            }
+
+
+
+            <!-- Login Form -->
+
+            <form asp-controller="Guardian"
+                  asp-action="Login"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <!-- Student ID -->
+
+                <div class="mb-4">
+
+                    <label class="guardian-label">
+
+                        Student ID
+
+                    </label>
+
+
+                    <input type="text"
+                           name="studentId"
+                           class="guardian-input"
+                           placeholder="Enter Student ID"
+                           autocomplete="off"
+                           required />
+
+                </div>
+
+
+
+                <!-- Login Button -->
+
+                <button type="submit"
+                        class="guardian-login-btn">
+
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+
+                    Login
+
+                </button>
+
+            </form>
+
+
+
+            <!-- Note -->
+
+            <div class="guardian-note">
+
+                <i class="bi bi-shield-check me-1"></i>
+
+                Guardian access is read-only.
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

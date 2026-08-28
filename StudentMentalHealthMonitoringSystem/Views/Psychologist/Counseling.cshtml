@@ -1,4 +1,6 @@
-﻿@{
+@model StudentMentalHealthMonitoringSystem.Models.Counseling
+
+@{
     ViewData["Title"] = "Counseling";
 }
 
@@ -8,43 +10,205 @@
 
         <div class="card-header bg-success text-white">
 
-            <h3>Counseling Session Notes</h3>
+            <h3>Counseling Session</h3>
 
         </div>
 
         <div class="card-body">
 
-            <label>Observation</label>
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
 
-            <textarea class="form-control mb-3" rows="4"></textarea>
+                    @TempData["Success"]
 
-            <label>Assessment</label>
+                </div>
+            }
 
-            <textarea class="form-control mb-3" rows="4"></textarea>
+            <form asp-action="Counseling"
+                  method="post">
 
-            <label>Recommendation</label>
+                @Html.AntiForgeryToken()
 
-            <textarea class="form-control mb-3" rows="4"></textarea>
+                <!-- ================= Hidden Fields ================= -->
 
-            <label>Risk Level</label>
+                <input asp-for="StudentId" type="hidden" />
 
-            <select class="form-select mb-4">
+                <input asp-for="PsychologistId" type="hidden" />
 
-                <option>Normal</option>
-                <option>Moderate</option>
-                <option>Severe</option>
-                <option>Extremely Severe</option>
+                <!-- ================= Student Information ================= -->
 
-            </select>
+                <div class="mb-3">
 
-            <button class="btn btn-success w-100">
+                    <label class="fw-bold">
 
-                Save Session
+                        Student Name
 
-            </button>
+                    </label>
+
+                    <input class="form-control"
+                           value="@ViewBag.Student.FullName"
+                           readonly />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="fw-bold">
+
+                        Student ID
+
+                    </label>
+
+                    <input class="form-control"
+                           value="@ViewBag.Student.StudentIdNumber"
+                           readonly />
+
+                </div>
+
+                <!-- ================= Observation ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="Observation"></label>
+
+                    <textarea asp-for="Observation"
+                              class="form-control"
+                              rows="4"></textarea>
+
+                    <span asp-validation-for="Observation"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Recommendation ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="Recommendation"></label>
+
+                    <textarea asp-for="Recommendation"
+                              class="form-control"
+                              rows="4"></textarea>
+
+                    <span asp-validation-for="Recommendation"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Risk Level ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="RiskLevel"></label>
+
+                    <select asp-for="RiskLevel"
+                            class="form-select">
+
+                        <option value="">
+                            -- Select Risk Level --
+                        </option>
+
+                        <option>Normal</option>
+
+                        <option>Moderate</option>
+
+                        <option>Severe</option>
+
+                        <option>Extremely Severe</option>
+
+                    </select>
+
+                    <span asp-validation-for="RiskLevel"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Next Follow-up Date ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="NextFollowUpDate"></label>
+
+                    <input asp-for="NextFollowUpDate"
+                           type="date"
+                           class="form-control" />
+
+                    <span asp-validation-for="NextFollowUpDate"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Appointment Time ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="AppointmentTime"></label>
+
+                    <input asp-for="AppointmentTime"
+                           type="time"
+                           class="form-control" />
+
+                    <span asp-validation-for="AppointmentTime"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Appointment Room ================= -->
+
+                <div class="mb-3">
+
+                    <label asp-for="AppointmentRoom"></label>
+
+                    <input asp-for="AppointmentRoom"
+                           class="form-control"
+                           placeholder="Enter Counseling Room" />
+
+                    <span asp-validation-for="AppointmentRoom"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Status ================= -->
+
+                <div class="mb-4">
+
+                    <label asp-for="Status"></label>
+
+                    <select asp-for="Status"
+                            class="form-select">
+
+                        <option>Pending</option>
+
+                        <option>Completed</option>
+
+                    </select>
+
+                    <span asp-validation-for="Status"
+                          class="text-danger"></span>
+
+                </div>
+
+                <!-- ================= Submit Button ================= -->
+
+                <button type="submit"
+                        class="btn btn-success w-100">
+
+                    Save Counseling
+
+                </button>
+
+            </form>
 
         </div>
 
     </div>
 
 </div>
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,69 @@
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Department Report";
+}
+
+<div class="card border-0 shadow rounded-4">
+
+    <div class="card-header text-white py-3"
+         style="background:#C2956D;">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <h3>
+
+                🏢 Department Report
+
+            </h3>
+
+            <button onclick="window.print()"
+                    class="btn btn-light">
+
+                <i class="bi bi-printer"></i>
+
+                Print
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Department</th>
+
+                    <th>Total Students</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var department in Model)
+                {
+                    <tr>
+
+                        <td>@department.DepartmentName</td>
+
+                        <td>@department.TotalStudents</td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

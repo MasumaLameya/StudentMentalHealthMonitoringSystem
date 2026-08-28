@@ -1,54 +1,340 @@
-﻿@{
-    ViewData["Title"] = "Students";
+﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel>
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "High Risk Students";
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-3">
 
-    <div class="card shadow">
+    <!-- ================= Header ================= -->
 
-        <div class="card-header bg-primary text-white">
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
 
-            <h3>High Risk Students</h3>
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+
+                        High Risk Students
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Students identified from their latest
+                        mental health screening results.
+
+                    </p>
+
+                </div>
+
+
+                <div class="rounded-3 px-4 py-2"
+                     style="background:#E8DDD2;
+                    color:#5F5146;">
+
+                    <strong>Total:</strong>
+                    @Model.Count()
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card-body">
+    </div>
 
-            <table class="table table-bordered table-striped">
 
-                <tr>
+    <!-- ================= Students ================= -->
 
-                    <th>ID</th>
+    <div class="card border-0 shadow-sm rounded-4">
 
-                    <th>Name</th>
+        <div class="card-header border-0 py-3"
+             style="background:#E8DDD2;">
 
-                    <th>Department</th>
+            <h5 class="mb-0"
+                style="color:#5F5146;">
 
-                    <th>Risk</th>
+                <i class="bi bi-people me-2"></i>
 
-                    <th>Action</th>
+                Student List
 
-                </tr>
+            </h5>
 
-                <tr>
+        </div>
 
-                    <td>221031001</td>
 
-                    <td>Masuma</td>
+        <div class="card-body p-4">
 
-                    <td>CSE</td>
+            @if (!Model.Any())
+            {
+                <div class="alert rounded-3 mb-0"
+                     style="background:#F7F2ED;
+                    border:1px solid #E5D8CC;
+                    color:#5F5146;">
 
-                    <td><span class="badge bg-danger">Extremely Severe</span></td>
+                    <i class="bi bi-info-circle me-2"></i>
 
-                    <td>
+                    No high risk student found.
 
-                        <a href="/Psychologist/StudentDetails" class="btn btn-primary btn-sm">View</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
 
-                    </td>
+                    <table class="table align-middle">
 
-                </tr>
+                        <thead>
 
-            </table>
+                            <tr style="color:#5F5146;">
+
+                                <th>Student ID</th>
+
+                                <th>Name</th>
+
+                                <th>Department</th>
+
+                                <th>Semester</th>
+
+                                <th>PHQ Severity</th>
+
+                                <th>C-SSRS Risk</th>
+
+                                <th>Trigger Source</th>
+
+                                <th>Assigned Severity</th>
+
+                                <th class="text-center">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- ================= Student ID ================= -->
+
+                                    <td class="fw-semibold">
+
+                                        @item.Student.StudentIdNumber
+
+                                    </td>
+
+
+                                    <!-- ================= Name ================= -->
+
+                                    <td>
+
+                                        @item.Student.FullName
+
+                                    </td>
+
+
+                                    <!-- ================= Department ================= -->
+
+                                    <td>
+
+                                        @item.Student.Department
+
+                                    </td>
+
+
+                                    <!-- ================= Semester ================= -->
+
+                                    <td>
+
+                                        @item.Student.Semester
+
+                                    </td>
+
+
+                                    <!-- ================= PHQ ================= -->
+
+                                    <td>
+
+                                        @if (item.PHQAssessment != null)
+                                        {
+                                            @if (item.PHQAssessment.SeverityLevel == "Severe")
+                                            {
+                                                <span class="badge rounded-pill px-3 py-2 bg-danger">
+
+                                                    Severe
+
+                                                </span>
+                                            }
+                                            else if (item.PHQAssessment.SeverityLevel == "Moderately Severe")
+                                            {
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      style="background:#F4C27A;
+                                                    color:#5F5146;">
+
+                                                    Moderately Severe
+
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      style="background:#E8DDD2;
+                                                    color:#5F5146;">
+
+                                                    @item.PHQAssessment.SeverityLevel
+
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                N/A
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= C-SSRS ================= -->
+
+                                    <td>
+
+                                        @if (item.CSSRSAssessment != null)
+                                        {
+                                            @if (item.CSSRSAssessment.RiskLevel == "High")
+                                            {
+                                                <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                    High
+
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge rounded-pill px-3 py-2"
+                                                      style="background:#E8DDD2;
+                                                    color:#5F5146;">
+
+                                                    @item.CSSRSAssessment.RiskLevel
+
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                N/A
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Trigger Source ================= -->
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.TriggerSource))
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="background:#E8DDD2;
+                                                color:#5F5146;">
+
+                                                @item.TriggerSource
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                N/A
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Trigger Severity ================= -->
+
+                                    <td>
+
+                                        @if (item.TriggerSeverity ==
+                                             "Extremely Severe")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                Extremely Severe
+
+                                            </span>
+                                        }
+                                        else if (item.TriggerSeverity ==
+                                                 "Severe")
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2"
+                                                  style="background:#F4C27A;
+                                                color:#5F5146;">
+
+                                                Severe
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                @(item.TriggerSeverity ?? "N/A")
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= Action ================= -->
+
+                                    <td class="text-center">
+
+                                        <a asp-controller="Psychologist"
+                                           asp-action="StudentDetails"
+                                           asp-route-id="@item.Student.StudentId"
+                                           class="btn rounded-3 px-3"
+                                           style="background:#A67C52;
+                                            color:white;">
+
+                                            <i class="bi bi-eye me-1"></i>
+
+                                            View Details
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
 
         </div>
 

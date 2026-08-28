@@ -1,59 +1,145 @@
-﻿@{
+﻿@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel
+
+@{
+    Layout = "_DepartmentLayout";
+
     ViewData["Title"] = "Department Dashboard";
 }
 
-<div class="container-fluid">
 
-    <div class="row">
+<!-- =========================================================
+     DEPARTMENT DASHBOARD
+     ========================================================= -->
 
-        <!-- Sidebar -->
+<div class="container-fluid py-4">
 
-        <div class="col-lg-3">
 
-            <div class="card shadow">
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
 
-                <div class="card-body">
+    <div class="dashboard-header mb-4">
 
-                    <div class="text-center">
+        <div class="row align-items-center">
 
-                        <img src="https://ui-avatars.com/api/?name=Department&background=198754&color=fff&size=120"
-                             class="rounded-circle mb-3">
+            <div class="col-lg-8">
 
-                        <h4>CSE Department</h4>
+                <div class="small text-uppercase mb-2"
+                     style="
+                    color:#6B8494;
+                    font-weight:600;
+                    letter-spacing:1px;
+                    ">
 
-                        <p class="text-muted">
-                            Department Coordinator
-                        </p>
+                    @Model.DepartmentName Department
+
+                </div>
+
+
+                <h2 class="mb-2"
+                    style="
+                    color:#405B6B;
+                    font-weight:700;
+                    ">
+
+                    Department Dashboard
+
+                </h2>
+
+
+                <p class="mb-0"
+                   style="
+                    color:#7B8E99;
+                    font-size:15px;
+                    ">
+
+                    Monitor student mental health,
+                    counseling and follow-up activities.
+
+                </p>
+
+            </div>
+
+
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+
+                <div style="
+                    width:68px;
+                    height:68px;
+                    margin-left:auto;
+                    border-radius:20px;
+                    background:rgba(255,255,255,0.70);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:#5C7890;
+                    font-size:30px;
+                    box-shadow:0 8px 20px rgba(80,110,130,0.10);
+                    ">
+
+                    <i class="bi bi-building"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+         ===================================================== -->
+
+    <div class="row g-4 mb-4">
+
+
+        <!-- =================================================
+             TOTAL STUDENTS
+             ================================================= -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="dashboard-card h-100">
+
+                <div class="d-flex
+                    justify-content-between
+                    align-items-start">
+
+                    <div>
+
+                        <div class="card-label">
+
+                            Total Students
+
+                        </div>
+
+
+                        <div class="card-number">
+
+                            @Model.TotalStudents
+
+                        </div>
+
+
+                        <div class="card-description">
+
+                            Students in your department
+
+                        </div>
 
                     </div>
 
-                    <hr>
 
-                    <div class="list-group">
+                    <div class="stat-icon"
+                         style="
+                        background:#E5F3FA;
+                        color:#5B9AB8;
+                        ">
 
-                        <a href="/Department/Dashboard" class="list-group-item list-group-item-action active">
-                            Dashboard
-                        </a>
-
-                        <a href="/Department/Students" class="list-group-item list-group-item-action">
-                            Student List
-                        </a>
-
-                        <a href="/Department/FollowUp" class="list-group-item list-group-item-action">
-                            Follow Up
-                        </a>
-
-                        <a href="/Department/Attendance" class="list-group-item list-group-item-action">
-                            Counseling Attendance
-                        </a>
-
-                        <a href="/Department/Reports" class="list-group-item list-group-item-action">
-                            Reports
-                        </a>
-
-                        <a href="/Department/Profile" class="list-group-item list-group-item-action">
-                            Profile
-                        </a>
+                        <i class="bi bi-people"></i>
 
                     </div>
 
@@ -63,75 +149,52 @@
 
         </div>
 
-        <!-- Main -->
 
-        <div class="col-lg-9">
 
-            <h2 class="mb-4">
-                Department Dashboard
-            </h2>
+        <!-- =================================================
+             HIGH-RISK STUDENTS
+             ================================================= -->
 
-            <div class="row">
+        <div class="col-xl-3 col-md-6">
 
-                <div class="col-md-3 mb-4">
+            <div class="dashboard-card h-100">
 
-                    <div class="card bg-primary text-white shadow">
+                <div class="d-flex
+                    justify-content-between
+                    align-items-start">
 
-                        <div class="card-body">
+                    <div>
 
-                            <h6>Total Students</h6>
+                        <div class="card-label">
 
-                            <h2>350</h2>
+                            High Risk
+
+                        </div>
+
+
+                        <div class="card-number">
+
+                            @Model.HighRiskStudents
+
+                        </div>
+
+
+                        <div class="card-description">
+
+                            Students requiring attention
 
                         </div>
 
                     </div>
 
-                </div>
 
-                <div class="col-md-3 mb-4">
+                    <div class="stat-icon"
+                         style="
+                        background:#F5EAF0;
+                        color:#A96F8D;
+                        ">
 
-                    <div class="card bg-warning shadow">
-
-                        <div class="card-body">
-
-                            <h6>Pending Screening</h6>
-
-                            <h2>42</h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3 mb-4">
-
-                    <div class="card bg-danger text-white shadow">
-
-                        <div class="card-body">
-
-                            <h6>High Risk</h6>
-
-                            <h2>18</h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-3 mb-4">
-
-                    <div class="card bg-success text-white shadow">
-
-                        <div class="card-body">
-
-                            <h6>Attendance</h6>
-
-                            <h2>95%</h2>
-
-                        </div>
+                        <i class="bi bi-heart-pulse"></i>
 
                     </div>
 
@@ -139,94 +202,109 @@
 
             </div>
 
-            <div class="row">
+        </div>
 
-                <div class="col-md-8">
 
-                    <div class="card shadow">
 
-                        <div class="card-header bg-success text-white">
+        <!-- =================================================
+             COUNSELING SESSIONS
+             ================================================= -->
 
-                            Students Requiring Follow-Up
+        <div class="col-xl-3 col-md-6">
+
+            <div class="dashboard-card h-100">
+
+                <div class="d-flex
+                    justify-content-between
+                    align-items-start">
+
+                    <div>
+
+                        <div class="card-label">
+
+                            Counseling Sessions
 
                         </div>
 
-                        <div class="card-body">
 
-                            <table class="table table-bordered">
+                        <div class="card-number">
 
-                                <tr>
+                            @Model.TotalCounselingSessions
 
-                                    <th>Student</th>
-                                    <th>Risk</th>
-                                    <th>Session</th>
-                                    <th>Status</th>
+                        </div>
 
-                                </tr>
 
-                                <tr>
+                        <div class="card-description">
 
-                                    <td>Masuma</td>
-                                    <td>Extremely Severe</td>
-                                    <td>2 of 4</td>
-                                    <td>
-                                        <span class="badge bg-warning">
-                                            Ongoing
-                                        </span>
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <td>Rahim</td>
-                                    <td>Severe</td>
-                                    <td>1 of 4</td>
-                                    <td>
-                                        <span class="badge bg-success">
-                                            Attended
-                                        </span>
-                                    </td>
-
-                                </tr>
-
-                            </table>
+                            Total counseling records
 
                         </div>
 
                     </div>
 
+
+                    <div class="stat-icon"
+                         style="
+                        background:#EEEAF7;
+                        color:#8171A5;
+                        ">
+
+                        <i class="bi bi-chat-heart"></i>
+
+                    </div>
+
                 </div>
 
-                <div class="col-md-4">
+            </div>
 
-                    <div class="card shadow">
+        </div>
 
-                        <div class="card-header bg-dark text-white">
 
-                            Quick Actions
+
+        <!-- =================================================
+             UPCOMING FOLLOW-UPS
+             ================================================= -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="dashboard-card h-100">
+
+                <div class="d-flex
+                    justify-content-between
+                    align-items-start">
+
+                    <div>
+
+                        <div class="card-label">
+
+                            Upcoming Follow-ups
+
+                        </div>
+
+
+                        <div class="card-number">
+
+                            @Model.UpcomingFollowUps
 
                         </div>
 
-                        <div class="card-body d-grid gap-2">
 
-                            <a href="/Department/Students" class="btn btn-outline-primary">
-                                Student List
-                            </a>
+                        <div class="card-description">
 
-                            <a href="/Department/FollowUp" class="btn btn-outline-success">
-                                Follow Up
-                            </a>
-
-                            <a href="/Department/Attendance" class="btn btn-outline-warning">
-                                Attendance
-                            </a>
-
-                            <a href="/Department/Reports" class="btn btn-outline-danger">
-                                Reports
-                            </a>
+                            Follow-up appointments
 
                         </div>
+
+                    </div>
+
+
+                    <div class="stat-icon"
+                         style="
+                        background:#F6EFE5;
+                        color:#A98963;
+                        ">
+
+                        <i class="bi bi-calendar-heart"></i>
 
                     </div>
 
@@ -238,4 +316,838 @@
 
     </div>
 
+
+
+    <!-- =====================================================
+         LOWER SECTION
+         ===================================================== -->
+
+    <div class="row g-4">
+
+
+        <!-- =================================================
+             UPCOMING COUNSELING
+             ================================================= -->
+
+        <div class="col-lg-8">
+
+            <div class="main-card h-100">
+
+
+                <!-- =========================================
+                     CARD HEADER
+                     ========================================= -->
+
+                <div class="card-header-clean">
+
+                    <div>
+
+                        <h5 class="mb-1"
+                            style="
+                            color:#4A6272;
+                            font-weight:700;
+                            ">
+
+                            Upcoming Counseling
+
+                        </h5>
+
+
+                        <p class="mb-0"
+                           style="
+                            color:#8999A3;
+                            font-size:13px;
+                            ">
+
+                            Next scheduled counseling appointments
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="section-icon">
+
+                        <i class="bi bi-calendar2-heart"></i>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     CARD BODY
+                     ========================================= -->
+
+                <div class="card-body p-0">
+
+
+                    <!-- =================================================
+                         CHECK WHETHER APPOINTMENTS EXIST
+                         ================================================= -->
+                    @if (Model.UpcomingCounselings != null &&
+                                             Model.UpcomingCounselings.Count > 0)
+                    {
+
+                        <div class="table-responsive">
+
+                            <table class="table
+                                align-middle
+                                mb-0">
+
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>
+                                            Student
+                                        </th>
+
+                                        <th>
+                                            Psychologist
+                                        </th>
+
+                                        <th>
+                                            Date
+                                        </th>
+
+                                        <th>
+                                            Time
+                                        </th>
+
+                                        <th>
+                                            Status
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+
+
+                                <tbody>
+
+
+                                    <!-- =================================
+                                         LOOP THROUGH COUNSELING RECORDS
+                                         ================================= -->
+                                    @foreach (
+                                                                            var item
+                                                                            in Model.UpcomingCounselings)
+                                    {
+
+                                        <tr>
+
+
+                                            <!-- =========================
+                                                 STUDENT
+                                                 ========================= -->
+
+                                            <td>
+
+                                                <div class="fw-semibold"
+                                                     style="
+                                                    color:#526A79;
+                                                    ">
+
+                                                    @item.Student?.FullName
+
+                                                </div>
+
+
+                                                <small style="
+                                                    color:#91A0A9;
+                                                    ">
+
+                                                    @item.Student?.StudentIdNumber
+
+                                                </small>
+
+                                            </td>
+
+
+
+                                            <!-- =========================
+                                                 PSYCHOLOGIST
+                                                 ========================= -->
+
+                                            <td>
+
+                                                <span style="
+                                                    color:#647A88;
+                                                    ">
+
+                                                    @item.Psychologist?.FullName
+
+                                                </span>
+
+                                            </td>
+
+
+
+                                            <!-- =========================
+                                                 DATE
+                                                 ========================= -->
+
+                                            <td>
+
+                                                <span class="date-pill">
+
+                                                    <i class="bi bi-calendar3 me-1"></i>
+
+                                                    @item.CounselingDate.ToString(
+                                                        "dd MMM yyyy")
+
+                                                </span>
+
+                                            </td>
+
+
+
+                                            <!-- =========================
+                                                 TIME
+                                                 ========================= -->
+
+                                            <td>
+
+                                                <span style="
+                                                    color:#647A88;
+                                                    font-weight:500;
+                                                    ">
+
+                                                    @item.AppointmentTime.Hours.ToString("00"):@item.AppointmentTime.Minutes.ToString("00")
+
+                                                    -
+
+                                                    @item.AppointmentEndTime.Hours.ToString("00"):@item.AppointmentEndTime.Minutes.ToString("00")
+
+                                                </span>
+
+                                            </td>
+
+
+
+                                            <!-- =========================
+                                                 STATUS
+                                                 ========================= -->
+
+                                            <td>
+
+                                                <span class="status-pill">
+
+                                                    @item.Status
+
+                                                </span>
+
+                                            </td>
+
+                                        </tr>
+
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    }
+                    else
+                    {
+
+                        <!-- =============================================
+                             EMPTY STATE
+                             ============================================= -->
+
+                        <div class="text-center py-5">
+
+                            <div class="empty-icon mb-3">
+
+                                <i class="bi bi-calendar-check"></i>
+
+                            </div>
+
+
+                            <h6 style="
+                                color:#5C6F7B;
+                                font-weight:600;
+                                ">
+
+                                No Upcoming Counseling
+
+                            </h6>
+
+
+                            <p class="mb-0"
+                               style="
+                                color:#929FA7;
+                                font-size:13px;
+                                ">
+
+                                There are no upcoming
+                                counseling appointments.
+
+                            </p>
+
+                        </div>
+
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             QUICK ACTIONS
+             ================================================= -->
+
+        <div class="col-lg-4">
+
+            <div class="main-card h-100">
+
+
+                <!-- =========================================
+                     QUICK ACTION HEADER
+                     ========================================= -->
+
+                <div class="card-header-clean">
+
+                    <div>
+
+                        <h5 class="mb-1"
+                            style="
+                            color:#4A6272;
+                            font-weight:700;
+                            ">
+
+                            Quick Actions
+
+                        </h5>
+
+
+                        <p class="mb-0"
+                           style="
+                            color:#8999A3;
+                            font-size:13px;
+                            ">
+
+                            Department management
+
+                        </p>
+
+                    </div>
+
+
+                    <div class="section-icon">
+
+                        <i class="bi bi-grid"></i>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     QUICK ACTION BODY
+                     ========================================= -->
+
+                <div class="card-body p-4">
+
+
+                    <!-- =====================================
+                         STUDENTS
+                         ===================================== -->
+
+                    <a asp-controller="Department"
+                       asp-action="Students"
+                       class="quick-action">
+
+                        <div class="quick-action-icon"
+                             style="
+                            background:#E5F3FA;
+                            color:#5B9AB8;
+                            ">
+
+                            <i class="bi bi-people"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="quick-action-title">
+
+                                View Students
+
+                            </div>
+
+
+                            <div class="quick-action-text">
+
+                                View students in your department
+
+                            </div>
+
+                        </div>
+
+
+                        <i class="bi bi-chevron-right
+                        quick-action-arrow"></i>
+
+                    </a>
+
+
+
+                    <!-- =====================================
+                         COUNSELING
+                         ===================================== -->
+
+                    <a asp-controller="Department"
+                       asp-action="Counseling"
+                       class="quick-action">
+
+                        <div class="quick-action-icon"
+                             style="
+                            background:#EEEAF7;
+                            color:#8171A5;
+                            ">
+
+                            <i class="bi bi-chat-heart"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="quick-action-title">
+
+                                Counseling
+
+                            </div>
+
+
+                            <div class="quick-action-text">
+
+                                Manage counseling appointments
+
+                            </div>
+
+                        </div>
+
+
+                        <i class="bi bi-chevron-right
+                        quick-action-arrow"></i>
+
+                    </a>
+
+
+
+                    <!-- =====================================
+                         FOLLOW-UP
+                         ===================================== -->
+
+                    <a asp-controller="Department"
+                       asp-action="FollowUp"
+                       class="quick-action">
+
+                        <div class="quick-action-icon"
+                             style="
+                            background:#F6EFE5;
+                            color:#A98963;
+                            ">
+
+                            <i class="bi bi-calendar-heart"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="quick-action-title">
+
+                                Follow-up
+
+                            </div>
+
+
+                            <div class="quick-action-text">
+
+                                Monitor follow-up appointments
+
+                            </div>
+
+                        </div>
+
+
+                        <i class="bi bi-chevron-right
+                        quick-action-arrow"></i>
+
+                    </a>
+
+
+
+                    <!-- =====================================
+                         REPORTS
+                         ===================================== -->
+
+                    <a asp-controller="Department"
+                       asp-action="Reports"
+                       class="quick-action">
+
+                        <div class="quick-action-icon"
+                             style="
+                            background:#F5EAF0;
+                            color:#A96F8D;
+                            ">
+
+                            <i class="bi bi-bar-chart"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="quick-action-title">
+
+                                Risk Reports
+
+                            </div>
+
+
+                            <div class="quick-action-text">
+
+                                View high-risk student reports
+
+                            </div>
+
+                        </div>
+
+
+                        <i class="bi bi-chevron-right
+                        quick-action-arrow"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+
+
+<!-- =========================================================
+     DASHBOARD PAGE STYLES
+     ========================================================= -->
+
+<style>
+
+
+    /* =========================================================
+           DASHBOARD HEADER
+           ========================================================= */
+
+    .dashboard-header {
+        background: linear-gradient( 135deg, #B8DDF0, #C9DFEC, #DCD3E9 );
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 10px 30px rgba(78, 112, 132, 0.10);
+    }
+
+
+
+    /* =========================================================
+           SUMMARY CARD
+           ========================================================= */
+
+    .dashboard-card {
+        background: #FFFFFF;
+        border: 1px solid #E3EBEF;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 8px 24px rgba(80, 105, 120, 0.07);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(80, 105, 120, 0.11);
+        }
+
+
+
+    /* =========================================================
+           CARD TEXT
+           ========================================================= */
+
+    .card-label {
+        color: #82929C;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+
+    .card-number {
+        color: #465F6F;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 7px;
+    }
+
+
+    .card-description {
+        color: #9AA6AD;
+        font-size: 12px;
+    }
+
+
+
+    /* =========================================================
+           STAT ICON
+           ========================================================= */
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+
+
+    /* =========================================================
+           MAIN CARD
+           ========================================================= */
+
+    .main-card {
+        background: #FFFFFF;
+        border: 1px solid #E3EBEF;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(80, 105, 120, 0.07);
+    }
+
+
+
+    /* =========================================================
+           CARD HEADER
+           ========================================================= */
+
+    .card-header-clean {
+        padding: 22px 24px;
+        border-bottom: 1px solid #EDF1F3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+
+
+    /* =========================================================
+           SECTION ICON
+           ========================================================= */
+
+    .section-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 13px;
+        background: #EDF4F8;
+        color: #658296;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+    }
+
+
+
+    /* =========================================================
+           TABLE
+           ========================================================= */
+
+    .table thead th {
+        background: #F7FAFB;
+        color: #7A8D98;
+        font-size: 12px;
+        font-weight: 600;
+        border-bottom: 1px solid #E9EFF2;
+        padding: 15px 18px;
+        white-space: nowrap;
+    }
+
+
+    .table tbody td {
+        padding: 17px 18px;
+        border-bottom: 1px solid #F0F3F5;
+    }
+
+
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+
+
+    /* =========================================================
+           DATE PILL
+           ========================================================= */
+
+    .date-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 10px;
+        background: #EDF6FA;
+        color: #64879B;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+
+
+    /* =========================================================
+           STATUS PILL
+           ========================================================= */
+
+    .status-pill {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 20px;
+        background: #E9F3F7;
+        color: #5C8295;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+
+    /* =========================================================
+           EMPTY STATE
+           ========================================================= */
+
+    .empty-icon {
+        width: 62px;
+        height: 62px;
+        margin: auto;
+        border-radius: 18px;
+        background: #EEF5F8;
+        color: #7896A7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+    }
+
+
+
+    /* =========================================================
+           QUICK ACTION
+           ========================================================= */
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px;
+        margin-bottom: 10px;
+        text-decoration: none;
+        border-radius: 15px;
+        transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+
+        .quick-action:hover {
+            background: #F6F9FA;
+            transform: translateX(3px);
+        }
+
+
+        .quick-action:last-child {
+            margin-bottom: 0;
+        }
+
+
+
+    /* =========================================================
+           QUICK ACTION ICON
+           ========================================================= */
+
+    .quick-action-icon {
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+    }
+
+
+
+    /* =========================================================
+           QUICK ACTION TEXT
+           ========================================================= */
+
+    .quick-action-title {
+        color: #536A78;
+        font-size: 14px;
+        font-weight: 650;
+        margin-bottom: 3px;
+    }
+
+
+    .quick-action-text {
+        color: #98A5AC;
+        font-size: 11px;
+    }
+
+
+
+    /* =========================================================
+           QUICK ACTION ARROW
+           ========================================================= */
+
+    .quick-action-arrow {
+        margin-left: auto;
+        color: #A2B0B8;
+        font-size: 14px;
+    }
+
+
+
+    /* =========================================================
+           MOBILE RESPONSIVE
+           ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .dashboard-header {
+            padding: 24px;
+            border-radius: 20px;
+        }
+
+
+        .card-number {
+            font-size: 27px;
+        }
+    }
+
+</style>

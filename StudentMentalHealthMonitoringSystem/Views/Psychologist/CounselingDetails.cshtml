@@ -1,0 +1,1094 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.CounselingObservationViewModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Counseling Details";
+
+    var counseling =
+        Model.Counseling;
+
+    var appointmentDate =
+        counseling?.CounselingDate.ToString("dd MMM yyyy")
+        ?? "-";
+
+    var appointmentDay =
+        counseling?.CounselingDate.ToString("dddd")
+        ?? "-";
+
+    var startTime =
+        counseling != null
+            ? DateTime.Today
+                .Add(counseling.AppointmentTime)
+                .ToString("h:mm tt")
+            : "-";
+
+    var endTime =
+        counseling != null
+            ? DateTime.Today
+                .Add(counseling.AppointmentEndTime)
+                .ToString("h:mm tt")
+            : "-";
+}
+
+<div class="container-fluid py-3">
+
+    <!-- ================= Header ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4"
+         style="background:#F4EEE8;">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between
+                align-items-center
+                flex-wrap
+                gap-3">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1"
+                        style="color:#5F5146;">
+
+                        <i class="bi bi-clipboard2-heart me-2"></i>
+
+                        Counseling Details
+
+                    </h2>
+
+                    <p class="text-muted mb-0">
+
+                        Review the appointment and complete
+                        the counseling information.
+
+                    </p>
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+                    <a asp-controller="Psychologist"
+                       asp-action="StudentProgressDetails"
+                       asp-route-id="@(counseling?.StudentId ?? 0)"
+                       class="btn rounded-3 px-3 btn-outline-dark"
+                       target="_blank">
+                        <i class="bi bi-graph-up-arrow me-1"></i>
+                        View Student Progress Report
+                    </a>
+
+                    <a asp-controller="Psychologist"
+                       asp-action="Appointment"
+                       class="btn rounded-3 px-4"
+                       style="
+                        background:#8A7563;
+                        color:white;">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+
+                        Back to Appointments
+
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Messages ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-4">
+
+            <i class="bi bi-check-circle-fill me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger rounded-4">
+
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+    <form asp-controller="Psychologist"
+          asp-action="CounselingDetails"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <!-- ================= Validation Summary ================= -->
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <input type="hidden"
+               asp-for="CounselingId" />
+
+        <div class="row g-4">
+
+            <!-- ===================================================== -->
+            <!-- Left Side -->
+            <!-- ===================================================== -->
+
+            <div class="col-lg-5">
+
+                <!-- ================= Student Information ================= -->
+
+                <div class="card border-0 shadow-sm rounded-4">
+
+                    <div class="card-header border-0 py-3"
+                         style="background:#E8DDD2;">
+
+                        <h5 class="mb-0"
+                            style="color:#5F5146;">
+
+                            <i class="bi bi-person me-2"></i>
+
+                            Student Information
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body p-4 text-center">
+
+                        @if (counseling?.Student != null &&
+                             !string.IsNullOrWhiteSpace(
+                                 counseling.Student.ProfileImage))
+                        {
+                            <img src="@counseling.Student.ProfileImage"
+                                 alt="Student"
+                                 class="rounded-circle shadow-sm"
+                                 style="
+                            width:110px;
+                            height:110px;
+                            object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                                mx-auto"
+                                 style="
+                                width:110px;
+                                height:110px;
+                                background:#EEE4DA;">
+
+                                <i class="bi bi-person fs-1"
+                                   style="color:#806C5D;">
+                                </i>
+
+                            </div>
+                        }
+
+
+                        <h4 class="fw-bold mt-3 mb-1"
+                            style="color:#5F5146;">
+
+                            @(counseling?.Student?.FullName ?? "Student")
+
+                        </h4>
+
+
+                        <p class="text-muted mb-1">
+
+                            <i class="bi bi-person-badge me-1"></i>
+
+                            Student ID:
+                            @(counseling?.Student?.StudentIdNumber ?? "-")
+
+                        </p>
+
+
+                        <p class="text-muted mb-1">
+
+                            <i class="bi bi-building me-1"></i>
+
+                            Department:
+                            @(counseling?.Student?.Department ?? "-")
+
+                        </p>
+
+
+                        <p class="text-muted mb-0">
+
+                            <i class="bi bi-envelope me-1"></i>
+
+                            @(counseling?.Student?.Email ?? "-")
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================= Appointment Information ================= -->
+
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+
+                    <div class="card-header border-0 py-3"
+                         style="background:#E8DDD2;">
+
+                        <h5 class="mb-0"
+                            style="color:#5F5146;">
+
+                            <i class="bi bi-calendar-event me-2"></i>
+
+                            Appointment Information
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <div class="mb-3">
+
+                            <small class="text-muted d-block mb-1">
+                                Date
+                            </small>
+
+                            <div class="fw-semibold"
+                                 style="color:#5F5146;">
+
+                                <i class="bi bi-calendar3 me-2"></i>
+
+                                @appointmentDate
+
+                            </div>
+
+                            <small class="text-muted ms-4">
+
+                                @appointmentDay
+
+                            </small>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <div class="mb-3">
+
+                            <small class="text-muted d-block mb-1">
+                                Counseling Time
+                            </small>
+
+                            <div>
+
+                                <span class="badge rounded-pill px-3 py-2"
+                                      style="
+                                    background:#EEE4DA;
+                                    color:#705F50;
+                                    font-size:13px;">
+
+                                    <i class="bi bi-clock me-1"></i>
+
+                                    @startTime - @endTime
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <hr />
+
+
+                        <div>
+
+                            <small class="text-muted d-block mb-2">
+                                Appointment Status
+                            </small>
+
+
+                            @if (counseling?.Status == "Completed")
+                            {
+                                <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    Completed
+
+                                </span>
+                            }
+                            else if (counseling?.Status == "Cancelled")
+                            {
+                                <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+
+                                    Cancelled
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill px-3 py-2"
+                                      style="
+                                    background:#FFF3CD;
+                                    color:#795F00;">
+
+                                    <i class="bi bi-clock me-1"></i>
+
+                                    @counseling?.Status
+
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================= Follow-up Information ================= -->
+
+                <div class="card border-0 shadow-sm rounded-4 mt-4"
+                     style="background:#F7F2ED; border:1px solid #E5D8CC !important;">
+
+                    <div class="card-header border-0 py-3"
+                         style="background:#E8DDD2;">
+
+                        <h5 class="mb-0"
+                            style="color:#5F5146;">
+
+                            <i class="bi bi-calendar-plus me-2"></i>
+
+                            Follow-up Schedule
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold d-block">
+
+                                Follow-up Required?
+
+                            </label>
+
+
+                            <div class="form-check form-check-inline">
+
+                                <input class="form-check-input"
+                                       type="radio"
+                                       asp-for="FollowUpRequired"
+                                       value="true"
+                                       id="followUpYes" />
+
+                                <label class="form-check-label"
+                                       for="followUpYes">
+
+                                    Yes
+
+                                </label>
+
+                            </div>
+
+
+                            <div class="form-check form-check-inline">
+
+                                <input class="form-check-input"
+                                       type="radio"
+                                       asp-for="FollowUpRequired"
+                                       value="false"
+                                       id="followUpNo" />
+
+                                <label class="form-check-label"
+                                       for="followUpNo">
+
+                                    No
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label asp-for="NextFollowUpDate"
+                                   class="form-label fw-semibold">
+
+                                Next Follow-up Date
+
+                            </label>
+
+                            <input asp-for="NextFollowUpDate"
+                                   type="date"
+                                   class="form-control rounded-3"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+
+                            <span asp-validation-for="NextFollowUpDate"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label asp-for="NextFollowUpTime"
+                                   class="form-label fw-semibold">
+
+                                Next Follow-up Time
+
+                            </label>
+
+                            <select asp-for="NextFollowUpTime"
+                                    class="form-select rounded-3">
+
+                                <option value="">Select Follow-up Time</option>
+                                <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                <option value="16:25:00">4:25 PM - 5:25 PM</option>
+
+                            </select>
+
+                            <span asp-validation-for="NextFollowUpTime"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <div class="mb-0">
+
+                            <label asp-for="AppointmentRoom"
+                                   class="form-label fw-semibold">
+
+                                Counseling Room
+
+                            </label>
+
+                            <input asp-for="AppointmentRoom"
+                                   class="form-control rounded-3"
+                                   placeholder="Example: Counseling Room 01" />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ===================================================== -->
+            <!-- Right Side -->
+            <!-- ===================================================== -->
+
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-sm rounded-4">
+
+                    <div class="card-header border-0 py-3"
+                         style="background:#E8DDD2;">
+
+                        <h5 class="mb-0"
+                            style="color:#5F5146;">
+
+                            <i class="bi bi-clipboard-check me-2"></i>
+
+                            Observation
+
+                        </h5>
+
+                    </div>
+
+
+                    <div class="card-body p-4">
+
+                        <!-- ================================================= -->
+                        <!-- 1. Overall Progress Status -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="OverallProgressStatus"
+                                   class="form-label fw-semibold">
+
+                                Overall Progress Status *
+
+                            </label>
+
+                            <select asp-for="OverallProgressStatus"
+                                    class="form-select rounded-3">
+
+                                <option value="">
+                                    Select Progress Status
+                                </option>
+
+                                <option value="Stable">
+                                    Stable
+                                </option>
+
+                                <option value="Improving">
+                                    Improving
+                                </option>
+
+                                <option value="Partially Improved">
+                                    Partially Improved
+                                </option>
+
+                                <option value="No Significant Change">
+                                    No Significant Change
+                                </option>
+
+                                <option value="Deteriorating">
+                                    Deteriorating
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="OverallProgressStatus"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 2. Current Mental Health Status -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="CurrentMentalHealthStatus"
+                                   class="form-label fw-semibold">
+
+                                Current Mental Health Status *
+
+                            </label>
+
+                            <select asp-for="CurrentMentalHealthStatus"
+                                    class="form-select rounded-3">
+
+                                <option value="">
+                                    Select Current Status
+                                </option>
+
+                                <option value="Normal">
+                                    Normal
+                                </option>
+
+                                <option value="Moderate">
+                                    Moderate
+                                </option>
+
+                                <option value="Severe">
+                                    Severe
+                                </option>
+
+                                <option value="Extremely Severe">
+                                    Extremely Severe
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="CurrentMentalHealthStatus"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 3. Latest Screening Results -->
+                        <!-- ================================================= -->
+
+                        <div class="card border-0 rounded-4 mb-4"
+                             style="
+                            background:#F7F2ED;
+                            border:1px solid #E5D8CC !important;">
+
+                            <div class="card-body p-4">
+
+                                <h6 class="fw-bold mb-3"
+                                    style="color:#5F5146;">
+
+                                    <i class="bi bi-activity me-2"></i>
+
+                                    Latest Screening Results
+
+                                </h6>
+
+
+                                <div class="row g-3">
+
+                                    <!-- PHQ -->
+
+                                    <div class="col-md-6">
+
+                                        <div class="p-3 rounded-3 bg-white h-100">
+
+                                            <div class="fw-semibold mb-2"
+                                                 style="color:#5F5146;">
+
+                                                PHQ-9
+
+                                            </div>
+
+                                            <div class="text-muted small mb-1">
+
+                                                Latest Score:
+                                                <strong>
+                                                    @(Model.LatestPHQScore?.ToString()
+                                                        ?? "Not Available")
+                                                </strong>
+
+                                            </div>
+
+                                            <div class="text-muted small mb-1">
+
+                                                Official Interpretation:
+                                                <strong>
+                                                    @(Model.LatestPHQOfficialInterpretation
+                                                        ?? "Not Available")
+                                                </strong>
+
+                                            </div>
+
+                                            <div class="text-muted small">
+
+                                                Project-level Status:
+                                                <strong>
+                                                    @(Model.LatestPHQProjectStatus
+                                                        ?? "Not Assessed")
+                                                </strong>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- C-SSRS -->
+
+                                    <div class="col-md-6">
+
+                                        <div class="p-3 rounded-3 bg-white h-100">
+
+                                            <div class="fw-semibold mb-2"
+                                                 style="color:#5F5146;">
+
+                                                C-SSRS
+
+                                            </div>
+
+                                            <div class="text-muted small mb-1">
+
+                                                Latest Risk Result:
+                                                <strong>
+                                                    @(Model.LatestCSSRSRiskLevel
+                                                        ?? "Not Available")
+                                                </strong>
+
+                                            </div>
+
+                                            <div class="text-muted small">
+
+                                                Project-level Status:
+                                                <strong>
+                                                    @(Model.LatestCSSRSProjectStatus
+                                                        ?? "Not Assessed")
+                                                </strong>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 4. Functional Status -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <h6 class="fw-bold mb-3"
+                                style="color:#5F5146;">
+
+                                Functional Status
+
+                            </h6>
+
+
+                            <div class="row">
+
+                                <!-- Academic -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="AcademicFunctioning"
+                                           class="form-label fw-semibold">
+
+                                        Academic Functioning *
+
+                                    </label>
+
+                                    <select asp-for="AcademicFunctioning"
+                                            class="form-select rounded-3">
+
+                                        <option value="">Select Status</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Moderately Affected">Moderately Affected</option>
+                                        <option value="Severely Affected">Severely Affected</option>
+                                        <option value="Extremely Affected">Extremely Affected</option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Sleep -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="SleepCondition"
+                                           class="form-label fw-semibold">
+
+                                        Sleep Condition *
+
+                                    </label>
+
+                                    <select asp-for="SleepCondition"
+                                            class="form-select rounded-3">
+
+                                        <option value="">Select Status</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Moderately Affected">Moderately Affected</option>
+                                        <option value="Severely Affected">Severely Affected</option>
+                                        <option value="Extremely Affected">Extremely Affected</option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Social -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="SocialInteraction"
+                                           class="form-label fw-semibold">
+
+                                        Social Interaction *
+
+                                    </label>
+
+                                    <select asp-for="SocialInteraction"
+                                            class="form-select rounded-3">
+
+                                        <option value="">Select Status</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Moderately Affected">Moderately Affected</option>
+                                        <option value="Severely Affected">Severely Affected</option>
+                                        <option value="Extremely Affected">Extremely Affected</option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Daily Activities -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="DailyActivities"
+                                           class="form-label fw-semibold">
+
+                                        Daily Activities *
+
+                                    </label>
+
+                                    <select asp-for="DailyActivities"
+                                            class="form-select rounded-3">
+
+                                        <option value="">Select Status</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Moderately Affected">Moderately Affected</option>
+                                        <option value="Severely Affected">Severely Affected</option>
+                                        <option value="Extremely Affected">Extremely Affected</option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Emotional Regulation -->
+
+                                <div class="col-md-12 mb-3">
+
+                                    <label asp-for="EmotionalRegulation"
+                                           class="form-label fw-semibold">
+
+                                        Emotional Regulation *
+
+                                    </label>
+
+                                    <select asp-for="EmotionalRegulation"
+                                            class="form-select rounded-3">
+
+                                        <option value="">Select Status</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Moderately Affected">Moderately Affected</option>
+                                        <option value="Severely Affected">Severely Affected</option>
+                                        <option value="Extremely Affected">Extremely Affected</option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 5. Current Safety Risk -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="CurrentSafetyRisk"
+                                   class="form-label fw-semibold">
+
+                                Current Safety Risk *
+
+                            </label>
+
+                            <select asp-for="CurrentSafetyRisk"
+                                    class="form-select rounded-3">
+
+                                <option value="">
+                                    Select Current Safety Risk
+                                </option>
+
+                                <option value="No Current Risk">
+                                    No Current Risk
+                                </option>
+
+                                <option value="Low Risk">
+                                    Low Risk
+                                </option>
+
+                                <option value="Moderate Risk">
+                                    Moderate Risk
+                                </option>
+
+                                <option value="High/Urgent Risk">
+                                    High/Urgent Risk
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="CurrentSafetyRisk"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 6. Clinical Observation -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="ClinicalObservation"
+                                   class="form-label fw-semibold">
+
+                                Clinical Observation *
+
+                            </label>
+
+                            <textarea asp-for="ClinicalObservation"
+                                      class="form-control rounded-3"
+                                      rows="5"
+                                      placeholder="Describe the student’s mood, behavior, communication, emotional response and noticeable changes during the session."></textarea>
+
+                            <span asp-validation-for="ClinicalObservation"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- 7. Student-Reported Improvement -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="StudentReportedImprovement"
+                                   class="form-label fw-semibold">
+
+                                Student-Reported Improvement *
+
+                            </label>
+
+                            <select asp-for="StudentReportedImprovement"
+                                    class="form-select rounded-3">
+
+                                <option value="">
+                                    Select Improvement Status
+                                </option>
+
+                                <option value="Significantly Improved">
+                                    Significantly Improved
+                                </option>
+
+                                <option value="Partially Improved">
+                                    Partially Improved
+                                </option>
+
+                                <option value="No Change">
+                                    No Change
+                                </option>
+
+                                <option value="Condition Worsened">
+                                    Condition Worsened
+                                </option>
+
+                                <option value="Unable to Determine">
+                                    Unable to Determine
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- ================= Information ================= -->
+
+                        <div class="alert rounded-3 mb-4"
+                             style="
+                            background:#F7F2ED;
+                            border:1px solid #E5D8CC;
+                            color:#5F5146;">
+
+                            <i class="bi bi-info-circle-fill me-2"
+                               style="color:#A67C52;">
+                            </i>
+
+                            Every completed counseling session stores
+                            its own Observation.
+
+                            If another session is required, use
+                            <strong>Complete &amp; Add Follow-up</strong>.
+
+                            If counseling is complete, use
+                            <strong>No Follow-up Needed</strong>.
+
+                        </div>
+
+
+                        <!-- ================= Buttons ================= -->
+
+                        <div class="d-flex justify-content-end
+                            flex-wrap gap-2">
+
+                            <a asp-controller="Psychologist"
+                               asp-action="Appointment"
+                               class="btn rounded-3 px-4"
+                               style="
+                                background:#E8DDD2;
+                                color:#5F5146;">
+
+                                Cancel
+
+                            </a>
+
+
+                            <button type="submit"
+                                    name="completionType"
+                                    value="WithoutFollowUp"
+                                    onclick="document.getElementById('followUpNo').checked = true;"
+                                    class="btn rounded-3 px-4"
+                                    style="
+                                background:#8A7563;
+                                color:white;">
+
+                                <i class="bi bi-check-circle me-1"></i>
+
+                                No Follow-up Needed
+
+                            </button>
+
+
+                            <button type="submit"
+                                    name="completionType"
+                                    value="WithFollowUp"
+                                    onclick="document.getElementById('followUpYes').checked = true;"
+                                    class="btn rounded-3 px-4"
+                                    style="
+                                background:#A67C52;
+                                color:white;">
+
+                                <i class="bi bi-calendar-plus me-1"></i>
+
+                                Complete &amp; Add Follow-up
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+    </div>
+
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,396 +1,239 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+@model StudentMentalHealthMonitoringSystem.Models.Student
 
 @{
     ViewData["Title"] = "Student Profile";
 }
 
-<div class="container mt-4">
+<style>
+    .student-app-bg {
+        background: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
 
-    <div class="card shadow">
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        <div class="card-header bg-primary text-white">
+    .student-sidebar .list-group-item {
+        border: none;
+        border-radius: 0.75rem;
+        margin-bottom: 0.35rem;
+        padding: 0.8rem 1.1rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #1E293B;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
 
-            <h3>Student Profile</h3>
+    .student-sidebar .list-group-item i {
+        font-size: 1.25rem;
+        color: #2563EB;
+        width: 26px;
+        text-align: center;
+    }
 
-        </div>
+    .student-sidebar .list-group-item:hover {
+        background: #EFF6FF;
+        color: #1E3A8A;
+        transform: translateX(4px);
+    }
 
-        <div class="card-body">
+    .student-sidebar .list-group-item.active {
+        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
 
-            <!-- Profile Image and Basic Identity -->
+    .student-sidebar .list-group-item.active i {
+        color: #ffffff;
+    }
 
-            <div class="text-center mb-4">
+    .profile-avatar-lg {
+        width: 130px;
+        height: 130px;
+        object-fit: cover;
+        border-radius: 50%;
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+    }
 
-                @if (!string.IsNullOrEmpty(Model.ProfileImage))
-                {
-                    <img src="@Url.Content(Model.ProfileImage)"
-                         class="rounded-circle shadow mb-3"
-                         width="140"
-                         height="140"
-                         style="object-fit:cover;">
-                }
-                else
-                {
-                    <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=0d6efd&color=fff&size=140"
-                         class="rounded-circle shadow mb-3"
-                         width="140"
-                         height="140">
-                }
+    .info-table th {
+        background-color: #F1F5F9;
+        color: #0F172A;
+        font-weight: 700;
+        width: 38%;
+    }
+</style>
 
-                <h3>@Model.FullName</h3>
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
 
-                <p class="text-muted">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 text-center student-sidebar">
+                    <div class="position-relative d-inline-block mb-3">
+                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                        {
+                            <img src="@Url.Content(Model.ProfileImage)" class="profile-avatar-lg border border-3 border-white" alt="Avatar" />
+                        }
+                        else
+                        {
+                            <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=2563EB&color=fff&size=130" class="profile-avatar-lg border border-3 border-white" alt="Avatar" />
+                        }
+                    </div>
 
-                    Student ID: @Model.StudentIdNumber
+                    <h4 class="fw-bold mb-1" style="color: #0F172A;">@Model.FullName</h4>
+                    <p class="text-secondary fs-6 mb-3"><i class="bi bi-person-vcard me-1 text-primary"></i>ID: @Model.StudentIdNumber</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-building me-1 text-secondary"></i>@Model.Department</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-mortarboard me-1 text-secondary"></i>@Model.Semester</span>
+                    </div>
 
-                </p>
+                    <hr class="my-3 opacity-25" />
 
+                    <div class="list-group list-group-flush text-start">
+                        <a href="/Student/Dashboard" class="list-group-item">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/Student/Profile" class="list-group-item active">
+                            <i class="bi bi-person-badge"></i> My Profile
+                        </a>
+                        <a href="/Student/SemesterScreening" class="list-group-item">
+                            <i class="bi bi-journal-check"></i> Semester Screening
+                        </a>
+                        <a href="/Student/PHQ" class="list-group-item">
+                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
+                        </a>
+                        <a href="/Student/CSRRS" class="list-group-item">
+                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
+                        </a>
+                        <a href="/Student/Feelings" class="list-group-item">
+                            <i class="bi bi-emoji-smile"></i> Daily Feelings
+                        </a>
+                        <a href="/Student/AIChat" class="list-group-item">
+                            <i class="bi bi-robot"></i> AI Companion Chat
+                        </a>
+                        <a href="/VoiceBot/Index" class="list-group-item">
+                            <i class="bi bi-mic"></i> Live Voice Bot
+                        </a>
+                        <a href="/Student/Appointment" class="list-group-item">
+                            <i class="bi bi-calendar-event"></i> Counseling Session
+                        </a>
+                        <a href="/Student/History" class="list-group-item">
+                            <i class="bi bi-clock-history"></i> History Records
+                        </a>
+                        <a href="/Student/Progress" class="list-group-item">
+                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
+                        </a>
+                        <a href="/Student/Reports" class="list-group-item">
+                            <i class="bi bi-file-earmark-medical"></i> Official Reports
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="row">
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
 
-                <!-- Personal and Academic Information -->
-
-                <div class="col-md-6">
-
-                    <div class="card shadow-sm mb-4">
-
-                        <div class="card-header bg-primary text-white">
-
-                            Personal and Academic Information
-
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); color: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-person-badge-fill me-2"></i>My Student Profile
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">View and verify your registered academic and personal profile information.</p>
                         </div>
-
-                        <div class="card-body">
-
-                            <table class="table table-bordered">
-
-                                <tr>
-
-                                    <th width="40%">
-                                        Student ID
-                                    </th>
-
-                                    <td>
-                                        @Model.StudentIdNumber
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Full Name</th>
-
-                                    <td>
-                                        @Model.FullName
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Email</th>
-
-                                    <td>
-                                        @Model.Email
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Phone</th>
-
-                                    <td>
-                                        @Model.Phone
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Date of Birth</th>
-
-                                    <td>
-
-                                        @if (Model.DateOfBirth.HasValue)
-                                        {
-                                            @Model.DateOfBirth.Value.ToString("dd MMMM yyyy")
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Gender</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.Gender))
-                                        {
-                                            @Model.Gender
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Department</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.Department))
-                                        {
-                                            @Model.Department
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Current Semester</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.Semester))
-                                        {
-                                            @Model.Semester
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
-
-                        </div>
-
+                        <a href="/Student/Dashboard" class="btn btn-light text-primary btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Dashboard
+                        </a>
                     </div>
-
                 </div>
 
-                <!-- Health, Financial and Guardian Information -->
-
-                <div class="col-md-6">
-
-                    <div class="card shadow-sm mb-4">
-
-                        <div class="card-header bg-success text-white">
-
-                            Health and Guardian Information
-
+                <div class="row g-4">
+                    <!-- Academic & Personal Info -->
+                    <div class="col-lg-7">
+                        <div class="glass-card p-4 h-100">
+                            <h4 class="fw-bold mb-4" style="color:#0F172A;">
+                                <i class="bi bi-info-circle-fill text-primary me-2"></i>Personal & Academic Details
+                            </h4>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle info-table fs-6">
+                                    <tbody>
+                                        <tr>
+                                            <th>Full Name</th>
+                                            <td class="fw-semibold text-dark">@Model.FullName</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Student ID Number</th>
+                                            <td class="fw-semibold text-dark">@Model.StudentIdNumber</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Academic Department</th>
+                                            <td><span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 fw-bold fs-6">@Model.Department</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Current Semester</th>
+                                            <td><span class="badge bg-info-subtle text-info border border-info px-3 py-1 fw-bold fs-6">@Model.Semester</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Email Address</th>
+                                            <td class="text-dark">@Model.Email</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Phone Number</th>
+                                            <td class="text-dark">@(string.IsNullOrEmpty(Model.Phone) ? "N/A" : Model.Phone)</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Gender</th>
+                                            <td class="text-dark">@(Model.Gender ?? "N/A")</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Date of Birth</th>
+                                            <td class="text-dark">@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "N/A")</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-
-                        <div class="card-body">
-
-                            <table class="table table-bordered">
-
-                                <tr>
-
-                                    <th width="40%">
-                                        Height
-                                    </th>
-
-                                    <td>
-
-                                        @if (Model.Height.HasValue)
-                                        {
-                                            <span>
-                                                @Model.Height.Value cm
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Weight</th>
-
-                                    <td>
-
-                                        @if (Model.Weight.HasValue)
-                                        {
-                                            <span>
-                                                @Model.Weight.Value kg
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Financial Condition</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.FinancialCondition))
-                                        {
-                                            @Model.FinancialCondition
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Guardian Name</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.GuardianName))
-                                        {
-                                            @Model.GuardianName
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Relationship</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.Relationship))
-                                        {
-                                            @Model.Relationship
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Guardian Phone</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.GuardianPhone))
-                                        {
-                                            @Model.GuardianPhone
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                                <tr>
-
-                                    <th>Guardian Email</th>
-
-                                    <td>
-
-                                        @if (!string.IsNullOrEmpty(Model.GuardianEmail))
-                                        {
-                                            @Model.GuardianEmail
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">
-                                                Not Provided
-                                            </span>
-                                        }
-
-                                    </td>
-
-                                </tr>
-
-                            </table>
-
-                        </div>
-
                     </div>
 
+                    <!-- Guardian & Contact Info -->
+                    <div class="col-lg-5">
+                        <div class="glass-card p-4 h-100">
+                            <h4 class="fw-bold mb-4" style="color:#0F172A;">
+                                <i class="bi bi-people-fill text-success me-2"></i>Guardian & Safety Contact
+                            </h4>
+
+                            <div class="p-3 bg-light rounded-3 mb-4 border">
+                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Name</small>
+                                <h5 class="fw-bold text-dark mb-0">@(string.IsNullOrEmpty(Model.GuardianName) ? "Not Provided" : Model.GuardianName)</h5>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 mb-4 border">
+                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Phone Number</small>
+                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-telephone-fill me-2 text-success"></i>@(string.IsNullOrEmpty(Model.GuardianPhone) ? "Not Provided" : Model.GuardianPhone)</h5>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Email Address</small>
+                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-envelope-fill me-2 text-primary"></i>@(string.IsNullOrEmpty(Model.GuardianEmail) ? "Not Provided" : Model.GuardianEmail)</h5>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
 
-            <div class="text-end">
-
-                <a asp-controller="Student"
-                   asp-action="Dashboard"
-                   class="btn btn-secondary">
-
-                    Back to Dashboard
-
-                </a>
-
-            </div>
-
         </div>
-
     </div>
-
 </div>

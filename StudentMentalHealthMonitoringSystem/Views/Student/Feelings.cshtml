@@ -1,169 +1,187 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.StudentSemesterRecord
+@model StudentMentalHealthMonitoringSystem.Models.StudentSemesterRecord
 
 @{
-    ViewData["Title"] = "Share Feelings";
+    ViewData["Title"] = "Share Daily Feelings Log";
 }
 
-<div class="container mt-4">
+<style>
+    .student-app-bg {
+        background: #F4F8F5;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
 
-    <div class="card shadow">
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 77, 37, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        <div class="card-header bg-warning">
-            <h3>Share Your Feelings</h3>
+    .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 77, 37, 0.09);
+    }
+
+    .student-sidebar {
+        background: #EBF4EE;
+        border-radius: 1.25rem;
+        padding: 1.5rem 1rem;
+        border: 1px solid #D1E2D7;
+    }
+
+    .student-sidebar .list-group-item {
+        border: none;
+        border-radius: 0.9rem;
+        margin-bottom: 0.45rem;
+        padding: 0.95rem 1.35rem;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #1E293B;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: transparent;
+    }
+
+    .student-sidebar .list-group-item i {
+        font-size: 1.45rem;
+        color: #006837;
+        width: 30px;
+        text-align: center;
+    }
+
+    .student-sidebar .list-group-item:hover {
+        background: #D1EBD9;
+        color: #004D25;
+        transform: translateX(4px);
+    }
+
+    .student-sidebar .list-group-item.active {
+        background: #FFFFFF;
+        color: #004D25;
+        font-weight: 800;
+        box-shadow: 0 4px 16px rgba(0, 77, 37, 0.12);
+    }
+
+    .student-sidebar .list-group-item.active i {
+        color: #006837;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 text-center student-sidebar">
+                    <div class="position-relative d-inline-block mb-3">
+                        <img src="https://ui-avatars.com/api/?name=Student&background=006837&color=fff&size=110" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" alt="Avatar" />
+                    </div>
+
+                    <h4 class="fw-bold mb-1" style="color: #004D25;">Student Portal</h4>
+                    <p class="text-secondary fs-6 mb-3"><i class="bi bi-shield-check me-1" style="color: #006837;"></i>Mental Health Monitoring</p>
+                    
+                    <hr class="my-3 opacity-25" />
+
+                    <div class="list-group list-group-flush text-start">
+                        <a href="/Student/Dashboard" class="list-group-item">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                        <a href="/Student/Profile" class="list-group-item">
+                            <i class="bi bi-person-badge"></i> My Profile
+                        </a>
+                        <a href="/Student/SemesterScreening" class="list-group-item">
+                            <i class="bi bi-journal-check"></i> Semester Screening
+                        </a>
+                        <a href="/Student/PHQ" class="list-group-item">
+                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
+                        </a>
+                        <a href="/Student/CSRRS" class="list-group-item">
+                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
+                        </a>
+                        <a href="/Student/Feelings" class="list-group-item active">
+                            <i class="bi bi-emoji-smile"></i> Daily Feelings
+                        </a>
+                        <a href="/Student/AIChat" class="list-group-item">
+                            <i class="bi bi-robot"></i> AI Companion Chat
+                        </a>
+                        <a href="/VoiceBot/Index" class="list-group-item">
+                            <i class="bi bi-mic"></i> Live Voice Bot
+                        </a>
+                        <a href="/Student/Appointment" class="list-group-item">
+                            <i class="bi bi-calendar-event"></i> Counseling Session
+                        </a>
+                        <a href="/Student/History" class="list-group-item">
+                            <i class="bi bi-clock-history"></i> History Records
+                        </a>
+                        <a href="/Student/Progress" class="list-group-item">
+                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
+                        </a>
+                        <a href="/Student/Reports" class="list-group-item">
+                            <i class="bi bi-file-earmark-medical"></i> Official Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: #ffffff; border-bottom: 3px solid #FFC20E;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-emoji-smile me-2 text-warning"></i>Share Daily Feelings Log
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Express your current mood, emotions, thoughts, or challenges today.</p>
+                        </div>
+                        <a href="/Student/Dashboard" class="btn bg-white text-dark btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                            <i class="bi bi-arrow-left me-1" style="color: #006837;"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Compact Form Card -->
+                <div class="glass-card p-4 p-md-4">
+                    <form asp-controller="Student" asp-action="Feelings" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger border-0 rounded-3 mb-3"></div>
+
+                        <!-- Feelings Section -->
+                        <div id="feelingsSection" class="mb-4">
+                            <h4 class="fw-bold mb-2" style="color:#004D25;">
+                                <i class="bi bi-chat-square-heart me-2" style="color: #006837;"></i>Daily Feelings & Thoughts Log
+                            </h4>
+                            <label asp-for="FeelingText" class="form-label text-secondary fs-6 fw-semibold mb-2">
+                                How are you feeling today? Feel free to describe your current emotions, thoughts, or challenges.
+                            </label>
+                            <textarea asp-for="FeelingText" rows="7" class="form-control rounded-3 p-3 fs-6" placeholder="Type your daily feelings and thoughts here..."></textarea>
+                            <span asp-validation-for="FeelingText" class="text-danger fs-6 d-block mt-1"></span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="/Student/Dashboard" class="btn border bg-white text-dark rounded-3 px-4 py-2.5 fw-bold fs-6">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn text-white btn-lg rounded-3 px-4 py-2.5 shadow-sm fw-bold fs-6" style="background:#006837; border-color:#006837;">
+                                <i class="bi bi-send-fill me-1"></i> Save Feelings Log
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
         </div>
-
-        <div class="card-body">
-
-            <form asp-controller="Student"
-                  asp-action="Feelings"
-                  method="post">
-
-                @Html.AntiForgeryToken()
-
-                <div asp-validation-summary="ModelOnly"
-                     class="alert alert-danger">
-                </div>
-
-                <div class="mb-3">
-
-                    <label asp-for="FeelingText"
-                           class="form-label">
-
-                        How are you feeling today?
-
-                    </label>
-
-                    <textarea asp-for="FeelingText"
-                              rows="8"
-                              class="form-control"
-                              placeholder="Write your feelings here..."></textarea>
-
-                    <span asp-validation-for="FeelingText"
-                          class="text-danger">
-                    </span>
-
-                </div>
-
-                <h5 class="mt-4">
-                    Available Time For Counseling
-                </h5>
-
-                <div class="row">
-
-                    <div class="col-md-4">
-
-                        <label asp-for="AvailableDay"
-                               class="form-label">
-
-                            Day
-
-                        </label>
-
-                        <select asp-for="AvailableDay"
-                                class="form-select">
-
-                            <option value="">
-                                Select Day
-                            </option>
-
-                            <option value="Sunday">
-                                Sunday
-                            </option>
-
-                            <option value="Monday">
-                                Monday
-                            </option>
-
-                            <option value="Tuesday">
-                                Tuesday
-                            </option>
-
-                            <option value="Wednesday">
-                                Wednesday
-                            </option>
-
-                            <option value="Thursday">
-                                Thursday
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="AvailableDay"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label asp-for="StartTime"
-                               class="form-label">
-
-                            Start Time
-
-                        </label>
-
-                        <input asp-for="StartTime"
-                               type="time"
-                               class="form-control">
-
-                        <span asp-validation-for="StartTime"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label asp-for="EndTime"
-                               class="form-label">
-
-                            End Time
-
-                        </label>
-
-                        <input asp-for="EndTime"
-                               type="time"
-                               class="form-control">
-
-                        <span asp-validation-for="EndTime"
-                              class="text-danger">
-                        </span>
-
-                    </div>
-
-                </div>
-
-                <div class="mt-4">
-
-                    <a asp-controller="Student"
-                       asp-action="SemesterScreening"
-                       class="btn btn-secondary">
-
-                        Back
-
-                    </a>
-
-                    <button type="submit"
-                            class="btn btn-warning float-end">
-
-                        Save Information
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
     </div>
-
 </div>
 
-@section Scripts
-{
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

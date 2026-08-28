@@ -1,18 +1,22 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+@model StudentMentalHealthMonitoringSystem.Models.Student
 
 @{
     ViewData["Title"] = "Student Registration";
 }
 
-<div class="container my-5">
+<div class="container my-5" style="max-width: 860px;">
 
-    <div class="card shadow-lg border-0">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden" style="border: 1px solid #D1E2D7 !important;">
 
-        <div class="card-header bg-success text-white text-center py-3">
-            <h2>Student Registration Form</h2>
+        <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); border-bottom: 3px solid #FFC20E;">
+            <div class="badge bg-white p-2.5 rounded-circle shadow-sm mb-2">
+                <i class="bi bi-person-plus-fill fs-3" style="color: #006837;"></i>
+            </div>
+            <h2 class="fw-bold mb-1 text-white">Student Registration Form</h2>
+            <p class="text-white-50 fs-6 mb-0">Fill in your information to register a new student account</p>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-4 p-md-5">
 
             <form asp-action="Register" method="post" enctype="multipart/form-data">
 
@@ -20,49 +24,49 @@
 
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                <h4 class="text-primary mb-3">Basic Information</h4>
+                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-person-lines-fill me-2" style="color: #006837;"></i>Basic Information</h4>
 
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="StudentIdNumber"></label>
-                        <input asp-for="StudentIdNumber" class="form-control" />
+                        <label asp-for="StudentIdNumber" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="StudentIdNumber" class="form-control fs-6" placeholder="e.g. 2024001" />
                         <span asp-validation-for="StudentIdNumber" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="FullName"></label>
-                        <input asp-for="FullName" class="form-control" />
+                        <label asp-for="FullName" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="FullName" class="form-control fs-6" placeholder="Full Name" />
                         <span asp-validation-for="FullName" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Email"></label>
-                        <input asp-for="Email" type="email" class="form-control" />
+                        <label asp-for="Email" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Email" type="email" class="form-control fs-6" placeholder="student@iubat.edu" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Password"></label>
-                        <input asp-for="Password" type="password" class="form-control" />
+                        <label asp-for="Password" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Password" type="password" class="form-control fs-6" placeholder="Password" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Phone"></label>
-                        <input asp-for="Phone" class="form-control" />
+                        <label asp-for="Phone" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Phone" class="form-control fs-6" placeholder="01700000000" />
                         <span asp-validation-for="Phone" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="DateOfBirth"></label>
-                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                        <label asp-for="DateOfBirth" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control fs-6" />
                         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Gender"></label>
-                        <select asp-for="Gender" class="form-select">
+                        <label asp-for="Gender" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <select asp-for="Gender" class="form-select fs-6">
                             <option value="">-- Select Gender --</option>
                             <option>Male</option>
                             <option>Female</option>
@@ -72,13 +76,13 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="ImageFile" class="form-label">
+                        <label asp-for="ImageFile" class="fw-bold text-dark fs-6 mb-1">
                             Profile Image
                         </label>
 
                         <input asp-for="ImageFile"
                                type="file"
-                               class="form-control"
+                               class="form-control fs-6"
                                accept=".jpg,.jpeg,.png,image/*" />
 
                         <span asp-validation-for="ImageFile" class="text-danger"></span>
@@ -86,67 +90,85 @@
 
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <h4 class="text-primary mb-3">Academic Information</h4>
+                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-mortarboard-fill me-2" style="color: #006837;"></i>Academic Information & Semester Observation Setup</h4>
+
+                <!-- Continuous Observation Banner Notice -->
+                <div class="alert alert-info border border-info-subtle rounded-3 p-3 mb-4 d-flex align-items-start gap-3" style="background-color: #EBF7FE;">
+                    <i class="bi bi-shield-check fs-3 text-info flex-shrink-0"></i>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Continuous Semester Observation Activated</h6>
+                        <p class="small text-secondary mb-0">
+                            Starting from your registered <strong>Academic Year</strong> and <strong>Semester</strong>, you will enter continuous mental health observation. You must complete mandatory <strong>PHQ-9</strong> and <strong>C-SSRS</strong> screenings every semester to track your wellbeing and academic progression.
+                        </p>
+                    </div>
+                </div>
 
                 <div class="row">
 
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Department"></label>
-                        <input asp-for="Department" class="form-control" />
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Department" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Department" class="form-control fs-6" placeholder="e.g. CSE" required />
                         <span asp-validation-for="Department" class="text-danger"></span>
                     </div>
 
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Semester"></label>
-                        <select asp-for="Semester" class="form-select">
-                            <option value="">-- Select Semester --</option>
-                            <option>Semester 1</option>
-                            <option>Semester 2</option>
-                            <option>Semester 3</option>
-                            <option>Semester 4</option>
-                            <option>Semester 5</option>
-                            <option>Semester 6</option>
-                            <option>Semester 7</option>
-                            <option>Semester 8</option>
-                            <option>Semester 9</option>
-                            <option>Semester 10</option>
-                            <option>Semester 11</option>
-                            <option>Semester 12</option>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="AdmissionYear" class="fw-bold text-dark fs-6 mb-1">Academic / Batch Year</label>
+                        <select asp-for="AdmissionYear" class="form-select fs-6" required>
+                            <option value="">-- Select Year --</option>
+                            <option value="2027">2027</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                        <span asp-validation-for="AdmissionYear" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Semester" class="fw-bold text-dark fs-6 mb-1">Admission Term / Semester</label>
+                        <select asp-for="Semester" class="form-select fs-6" required>
+                            <option value="">-- Select Term --</option>
+                            <option value="Spring">Spring</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Fall">Fall</option>
                         </select>
                         <span asp-validation-for="Semester" class="text-danger"></span>
                     </div>
 
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <h4 class="text-primary mb-3">Physical Information</h4>
+                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-activity me-2" style="color: #006837;"></i>Physical Information</h4>
 
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Height"></label>
-                        <input asp-for="Height" class="form-control" />
+                        <label asp-for="Height" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Height" class="form-control fs-6" placeholder="Height in cm / inches" />
                         <span asp-validation-for="Height" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Weight"></label>
-                        <input asp-for="Weight" class="form-control" />
+                        <label asp-for="Weight" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Weight" class="form-control fs-6" placeholder="Weight in kg" />
                         <span asp-validation-for="Weight" class="text-danger"></span>
                     </div>
 
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <h4 class="text-primary mb-3">Financial Condition</h4>
+                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-cash-stack me-2" style="color: #006837;"></i>Financial Condition</h4>
 
                 <div class="mb-3">
 
-                    <select asp-for="FinancialCondition" class="form-select">
+                    <select asp-for="FinancialCondition" class="form-select fs-6">
                         <option value="">-- Select Financial Condition --</option>
                         <option>Excellent</option>
                         <option>Good</option>
@@ -158,50 +180,50 @@
 
                 </div>
 
-                <hr>
+                <hr class="my-4">
 
-                <h4 class="text-primary mb-3">Guardian Information</h4>
+                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-people-fill me-2" style="color: #006837;"></i>Guardian Information</h4>
 
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="GuardianName"></label>
-                        <input asp-for="GuardianName" class="form-control" />
+                        <label asp-for="GuardianName" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="GuardianName" class="form-control fs-6" />
                         <span asp-validation-for="GuardianName" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Relationship"></label>
-                        <input asp-for="Relationship" class="form-control" />
+                        <label asp-for="Relationship" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="Relationship" class="form-control fs-6" />
                         <span asp-validation-for="Relationship" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="GuardianPhone"></label>
-                        <input asp-for="GuardianPhone" class="form-control" />
+                        <label asp-for="GuardianPhone" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="GuardianPhone" class="form-control fs-6" />
                         <span asp-validation-for="GuardianPhone" class="text-danger"></span>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label asp-for="GuardianEmail"></label>
-                        <input asp-for="GuardianEmail" class="form-control" />
+                        <label asp-for="GuardianEmail" class="fw-bold text-dark fs-6 mb-1"></label>
+                        <input asp-for="GuardianEmail" class="form-control fs-6" />
                         <span asp-validation-for="GuardianEmail" class="text-danger"></span>
                     </div>
 
                 </div>
 
-                <div class="form-check mt-4">
+                <div class="form-check mt-4 fs-6">
 
                     <input class="form-check-input" type="checkbox" required>
 
-                    <label class="form-check-label">
+                    <label class="form-check-label text-dark fw-semibold">
                         I agree with the university mental health policy.
                     </label>
 
                 </div>
 
-                <button type="submit" class="btn btn-success mt-4 w-100">
-                    Register
+                <button type="submit" class="btn text-white mt-4 w-100 py-3 rounded-3 fw-bold shadow-sm fs-5" style="background:#006837; border-color:#006837;">
+                    <i class="bi bi-person-check-fill me-2"></i> Register Student Account
                 </button>
 
             </form>

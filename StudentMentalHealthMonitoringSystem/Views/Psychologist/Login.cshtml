@@ -1,60 +1,84 @@
-﻿@{
+@{
     ViewData["Title"] = "Psychologist Login";
 }
 
-<div class="container mt-5">
+<style>
+    .login-container {
+        min-height: calc(100vh - 180px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
 
-    <div class="row justify-content-center">
+    .login-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.5rem;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        width: 100%;
+        max-width: 460px;
+    }
 
-        <div class="col-md-5">
+    .login-header {
+        background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
+        padding: 2.25rem 2rem;
+        text-align: center;
+        color: #ffffff;
+    }
+</style>
 
-            <div class="card shadow-lg">
-
-                <div class="card-header bg-danger text-white text-center">
-
-                    <h3>Psychologist Login</h3>
-
-                </div>
-
-                <div class="card-body">
-
-                    <form asp-controller="Psychologist"
-                          asp-action="Dashboard"
-                          method="get">
-
-                        <div class="mb-3">
-
-                            <label>Email</label>
-
-                            <input type="email"
-                                   class="form-control">
-
-                        </div>
-
-                        <div class="mb-3">
-
-                            <label>Password</label>
-
-                            <input type="password"
-                                   class="form-control">
-
-                        </div>
-
-                        <button type="submit"
-                                class="btn btn-danger w-100">
-
-                            Login
-
-                        </button>
-
-                    </form>
-
-                </div>
-
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="badge bg-white text-danger p-3 rounded-circle shadow-sm mb-3">
+                <i class="bi bi-person-workspace fs-2 text-danger"></i>
             </div>
-
+            <h3 class="fw-bold mb-1 text-white">Psychologist Portal</h3>
+            <p class="text-white-50 fs-6 mb-0">Clinical counseling & mental health monitoring login</p>
         </div>
 
-    </div>
+        <div class="p-4 p-lg-5">
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger border-0 rounded-3 mb-4 fs-6">
+                    <i class="bi bi-exclamation-triangle-fill me-1.5"></i> @ViewBag.Error
+                </div>
+            }
 
+            <form asp-controller="Psychologist" asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3.5">
+                    <label class="form-label fw-bold text-dark fs-6 mb-1.5">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="bi bi-envelope text-danger"></i></span>
+                        <input type="email" name="email" class="form-control form-control-lg fs-6 border-start-0 ps-1" placeholder="psychologist@smhms.com" required />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6 mb-1.5">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 fs-5"><i class="bi bi-lock text-danger"></i></span>
+                        <input type="password" name="password" class="form-control form-control-lg fs-6 border-start-0 ps-1" placeholder="••••••••" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-danger btn-lg w-100 rounded-3 py-2.5 fw-bold mb-3 shadow-sm fs-6">
+                    <i class="bi bi-box-arrow-in-right me-1.5"></i> Log In to Clinical Portal
+                </button>
+            </form>
+
+            <hr class="my-4 opacity-25" />
+
+            <div class="text-center">
+                <p class="text-secondary fs-6 mb-2">New clinical psychologist counselor?</p>
+                <a asp-controller="Psychologist" asp-action="Register" class="btn btn-outline-dark btn-lg w-100 rounded-3 fw-bold fs-6">
+                    <i class="bi bi-person-plus-fill me-1.5"></i> Register Psychologist
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
