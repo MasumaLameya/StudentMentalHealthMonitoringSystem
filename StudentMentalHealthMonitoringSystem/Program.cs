@@ -356,7 +356,10 @@ using (var scope = app.Services.CreateScope())
             }
 
             string activeTrimester = Student.GetCurrentActiveSemester();
-            if (string.IsNullOrWhiteSpace(st.Semester) || st.Semester.Trim().ToLower() == "semester 1" || st.Semester.Trim().ToLower() == "spring 2026")
+            if (string.IsNullOrWhiteSpace(st.Semester) || 
+                st.Semester.Trim().StartsWith("Semester", StringComparison.OrdinalIgnoreCase) || 
+                st.Semester.Trim().Equals("Spring 2026", StringComparison.OrdinalIgnoreCase) ||
+                !st.Semester.Contains("20"))
             {
                 st.Semester = activeTrimester;
                 updatedAny = true;

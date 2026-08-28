@@ -78,67 +78,7 @@
 
             <!-- Sidebar Navigation -->
             <div class="col-lg-3">
-                <div class="glass-card p-4 text-center student-sidebar">
-                    <div class="position-relative d-inline-block mb-3">
-                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
-                        {
-                            <img src="@Url.Content(Model.ProfileImage)" class="profile-avatar-lg border border-3 border-white" alt="Avatar" />
-                        }
-                        else
-                        {
-                            <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=2563EB&color=fff&size=130" class="profile-avatar-lg border border-3 border-white" alt="Avatar" />
-                        }
-                    </div>
-
-                    <h4 class="fw-bold mb-1" style="color: #0F172A;">@Model.FullName</h4>
-                    <p class="text-secondary fs-6 mb-3"><i class="bi bi-person-vcard me-1 text-primary"></i>ID: @Model.StudentIdNumber</p>
-                    
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-building me-1 text-secondary"></i>@Model.Department</span>
-                        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill"><i class="bi bi-mortarboard me-1 text-secondary"></i>@Model.Semester</span>
-                    </div>
-
-                    <hr class="my-3 opacity-25" />
-
-                    <div class="list-group list-group-flush text-start">
-                        <a href="/Student/Dashboard" class="list-group-item">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                        <a href="/Student/Profile" class="list-group-item active">
-                            <i class="bi bi-person-badge"></i> My Profile
-                        </a>
-                        <a href="/Student/SemesterScreening" class="list-group-item">
-                            <i class="bi bi-journal-check"></i> Semester Screening
-                        </a>
-                        <a href="/Student/PHQ" class="list-group-item">
-                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
-                        </a>
-                        <a href="/Student/CSRRS" class="list-group-item">
-                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
-                        </a>
-                        <a href="/Student/Feelings" class="list-group-item">
-                            <i class="bi bi-emoji-smile"></i> Daily Feelings
-                        </a>
-                        <a href="/Student/AIChat" class="list-group-item">
-                            <i class="bi bi-robot"></i> AI Companion Chat
-                        </a>
-                        <a href="/VoiceBot/Index" class="list-group-item">
-                            <i class="bi bi-mic"></i> Live Voice Bot
-                        </a>
-                        <a href="/Student/Appointment" class="list-group-item">
-                            <i class="bi bi-calendar-event"></i> Counseling Session
-                        </a>
-                        <a href="/Student/History" class="list-group-item">
-                            <i class="bi bi-clock-history"></i> History Records
-                        </a>
-                        <a href="/Student/Progress" class="list-group-item">
-                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
-                        </a>
-                        <a href="/Student/Reports" class="list-group-item">
-                            <i class="bi bi-file-earmark-medical"></i> Official Reports
-                        </a>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_StudentSidebar")
             </div>
 
             <!-- Main Content Area -->
@@ -183,7 +123,7 @@
                                         </tr>
                                         <tr>
                                             <th>Current Semester</th>
-                                            <td><span class="badge bg-info-subtle text-info border border-info px-3 py-1 fw-bold fs-6">@Model.Semester</span></td>
+                                            <td><span class="badge bg-info-subtle text-info border border-info px-3 py-1 fw-bold fs-6">@Model.ActiveSemester</span></td>
                                         </tr>
                                         <tr>
                                             <th>Email Address</th>

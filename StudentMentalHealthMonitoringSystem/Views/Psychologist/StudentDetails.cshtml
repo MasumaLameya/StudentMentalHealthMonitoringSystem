@@ -1,4 +1,4 @@
-﻿@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel
+@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel
 
 @{
     ViewData["Title"] = "Student Details";
@@ -89,11 +89,6 @@
                         <tr>
                             <th>C-SSRS Risk Level</th>
                             <td>@(Model.CSSRSAssessment?.RiskLevel ?? "N/A")</td>
-                        </tr>
-
-                        <tr>
-                            <th>Shared Feelings</th>
-                            <td>@(Model.SemesterRecord?.FeelingText ?? "No Information")</td>
                         </tr>
 
                         <tr>

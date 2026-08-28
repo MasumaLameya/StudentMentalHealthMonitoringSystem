@@ -94,7 +94,10 @@ namespace StudentMentalHealthMonitoringSystem.Data
                     {
                         student.AdmissionYear = 2024;
                     }
-                    if (string.IsNullOrWhiteSpace(student.Semester) || student.Semester == "Semester 1" || student.Semester == "Spring 2026")
+                    if (string.IsNullOrWhiteSpace(student.Semester) || 
+                        student.Semester.StartsWith("Semester", StringComparison.OrdinalIgnoreCase) || 
+                        student.Semester.Equals("Spring 2026", StringComparison.OrdinalIgnoreCase) ||
+                        !student.Semester.Contains("20"))
                     {
                         student.Semester = activeTrimester;
                     }

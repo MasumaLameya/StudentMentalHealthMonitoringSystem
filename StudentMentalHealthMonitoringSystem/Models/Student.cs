@@ -85,7 +85,27 @@ namespace StudentMentalHealthMonitoringSystem.Models
 
 
         [NotMapped]
-        public string ActiveSemester => !string.IsNullOrWhiteSpace(Semester) ? Semester : GetCurrentActiveSemester();
+        public string ActiveSemester
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(Semester))
+                {
+                    var sem = Semester.Trim();
+                    if (sem.StartsWith("Semester", StringComparison.OrdinalIgnoreCase) ||
+                        sem.All(char.IsDigit) ||
+                        !(sem.StartsWith("Spring", StringComparison.OrdinalIgnoreCase) ||
+                          sem.StartsWith("Summer", StringComparison.OrdinalIgnoreCase) ||
+                          sem.StartsWith("Fall", StringComparison.OrdinalIgnoreCase)) ||
+                        !sem.Contains("20"))
+                    {
+                        return GetCurrentActiveSemester();
+                    }
+                    return sem;
+                }
+                return GetCurrentActiveSemester();
+            }
+        }
 
 
         public double? Height { get; set; }

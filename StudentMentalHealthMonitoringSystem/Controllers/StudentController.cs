@@ -81,6 +81,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View();
             }
 
+            // ================= Update / Normalize Semester =================
+            if (string.IsNullOrWhiteSpace(student.Semester) || student.Semester != student.ActiveSemester)
+            {
+                student.Semester = student.ActiveSemester;
+                _context.SaveChanges();
+            }
+
             HttpContext.Session.SetInt32(
                 "StudentId",
                 student.StudentId
@@ -89,6 +96,26 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             HttpContext.Session.SetString(
                 "StudentName",
                 student.FullName
+            );
+
+            HttpContext.Session.SetString(
+                "StudentIdNumber",
+                student.StudentIdNumber ?? ""
+            );
+
+            HttpContext.Session.SetString(
+                "StudentDepartment",
+                student.Department ?? "CSE"
+            );
+
+            HttpContext.Session.SetString(
+                "StudentSemester",
+                student.ActiveSemester
+            );
+
+            HttpContext.Session.SetString(
+                "StudentProfileImage",
+                student.ProfileImage ?? ""
             );
 
             return RedirectToAction(
@@ -330,6 +357,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            // Ensure student semester is updated to active format
+            if (string.IsNullOrWhiteSpace(student.Semester) || student.Semester != student.ActiveSemester)
+            {
+                student.Semester = student.ActiveSemester;
+                await _context.SaveChangesAsync();
+            }
+
+            // Refresh session variables for sidebar
+            HttpContext.Session.SetString("StudentName", student.FullName);
+            HttpContext.Session.SetString("StudentIdNumber", student.StudentIdNumber ?? "");
+            HttpContext.Session.SetString("StudentDepartment", student.Department ?? "CSE");
+            HttpContext.Session.SetString("StudentSemester", student.ActiveSemester);
+            HttpContext.Session.SetString("StudentProfileImage", student.ProfileImage ?? "");
+
 
             // =================================================
             // COUNSELING INFORMATION
@@ -491,16 +532,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.CSSRSCompleted =
                 cssrsCompleted;
 
-            ViewBag.FeelingsCompleted =
-                feelingsCompleted;
-
 
             // ================= Screening Complete =================
 
             ViewBag.ScreeningCompleted =
                 phqCompleted &&
-                cssrsCompleted &&
-                feelingsCompleted;
+                cssrsCompleted;
 
 
             // =================================================
@@ -511,7 +548,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             //
             // PHQ-9
             // C-SSRS
-            // Feelings
             // AI Chat
             //
             // No weighted combined score is calculated.
@@ -541,19 +577,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     GetCSSRSProjectSeverity(
                         cssrsAssessment.RiskLevel
                     )
-                );
-            }
-
-
-            // ================= Feelings Risk =================
-
-            if (semesterRecord != null &&
-                !string.IsNullOrWhiteSpace(
-                    semesterRecord.FeelingRiskLevel))
-            {
-                projectRiskLevels.Add(
-                    semesterRecord
-                        .FeelingRiskLevel
                 );
             }
 
@@ -722,25 +745,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                             c.Semester ==
                             student.Semester
                     );
-
-            // ================= Feelings Status =================
-
-            var semesterRecord =
-                await _context
-                    .StudentSemesterRecords
-                    .FirstOrDefaultAsync(
-                        r =>
-                            r.StudentId ==
-                            student.StudentId &&
-                            r.Semester ==
-                            student.Semester
-                    );
-
-            ViewBag.FeelingsCompleted =
-                semesterRecord != null &&
-                !string.IsNullOrWhiteSpace(
-                    semesterRecord.FeelingText
-                );
 
             ViewBag.CurrentSemester =
                 student.Semester;
@@ -1656,377 +1660,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
         // =====================================================
-        // FEELINGS
+        // FEELINGS (REMOVED / REDIRECT TO DASHBOARD)
         // =====================================================
 
-        // ================= Feelings GET =================
-
         [HttpGet]
-        public async Task<IActionResult> Feelings()
+        public IActionResult Feelings()
         {
-            var studentId =
-                HttpContext.Session.GetInt32(
-                    "StudentId"
-                );
-
-            if (studentId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            var student =
-                await _context.Students
-                    .FirstOrDefaultAsync(
-                        s =>
-                            s.StudentId ==
-                            studentId.Value
-                    );
-
-            if (student == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            if (string.IsNullOrWhiteSpace(
-                student.Semester))
-            {
-                TempData["Error"] =
-                    "Current semester information was not found.";
-
-                return RedirectToAction(
-                    "Dashboard"
-                );
-            }
-
-            // ================= Semester Record =================
-
-            var semesterRecord =
-                await _context
-                    .StudentSemesterRecords
-                    .FirstOrDefaultAsync(
-                        r =>
-                            r.StudentId ==
-                            student.StudentId &&
-                            r.Semester ==
-                            student.Semester
-                    );
-
-            if (semesterRecord == null)
-            {
-                semesterRecord =
-                    new StudentSemesterRecord
-                    {
-                        Semester =
-                            student.Semester
-                    };
-            }
-
-            return View(
-                semesterRecord
-            );
+            return RedirectToAction("Dashboard");
         }
-
-        // ================= Feelings POST =================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Feelings(
-            StudentSemesterRecord model)
+        public IActionResult Feelings(StudentSemesterRecord model)
         {
-            var studentId =
-                HttpContext.Session.GetInt32(
-                    "StudentId"
-                );
-
-            if (studentId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            var student =
-                await _context.Students
-                    .FirstOrDefaultAsync(
-                        s =>
-                            s.StudentId ==
-                            studentId.Value
-                    );
-
-            if (student == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            if (string.IsNullOrWhiteSpace(
-                student.Semester))
-            {
-                TempData["Error"] =
-                    "Current semester information was not found.";
-
-                return RedirectToAction(
-                    "Dashboard"
-                );
-            }
-
-            // ================= Server Values =================
-
-            model.StudentId =
-                student.StudentId;
-
-            model.Semester =
-                student.Semester;
-
-            // ================= Remove Server Validation =================
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .StudentId
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .Student
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .Semester
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .SubmittedAt
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .UpdatedAt
-                )
-            );
-
-            // Old Semester Availability Fields
-            // are not used for appointments anymore.
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .AvailableDay
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .StartTime
-                )
-            );
-
-            ModelState.Remove(
-                nameof(
-                    StudentSemesterRecord
-                        .EndTime
-                )
-            );
-
-            // ================= Feelings Validation =================
-
-            if (string.IsNullOrWhiteSpace(
-                model.FeelingText))
-            {
-                ModelState.AddModelError(
-                    nameof(
-                        StudentSemesterRecord
-                            .FeelingText
-                    ),
-                    "Please write your feelings."
-                );
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(
-                    model
-                );
-            }
-
-            // ================= Clean Feeling Text =================
-
-            model.FeelingText =
-                model.FeelingText?.Trim();
-
-
-            // =====================================================
-            // ANALYZE FEELINGS
-            // =====================================================
-
-            GeminiFeelingsResult feelingsResult;
-
-            try
-            {
-                feelingsResult =
-                    await _geminiChatService
-                        .AnalyzeFeelingsAsync(
-                            model.FeelingText
-                            ?? string.Empty
-                        );
-            }
-            catch
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Your feelings could not be analyzed right now. Please try again."
-                );
-
-                return View(
-                    model
-                );
-            }
-
-
-            // ================= Analysis Result =================
-
-            model.FeelingRiskLevel =
-                feelingsResult.RiskLevel;
-
-            model.FeelingSummary =
-                feelingsResult.Summary;
-
-
-            // ================= Existing Record =================
-
-            var existingRecord =
-                await _context
-                    .StudentSemesterRecords
-                    .FirstOrDefaultAsync(
-                        r =>
-                            r.StudentId ==
-                            student.StudentId &&
-                            r.Semester ==
-                            student.Semester
-                    );
-
-            try
-            {
-                if (existingRecord == null)
-                {
-                    model.SubmittedAt =
-                        DateTime.Now;
-
-                    model.AvailableDay =
-                        null;
-
-                    model.StartTime =
-                        null;
-
-                    model.EndTime =
-                        null;
-
-                    _context
-                        .StudentSemesterRecords
-                        .Add(
-                            model
-                        );
-                }
-                else
-                {
-                    existingRecord.FeelingText =
-                        model.FeelingText;
-
-                    existingRecord.FeelingRiskLevel =
-                        feelingsResult.RiskLevel;
-
-                    existingRecord.FeelingSummary =
-                        feelingsResult.Summary;
-
-                    existingRecord.UpdatedAt =
-                        DateTime.Now;
-
-                    existingRecord.AvailableDay =
-                        null;
-
-                    existingRecord.StartTime =
-                        null;
-
-                    existingRecord.EndTime =
-                        null;
-                }
-
-
-                // ================= Save Feelings =================
-
-                await _context.SaveChangesAsync();
-
-
-                // =================================================
-                // AUTO PSYCHOLOGIST ASSIGNMENT
-                // =================================================
-
-                if (feelingsResult.RiskLevel ==
-                        "Severe" ||
-                    feelingsResult.RiskLevel ==
-                        "Extremely Severe")
-                {
-                    try
-                    {
-                        await _counselingSchedulerService
-                            .AutoAssignPsychologistAsync(
-                                student.StudentId,
-                                feelingsResult.RiskLevel,
-                                "Feelings"
-                            );
-                    }
-                    catch
-                    {
-                        // Feelings have already been saved.
-                        // Scheduling failure should not remove
-                        // the saved screening information.
-                    }
-                }
-
-
-                TempData["Success"] =
-                    "Your feelings have been saved successfully.";
-
-                return RedirectToAction(
-                    "SemesterScreening"
-                );
-            }
-            catch (DbUpdateException ex)
-            {
-                string errorMessage =
-                    ex.InnerException?.Message
-                    ?? ex.Message;
-
-                return Content(
-                    errorMessage
-                );
-            }
-            catch (Exception ex)
-            {
-                string errorMessage =
-                    ex.InnerException?.Message
-                    ?? ex.Message;
-
-                return Content(
-                    errorMessage
-                );
-            }
+            return RedirectToAction("Dashboard");
         }
         // =====================================================
         // AI CHAT

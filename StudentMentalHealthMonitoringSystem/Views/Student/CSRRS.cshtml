@@ -72,55 +72,7 @@
 
             <!-- Sidebar Navigation -->
             <div class="col-lg-3">
-                <div class="glass-card p-4 text-center student-sidebar">
-                    <div class="position-relative d-inline-block mb-3">
-                        <img src="https://ui-avatars.com/api/?name=Student&background=8A7563&color=fff&size=110" class="rounded-circle shadow-sm border border-3 border-white" width="110" height="110" alt="Avatar" />
-                    </div>
-
-                    <h5 class="fw-bold mb-1" style="color: #5F5146;">Student Portal</h5>
-                    <p class="text-muted small mb-3"><i class="bi bi-shield-check me-1"></i>Mental Health Monitoring</p>
-                    
-                    <hr class="my-3 opacity-25" />
-
-                    <div class="list-group list-group-flush text-start">
-                        <a href="/Student/Dashboard" class="list-group-item">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                        <a href="/Student/Profile" class="list-group-item">
-                            <i class="bi bi-person-badge"></i> My Profile
-                        </a>
-                        <a href="/Student/SemesterScreening" class="list-group-item">
-                            <i class="bi bi-journal-check"></i> Semester Screening
-                        </a>
-                        <a href="/Student/PHQ" class="list-group-item">
-                            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
-                        </a>
-                        <a href="/Student/CSRRS" class="list-group-item active">
-                            <i class="bi bi-shield-check"></i> C-SSRS Assessment
-                        </a>
-                        <a href="/Student/Feelings" class="list-group-item">
-                            <i class="bi bi-emoji-smile"></i> Daily Feelings
-                        </a>
-                        <a href="/Student/AIChat" class="list-group-item">
-                            <i class="bi bi-robot"></i> AI Companion Chat
-                        </a>
-                        <a href="/VoiceBot/Index" class="list-group-item">
-                            <i class="bi bi-mic"></i> Live Voice Bot
-                        </a>
-                        <a href="/Student/Appointment" class="list-group-item">
-                            <i class="bi bi-calendar-event"></i> Counseling Session
-                        </a>
-                        <a href="/Student/History" class="list-group-item">
-                            <i class="bi bi-clock-history"></i> History Records
-                        </a>
-                        <a href="/Student/Progress" class="list-group-item">
-                            <i class="bi bi-graph-up-arrow"></i> Recovery Progress
-                        </a>
-                        <a href="/Student/Reports" class="list-group-item">
-                            <i class="bi bi-file-earmark-medical"></i> Official Reports
-                        </a>
-                    </div>
-                </div>
+                @await Html.PartialAsync("_StudentSidebar")
             </div>
 
             <!-- Main Content Area -->
