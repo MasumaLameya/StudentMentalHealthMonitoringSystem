@@ -1,207 +1,323 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Psychologist
+@model StudentMentalHealthMonitoringSystem.Models.Psychologist
 
 @{
+    Layout = "_Layout";
     ViewData["Title"] = "Psychologist Profile";
+
+    int totalCounselings = ViewBag.TotalCounselings != null ? Convert.ToInt32(ViewBag.TotalCounselings) : 0;
+    int completedCounselings = ViewBag.CompletedCounselings != null ? Convert.ToInt32(ViewBag.CompletedCounselings) : 0;
+    int upcomingCounselings = ViewBag.UpcomingCounselings != null ? Convert.ToInt32(ViewBag.UpcomingCounselings) : 0;
+    int activePatients = ViewBag.ActivePatients != null ? Convert.ToInt32(ViewBag.ActivePatients) : 0;
+    int totalReports = ViewBag.TotalObservationReports != null ? Convert.ToInt32(ViewBag.TotalObservationReports) : 0;
 }
 
-<div class="container py-5">
+<style>
+    .psy-profile-page {
+        background-color: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2.5rem;
+    }
 
-    <div class="card shadow-lg border-0 rounded-4">
+    .psy-glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-        <!-- ================= Header ================= -->
+    .psy-glass-card:hover {
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+    }
 
-        <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
+    .profile-hero {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+        color: #ffffff;
+        border-radius: 1.25rem;
+        padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
 
-            <h2 class="mb-0">
+    .stat-box {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        transition: transform 0.2s ease;
+    }
 
-                <i class="bi bi-person-badge-fill me-2"></i>
+    .stat-box:hover {
+        transform: translateY(-3px);
+    }
 
-                Psychologist Profile
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
 
-            </h2>
+    .info-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748B;
+        margin-bottom: 0.25rem;
+    }
 
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 0;
+    }
+</style>
+
+<div class="psy-profile-page py-3">
+    <div class="container-fluid px-lg-4">
+
+        <!-- Top Header & Breadcrumb -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="color: #0F172A;">
+                    <i class="bi bi-person-badge-fill me-2 text-primary"></i>Psychologist Profile
+                </h2>
+                <p class="text-secondary mb-0">View and manage your clinical practitioner credentials and profile information.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-controller="Psychologist" asp-action="Dashboard" class="btn btn-outline-dark rounded-3 px-3 py-2 fw-semibold">
+                    <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                </a>
+                <a asp-controller="Psychologist" asp-action="Appointment" class="btn btn-primary text-white rounded-3 px-3 py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-calendar-check me-1"></i> Counseling Schedule
+                </a>
+            </div>
         </div>
 
-        <div class="card-body p-5">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                <div class="fw-semibold">@TempData["Success"]</div>
+            </div>
+        }
 
-            <div class="row align-items-center">
+        <div class="row g-4">
 
-                <!-- ================= Profile Image ================= -->
+            <!-- Left Column: Profile Card & Quick Bio -->
+            <div class="col-lg-4">
+                <div class="psy-glass-card p-4 text-center h-100">
+                    <div class="position-relative d-inline-block mb-3">
+                        @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                        {
+                            <img src="@Model.ProfileImage" class="rounded-circle shadow border border-4 border-white" width="140" height="140" style="object-fit:cover;" alt="Psychologist Profile" />
+                        }
+                        else
+                        {
+                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.FullName)&background=0F172A&color=fff&size=140" class="rounded-circle shadow border border-4 border-white" width="140" height="140" alt="Psychologist Profile" />
+                        }
+                        <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-light rounded-circle" title="Active Clinical Practitioner"></span>
+                    </div>
 
-                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <h3 class="fw-bold mb-1" style="color: #0F172A;">@Model.FullName</h3>
+                    <p class="text-secondary fw-semibold mb-2">@(Model.Specialization ?? "Clinical Psychologist")</p>
 
-                    @if (!string.IsNullOrEmpty(Model.ProfileImage))
-                    {
-                        <img src="@Model.ProfileImage"
-                             class="rounded-circle border border-4 border-primary shadow"
-                             width="180"
-                             height="180"
-                             style="object-fit:cover;">
-                    }
-                    else
-                    {
-                        <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=0d6efd&color=fff&size=180"
-                             class="rounded-circle border border-4 border-primary shadow"
-                             width="180"
-                             height="180">
-                    }
+                    <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                            <i class="bi bi-patch-check-fill me-1"></i>Verified Practitioner
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                            <i class="bi bi-mortarboard me-1"></i>@(Model.Qualification ?? "M.Sc. Psychology")
+                        </span>
+                    </div>
 
-                    <h4 class="mt-3 mb-1">
+                    <hr class="my-4 opacity-25" />
 
-                        @Model.FullName
+                    <!-- Quick Details List -->
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <span class="info-label d-block"><i class="bi bi-envelope me-1 text-primary"></i>Official Email</span>
+                            <p class="info-value text-break">@Model.Email</p>
+                        </div>
+                        <div class="mb-3">
+                            <span class="info-label d-block"><i class="bi bi-telephone me-1 text-success"></i>Contact Number</span>
+                            <p class="info-value">@Model.Phone</p>
+                        </div>
+                        <div class="mb-3">
+                            <span class="info-label d-block"><i class="bi bi-briefcase me-1 text-warning"></i>Clinical Experience</span>
+                            <p class="info-value">@(Model.Experience ?? 0) Years in Practice</p>
+                        </div>
+                        <div class="mb-2">
+                            <span class="info-label d-block"><i class="bi bi-building me-1 text-info"></i>Assigned Department</span>
+                            <p class="info-value">Counseling & Wellbeing Center, IUBAT</p>
+                        </div>
+                    </div>
 
-                    </h4>
+                    <div class="mt-4 pt-3 border-top">
+                        <button class="btn btn-outline-primary w-100 rounded-3 py-2 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#editProfileSection">
+                            <i class="bi bi-pencil-square me-1"></i> Edit Profile Information
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                    <span class="badge bg-success fs-6">
+            <!-- Right Column: Clinical Stats, Detailed Credentials & Edit Section -->
+            <div class="col-lg-8">
 
-                        @Model.Specialization
-
-                    </span>
-
+                <!-- Clinical Activity Statistics Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="stat-box h-100 shadow-sm d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-primary-subtle text-primary">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark mb-0">@totalCounselings</div>
+                                <small class="text-secondary fw-semibold">Total Sessions</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="stat-box h-100 shadow-sm d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-success-subtle text-success">
+                                <i class="bi bi-check2-circle"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark mb-0">@completedCounselings</div>
+                                <small class="text-secondary fw-semibold">Completed</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="stat-box h-100 shadow-sm d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-info-subtle text-info">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark mb-0">@activePatients</div>
+                                <small class="text-secondary fw-semibold">Total Patients</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="stat-box h-100 shadow-sm d-flex align-items-center gap-3">
+                            <div class="stat-icon bg-warning-subtle text-warning">
+                                <i class="bi bi-journal-medical"></i>
+                            </div>
+                            <div>
+                                <div class="fs-4 fw-bold text-dark mb-0">@totalReports</div>
+                                <small class="text-secondary fw-semibold">Observation Reports</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- ================= Profile Information ================= -->
-
-                <div class="col-md-8">
-
-                    <div class="row g-3">
-
-                        <!-- ================= Email ================= -->
-
+                <!-- Professional Credentials Card -->
+                <div class="psy-glass-card p-4 mb-4">
+                    <h5 class="fw-bold mb-3" style="color: #0F172A;">
+                        <i class="bi bi-award-fill me-2 text-warning"></i>Professional Qualifications & Clinical Background
+                    </h5>
+                    <div class="row g-4">
                         <div class="col-md-6">
-
-                            <div class="card border-0 shadow-sm p-3 h-100">
-
-                                <small class="text-muted">
-
-                                    <i class="bi bi-envelope-fill text-primary me-2"></i>
-
-                                    Email
-
-                                </small>
-
-                                <h6 class="mt-2">
-
-                                    @Model.Email
-
-                                </h6>
-
+                            <div class="p-3 rounded-3 border bg-light h-100">
+                                <div class="info-label"><i class="bi bi-mortarboard-fill me-1 text-primary"></i>Academic Degree & Qualification</div>
+                                <div class="fs-6 fw-bold text-dark mt-1">@(Model.Qualification ?? "Not Specified")</div>
+                                <small class="text-secondary d-block mt-1">Advanced educational training in psychology and behavioral science.</small>
                             </div>
-
                         </div>
-
-                        <!-- ================= Phone ================= -->
-
                         <div class="col-md-6">
-
-                            <div class="card border-0 shadow-sm p-3 h-100">
-
-                                <small class="text-muted">
-
-                                    <i class="bi bi-telephone-fill text-success me-2"></i>
-
-                                    Phone
-
-                                </small>
-
-                                <h6 class="mt-2">
-
-                                    @Model.Phone
-
-                                </h6>
-
+                            <div class="p-3 rounded-3 border bg-light h-100">
+                                <div class="info-label"><i class="bi bi-star-fill me-1 text-warning"></i>Clinical Specialization</div>
+                                <div class="fs-6 fw-bold text-dark mt-1">@(Model.Specialization ?? "General Counseling")</div>
+                                <small class="text-secondary d-block mt-1">Specialized care in student mental health, depression, and anxiety management.</small>
                             </div>
-
                         </div>
-
-                        <!-- ================= Specialization ================= -->
-
                         <div class="col-md-6">
-
-                            <div class="card border-0 shadow-sm p-3 h-100">
-
-                                <small class="text-muted">
-
-                                    <i class="bi bi-award-fill text-warning me-2"></i>
-
-                                    Specialization
-
-                                </small>
-
-                                <h6 class="mt-2">
-
-                                    @Model.Specialization
-
-                                </h6>
-
+                            <div class="p-3 rounded-3 border bg-light h-100">
+                                <div class="info-label"><i class="bi bi-clock-history me-1 text-success"></i>Years of Clinical Practice</div>
+                                <div class="fs-6 fw-bold text-dark mt-1">@(Model.Experience ?? 0) Years Professional Experience</div>
+                                <small class="text-secondary d-block mt-1">Experience in higher education student counseling and mental health intervention.</small>
                             </div>
-
                         </div>
-
-                        <!-- ================= Qualification ================= -->
-
                         <div class="col-md-6">
-
-                            <div class="card border-0 shadow-sm p-3 h-100">
-
-                                <small class="text-muted">
-
-                                    <i class="bi bi-mortarboard-fill text-danger me-2"></i>
-
-                                    Qualification
-
-                                </small>
-
-                                <h6 class="mt-2">
-
-                                    @Model.Qualification
-
-                                </h6>
-
+                            <div class="p-3 rounded-3 border bg-light h-100">
+                                <div class="info-label"><i class="bi bi-shield-check me-1 text-danger"></i>Institutional Role & Accreditation</div>
+                                <div class="fs-6 fw-bold text-dark mt-1">Lead University Clinical Counselor</div>
+                                <small class="text-secondary d-block mt-1">Authorized for high-risk triage, suicide risk intervention, and follow-ups.</small>
                             </div>
-
                         </div>
-
-                        <!-- ================= Experience ================= -->
-
-                        <div class="col-md-6">
-
-                            <div class="card border-0 shadow-sm p-3 h-100">
-
-                                <small class="text-muted">
-
-                                    <i class="bi bi-briefcase-fill text-primary me-2"></i>
-
-                                    Experience
-
-                                </small>
-
-                                <h6 class="mt-2">
-
-                                    @Model.Experience Years
-
-                                </h6>
-
-                            </div>
-
-                        </div>
-
                     </div>
+                </div>
 
-                    <!-- ================= Buttons ================= -->
+                <!-- Collapsible Edit Profile Form -->
+                <div class="collapse" id="editProfileSection">
+                    <div class="psy-glass-card p-4 border border-2 border-primary">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0 text-primary">
+                                <i class="bi bi-pencil-fill me-2"></i>Update Profile Information
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-toggle="collapse" data-bs-target="#editProfileSection" aria-label="Close"></button>
+                        </div>
+                        <form asp-controller="Psychologist" asp-action="Profile" method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-3"></div>
 
-                    <div class="mt-4">
+                            <input type="hidden" asp-for="PsychologistId" />
+                            <input type="hidden" asp-for="Email" />
 
-                        <a asp-controller="Psychologist"
-                           asp-action="Dashboard"
-                           class="btn btn-secondary">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="FullName" class="form-label fw-bold">Full Name</label>
+                                    <input asp-for="FullName" class="form-control rounded-3" required />
+                                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Phone" class="form-label fw-bold">Contact Phone Number</label>
+                                    <input asp-for="Phone" class="form-control rounded-3" required />
+                                    <span asp-validation-for="Phone" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Specialization" class="form-label fw-bold">Clinical Specialization</label>
+                                    <input asp-for="Specialization" class="form-control rounded-3" placeholder="e.g. Clinical Psychology, Cognitive Behavioral Therapy" />
+                                    <span asp-validation-for="Specialization" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Qualification" class="form-label fw-bold">Academic Qualification</label>
+                                    <input asp-for="Qualification" class="form-control rounded-3" placeholder="e.g. M.Sc. in Clinical Psychology, DU" />
+                                    <span asp-validation-for="Qualification" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Experience" class="form-label fw-bold">Experience (in Years)</label>
+                                    <input asp-for="Experience" type="number" min="0" max="60" class="form-control rounded-3" />
+                                    <span asp-validation-for="Experience" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="ImageFile" class="form-label fw-bold">Upload New Profile Photo</label>
+                                    <input asp-for="ImageFile" type="file" class="form-control rounded-3" accept=".jpg,.jpeg,.png,.webp" />
+                                    <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="Password" class="form-label fw-bold">Change Password <small class="text-muted fw-normal">(Leave blank to keep current password)</small></label>
+                                    <input asp-for="Password" type="password" class="form-control rounded-3" placeholder="Enter new password (min 8 chars, 1 uppercase, 1 special char)" />
+                                    <span asp-validation-for="Password" class="text-danger small"></span>
+                                </div>
+                            </div>
 
-                            Back to Dashboard
-
-                        </a>
-
+                            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                                <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-toggle="collapse" data-bs-target="#editProfileSection">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary rounded-3 px-4 fw-bold shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
                 </div>
 
             </div>
@@ -209,21 +325,8 @@
         </div>
 
     </div>
-
 </div>
 
-<style>
-
-    .card {
-        transition: 0.3s;
-    }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-    .rounded-circle {
-        object-fit: cover;
-    }
-
-</style>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -3,637 +3,323 @@
 @{
     Layout = "_Layout";
     ViewData["Title"] = "Counseling Appointment";
+    var activeAppointment = ViewBag.ActiveAppointment as StudentMentalHealthMonitoringSystem.Models.Counseling;
 }
 
-<div class="container-fluid">
-
-    <!-- ================= Header ================= -->
-
-    <div class="card border-0 shadow-sm rounded-4 mb-4"
-         style="background:#F4EEE8;">
-
-        <div class="card-body p-4">
-
-            <h2 class="fw-bold mb-1"
-                style="color:#5F5146;">
-
-                <i class="bi bi-calendar-event me-2"></i>Counseling Appointment
-
-            </h2>
-
-            <p class="text-muted mb-0">
-
-                Choose your preferred counseling date and time.
-
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- ================= Success Message ================= -->
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success rounded-4">
-
-            <i class="bi bi-check-circle-fill me-2"></i>
-
-            @TempData["Success"]
-
-        </div>
+<style>
+    .student-app-bg {
+        background: #F4F8F5;
+        min-height: 100vh;
+        padding-bottom: 2.5rem;
     }
 
-
-    <!-- ================= Error Message ================= -->
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger rounded-4">
-
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-
-            @TempData["Error"]
-
-        </div>
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 77, 37, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-
-    <!-- ================= Suggested Time Message ================= -->
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div class="alert rounded-4"
-             style="
-            background:#FFF8E7;
-            border:1px solid #E8D5A5;
-            color:#6B5735;">
-
-            <i class="bi bi-info-circle-fill me-2"></i>
-
-            @Model.Message
-
-        </div>
+    .active-appointment-card {
+        background: #ffffff;
+        border: 2px solid #006837;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 30px rgba(0, 104, 55, 0.12);
+        overflow: hidden;
     }
 
-
-    <!-- ================= Validation ================= -->
-    @if (!ViewData.ModelState.IsValid)
-    {
-        <div asp-validation-summary="All"
-             class="alert alert-danger rounded-4"
-             role="alert">
-        </div>
+    .active-header {
+        background: linear-gradient(135deg, #004D25 0%, #006837 100%);
+        color: #ffffff;
+        padding: 1.5rem;
+        border-bottom: 3px solid #FFC20E;
     }
 
+    .info-badge-box {
+        background: #EBF4EE;
+        border: 1px solid #D1E2D7;
+        border-radius: 0.9rem;
+        padding: 1rem 1.25rem;
+    }
+</style>
 
-    <div class="row">
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
 
-        <!-- ================= Appointment Form ================= -->
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                @await Html.PartialAsync("_StudentSidebar")
+            </div>
 
-        <div class="col-lg-7 mb-4">
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
 
-            <div class="card border-0 shadow-sm rounded-4">
-
-                <div class="card-header border-0 py-3"
-                     style="background:#E8DDD2;">
-
-                    <h5 class="mb-0"
-                        style="color:#5F5146;">
-
-                        <i class="bi bi-calendar-plus me-2"></i>
-
-                        Request Counseling
-
-                    </h5>
-
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: #ffffff; border-bottom: 3px solid #FFC20E;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-calendar-check me-2 text-warning"></i>Counseling Appointment
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Schedule professional one-on-one sessions with university psychologists.</p>
+                        </div>
+                        <a href="/Student/Dashboard" class="btn bg-white text-dark btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                            <i class="bi bi-arrow-left me-1" style="color: #006837;"></i> Dashboard
+                        </a>
+                    </div>
                 </div>
 
+                <!-- Alert Messages -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-2 text-success"></i>
+                        <div class="fw-semibold">@TempData["Success"]</div>
+                    </div>
+                }
 
-                <div class="card-body p-4">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-2 text-danger"></i>
+                        <div class="fw-semibold">@TempData["Error"]</div>
+                    </div>
+                }
 
-                    <form asp-controller="Student"
-                          asp-action="Appointment"
-                          method="post">
-
-                        @Html.AntiForgeryToken()
-
-
-                        <!-- ================= Preferred Date ================= -->
-
-                        <div class="mb-4">
-
-                            <label asp-for="PreferredDate"
-                                   class="form-label fw-semibold">
-
-                                Preferred Date
-
-                            </label>
-
-                            <input asp-for="PreferredDate"
-                                   type="date"
-                                   class="form-control rounded-3" />
-
-                            <span asp-validation-for="PreferredDate"
-                                  class="text-danger">
-                            </span>
-
+                @if (activeAppointment != null)
+                {
+                    <!-- ================= ACTIVE / PENDING APPOINTMENT ALREADY SCHEDULED CARD ================= -->
+                    <div class="active-appointment-card mb-4">
+                        <div class="active-header">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <div>
+                                    <h4 class="fw-bold mb-1 text-white">
+                                        <i class="bi bi-calendar-heart me-2 text-warning"></i>Appointment Already Scheduled
+                                    </h4>
+                                    <p class="text-white-50 mb-0">You currently have an active counseling appointment. You cannot book another session until this is completed.</p>
+                                </div>
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fs-6 fw-bold">
+                                    <i class="bi bi-hourglass-split me-1"></i>Status: @activeAppointment.Status
+                                </span>
+                            </div>
                         </div>
 
+                        <div class="p-4 p-md-5">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="info-badge-box h-100">
+                                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-person-badge text-success me-1"></i>Assigned Psychologist
+                                        </small>
+                                        <h5 class="fw-bold mb-1" style="color: #004D25;">
+                                            @(activeAppointment.Psychologist?.FullName ?? "University Psychologist")
+                                        </h5>
+                                        <span class="text-secondary small">@(activeAppointment.Psychologist?.Specialization ?? "Clinical Psychologist")</span>
+                                    </div>
+                                </div>
 
-                        <!-- ================= Preferred Time ================= -->
+                                <div class="col-md-6">
+                                    <div class="info-badge-box h-100">
+                                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-calendar-date text-primary me-1"></i>Session Date
+                                        </small>
+                                        <h5 class="fw-bold mb-0 text-dark">
+                                            @activeAppointment.CounselingDate.ToString("dddd, MMMM dd, yyyy")
+                                        </h5>
+                                    </div>
+                                </div>
 
-                        <div class="mb-4">
+                                <div class="col-md-6">
+                                    <div class="info-badge-box h-100">
+                                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-clock-history text-warning me-1"></i>Session Time Slot
+                                        </small>
+                                        <h5 class="fw-bold mb-0 text-dark">
+                                            @DateTime.Today.Add(activeAppointment.AppointmentTime).ToString("h:mm tt") - @DateTime.Today.Add(activeAppointment.AppointmentEndTime).ToString("h:mm tt")
+                                        </h5>
+                                    </div>
+                                </div>
 
-                            <label asp-for="StartTime"
-                                   class="form-label fw-semibold">
+                                <div class="col-md-6">
+                                    <div class="info-badge-box h-100">
+                                        <small class="text-secondary fw-bold text-uppercase d-block mb-1">
+                                            <i class="bi bi-geo-alt-fill text-danger me-1"></i>Location / Venue
+                                        </small>
+                                        <h5 class="fw-bold mb-0 text-dark">
+                                            @(activeAppointment.AppointmentRoom ?? "Mental Health & Counseling Center, Room 402")
+                                        </h5>
+                                    </div>
+                                </div>
+                            </div>
 
-                                Preferred Time
+                            <div class="alert alert-info border-0 rounded-3 mb-4 d-flex align-items-start">
+                                <i class="bi bi-info-circle-fill fs-5 text-primary me-3 mt-1"></i>
+                                <div>
+                                    <strong>Notice on Multiple Appointments:</strong>
+                                    <p class="mb-0 small text-secondary">
+                                        Each student is assigned one active counseling session at a time to ensure optimal attention from our psychology team. If you require rescheduling or immediate crisis intervention, please visit the Counseling Center directly or reach out through emergency contact.
+                                    </p>
+                                </div>
+                            </div>
 
-                            </label>
-
-
-                            <select asp-for="StartTime"
-                                    id="StartTime"
-                                    class="form-select rounded-3">
-
-                                <option value="">Select Counseling Time</option>
-                                <option value="08:30:00">8:30 AM - 9:30 AM</option>
-                                <option value="09:35:00">9:35 AM - 10:35 AM</option>
-                                <option value="10:40:00">10:40 AM - 11:40 AM</option>
-                                <option value="11:45:00">11:45 AM - 12:45 PM</option>
-                                <option value="13:10:00">1:10 PM - 2:10 PM</option>
-                                <option value="14:15:00">2:15 PM - 3:15 PM</option>
-                                <option value="15:20:00">3:20 PM - 4:20 PM</option>
-                                <option value="16:25:00">4:25 PM - 5:25 PM</option>
-
-                            </select>
-
-
-                            <span asp-validation-for="StartTime"
-                                  class="text-danger">
-                            </span>
-
-
-                            <small class="text-muted">
-
-                                You only select the starting time.
-                                The counseling session will automatically
-                                be scheduled for 1 hour.
-
-                            </small>
-
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-3 border-top">
+                                <a href="/Student/Dashboard" class="btn btn-outline-dark rounded-3 px-4 py-2.5 fw-bold">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                                </a>
+                                <a href="/Student/Reports" class="btn btn-success text-white rounded-3 px-4 py-2.5 fw-bold" style="background:#006837;">
+                                    <i class="bi bi-file-earmark-medical me-1"></i> View Official Reports
+                                </a>
+                            </div>
                         </div>
+                    </div>
+                }
+                else
+                {
+                    <!-- ================= NEW APPOINTMENT BOOKING FORM ================= -->
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="glass-card p-4">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="badge bg-success-subtle text-success p-2.5 rounded-circle me-2">
+                                        <i class="bi bi-calendar-plus fs-5"></i>
+                                    </div>
+                                    <h4 class="fw-bold mb-0" style="color: #004D25;">Request Counseling Session</h4>
+                                </div>
+                                <p class="text-secondary small mb-4">Select your preferred date and 1-hour time slot. Our scheduler will automatically assign an available clinical psychologist.</p>
 
+                                @if (!string.IsNullOrEmpty(Model.Message))
+                                {
+                                    <div class="alert alert-warning border-0 rounded-3 mb-4 d-flex align-items-center">
+                                        <i class="bi bi-info-circle-fill fs-5 me-2"></i>
+                                        <div>@Model.Message</div>
+                                    </div>
+                                }
 
-                        <!-- ================================================= -->
-                        <!-- Suggested Available Times -->
-                        <!-- ================================================= -->
-                        @if (Model.SuggestedTimes != null &&
-                                                     Model.SuggestedTimes.Any())
-                        {
-                            <div class="mb-4">
+                                <form asp-controller="Student" asp-action="Appointment" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-3"></div>
 
-                                <div class="card rounded-4"
-                                     style="
-                                    background:#F7F2ED;
-                                    border:1px solid #E8DDD2;">
-
-                                    <div class="card-body">
-
-                                        <h6 class="fw-bold mb-2"
-                                            style="color:#5F5146;">
-
-                                            <i class="bi bi-clock-history me-2"></i>
-
-                                            Available Time Suggestions
-
-                                        </h6>
-
-
-                                        <p class="text-muted mb-3">
-
-                                            All psychologists are busy at your
-                                            selected time. You can choose one of
-                                            these available time slots.
-
-                                        </p>
-
-
-                                        <div class="d-flex flex-wrap gap-2">
-
-                                            @foreach (var time in Model.SuggestedTimes)
-                                            {
-                                                var suggestedEndTime =
-                                                    time.Add(
-                                                        TimeSpan.FromHours(1)
-                                                    );
-
-                                                var startTimeText =
-                                                    DateTime.Today
-                                                        .Add(time)
-                                                        .ToString("h:mm tt");
-
-                                                var endTimeText =
-                                                    DateTime.Today
-                                                        .Add(suggestedEndTime)
-                                                        .ToString("h:mm tt");
-
-
-                                                <button type="button"
-                                                        class="btn rounded-3"
-                                                        style="
-                                                    background:#E8DDD2;
-                                                    color:#5F5146;"
-                                                        onclick="selectSuggestedTime('@time.ToString(@"hh\:mm\:ss")')">
-
-                                                    <i class="bi bi-clock me-1"></i>
-
-                                                    @startTimeText - @endTimeText
-
-                                                </button>
-                                            }
-
-                                        </div>
-
+                                    <!-- Preferred Date -->
+                                    <div class="mb-4">
+                                        <label asp-for="PreferredDate" class="form-label fw-bold text-dark">
+                                            <i class="bi bi-calendar3 text-success me-1"></i> Preferred Date
+                                        </label>
+                                        <input asp-for="PreferredDate" type="date" class="form-control rounded-3 p-3 fs-6" required />
+                                        <span asp-validation-for="PreferredDate" class="text-danger small"></span>
+                                        <small class="text-muted d-block mt-1">Available counseling days: Saturday to Wednesday.</small>
                                     </div>
 
-                                </div>
+                                    <!-- Preferred Time Slot -->
+                                    <div class="mb-4">
+                                        <label asp-for="StartTime" class="form-label fw-bold text-dark">
+                                            <i class="bi bi-clock text-success me-1"></i> Preferred Time Slot
+                                        </label>
+                                        <select asp-for="StartTime" id="StartTime" class="form-select rounded-3 p-3 fs-6" required>
+                                            <option value="">-- Select Counseling Time Slot --</option>
+                                            <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                            <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                            <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                            <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                            <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                            <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                            <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                            <option value="16:25:00">4:25 PM - 5:25 PM</option>
+                                        </select>
+                                        <span asp-validation-for="StartTime" class="text-danger small"></span>
+                                        <small class="text-muted d-block mt-1">Sessions are fixed 1-hour confidential appointments.</small>
+                                    </div>
 
+                                    @if (Model.SuggestedTimes != null && Model.SuggestedTimes.Any())
+                                    {
+                                        <div class="card border-0 rounded-4 mb-4" style="background:#F7F2ED; border:1px solid #E8DDD2;">
+                                            <div class="card-body p-3">
+                                                <h6 class="fw-bold mb-2 text-dark">
+                                                    <i class="bi bi-lightbulb-fill text-warning me-1"></i> Suggested Available Time Slots:
+                                                </h6>
+                                                <p class="text-secondary small mb-3">All psychologists are busy at your requested time. Click an alternative slot below:</p>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach (var time in Model.SuggestedTimes)
+                                                    {
+                                                        var suggestedEndTime = time.Add(TimeSpan.FromHours(1));
+                                                        var startTimeText = DateTime.Today.Add(time).ToString("h:mm tt");
+                                                        var endTimeText = DateTime.Today.Add(suggestedEndTime).ToString("h:mm tt");
+                                                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold" onclick="selectSuggestedTime('@time.ToString(@"hh\:mm\:ss")')">
+                                                            <i class="bi bi-clock me-1"></i> @startTimeText - @endTimeText
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Submit Buttons -->
+                                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                        <a href="/Student/Dashboard" class="btn border bg-white text-dark rounded-3 px-4 py-2.5 fw-bold">
+                                            <i class="bi bi-arrow-left me-1"></i> Dashboard
+                                        </a>
+                                        <button type="submit" class="btn text-white btn-lg rounded-3 px-4 py-2.5 shadow-sm fw-bold fs-6" style="background:#006837;">
+                                            <i class="bi bi-send-check-fill me-1"></i> Request Appointment
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                        }
+                        </div>
 
-
-                        <!-- ================= Appointment Rules ================= -->
-
-                        <div class="alert rounded-3 mb-4"
-                             style="
-                            background:#F7F2ED;
-                            border:1px solid #E5D8CC;
-                            color:#5F5146;">
-
-                            <div class="d-flex align-items-start">
-
-                                <i class="bi bi-info-circle-fill me-2 mt-1"
-                                   style="color:#A67C52;">
-                                </i>
-
-
-                                <div>
-
-                                    <strong>
-                                        Appointment Rules
-                                    </strong>
-
-
-                                    <ul class="mb-0 mt-2">
-
-                                        <li>
-                                            Counseling days are Saturday
-                                            to Wednesday.
-                                        </li>
-
-                                        <li>
-                                            Each counseling session is
-                                            automatically 1 hour.
-                                        </li>
-
-                                        <li>
-                                            Only fixed hourly slots
-                                            can be selected.
-                                        </li>
-
-                                        <li>
-                                            Times such as 9:15 AM,
-                                            10:30 AM or 3:45 PM
-                                            cannot be selected.
-                                        </li>
-
-                                        <li>
-                                            Choose a date and time when
-                                            you are free to attend counseling.
-                                        </li>
-
-                                        <li>
-                                            Psychologists are considered
-                                            available during counseling hours
-                                            unless they already have another
-                                            appointment at that time.
-                                        </li>
-
-                                        <li>
-                                            If all psychologists are busy
-                                            at your selected time, another
-                                            free time will be suggested.
-                                        </li>
-
-                                    </ul>
-
+                        <!-- Right Info Column -->
+                        <div class="col-lg-5">
+                            <div class="glass-card p-4 mb-4">
+                                <h5 class="fw-bold mb-3" style="color: #004D25;">
+                                    <i class="bi bi-shield-check me-2"></i>How Scheduling Works
+                                </h5>
+                                <div class="d-flex align-items-start mb-3">
+                                    <div class="badge bg-success-subtle text-success p-2 rounded-circle me-3">1</div>
+                                    <div>
+                                        <strong class="d-block text-dark">Select Date & Time</strong>
+                                        <small class="text-secondary">Pick a working day (Sat–Wed) and convenient 1-hour slot.</small>
+                                    </div>
                                 </div>
-
+                                <div class="d-flex align-items-start mb-3">
+                                    <div class="badge bg-success-subtle text-success p-2 rounded-circle me-3">2</div>
+                                    <div>
+                                        <strong class="d-block text-dark">Smart Availability Check</strong>
+                                        <small class="text-secondary">The system checks verified psychologists available at your selected time.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start mb-3">
+                                    <div class="badge bg-success-subtle text-success p-2 rounded-circle me-3">3</div>
+                                    <div>
+                                        <strong class="d-block text-dark">Balanced Assignment</strong>
+                                        <small class="text-secondary">Psychologists with lowest active case load receive immediate assignment.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start">
+                                    <div class="badge bg-success-subtle text-success p-2 rounded-circle me-3">4</div>
+                                    <div>
+                                        <strong class="d-block text-dark">Instant Confirmation</strong>
+                                        <small class="text-secondary">Your session is locked and displayed in your dashboard.</small>
+                                    </div>
+                                </div>
                             </div>
-
                         </div>
-
-
-                        <!-- ================= Submit Button ================= -->
-
-                        <button type="submit"
-                                class="btn rounded-3 px-4 py-2"
-                                style="
-                            background:#A67C52;
-                            color:white;">
-
-                            <i class="bi bi-calendar-check me-1"></i>
-
-                            Request Appointment
-
-                        </button>
-
-                    </form>
-
-                </div>
+                    </div>
+                }
 
             </div>
-
         </div>
-
-
-        <!-- ================= Right Side ================= -->
-
-        <div class="col-lg-5 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4">
-
-                <div class="card-header border-0 py-3"
-                     style="background:#E8DDD2;">
-
-                    <h5 class="mb-0"
-                        style="color:#5F5146;">
-
-                        <i class="bi bi-diagram-3 me-2"></i>
-
-                        How Assignment Works
-
-                    </h5>
-
-                </div>
-
-
-                <div class="card-body p-4">
-
-                    <!-- ================= Step 1 ================= -->
-
-                    <div class="d-flex mb-4">
-
-                        <div class="rounded-circle
-                            d-flex
-                            align-items-center
-                            justify-content-center
-                            me-3"
-                             style="
-                            width:42px;
-                            height:42px;
-                            min-width:42px;
-                            background:#EEE4DA;">
-
-                            <strong style="color:#806C5D;">
-                                1
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <h6 class="fw-bold mb-1"
-                                style="color:#5F5146;">
-
-                                Choose Date and Time
-
-                            </h6>
-
-                            <p class="text-muted mb-0">
-
-                                Select your preferred date
-                                and one fixed hourly slot.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ================= Step 2 ================= -->
-
-                    <div class="d-flex mb-4">
-
-                        <div class="rounded-circle
-                            d-flex
-                            align-items-center
-                            justify-content-center
-                            me-3"
-                             style="
-                            width:42px;
-                            height:42px;
-                            min-width:42px;
-                            background:#EEE4DA;">
-
-                            <strong style="color:#806C5D;">
-                                2
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <h6 class="fw-bold mb-1"
-                                style="color:#5F5146;">
-
-                                Check Psychologist Availability
-
-                            </h6>
-
-                            <p class="text-muted mb-0">
-
-                                The system checks which psychologists
-                                are free at your selected date and time.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ================= Step 3 ================= -->
-
-                    <div class="d-flex mb-4">
-
-                        <div class="rounded-circle
-                            d-flex
-                            align-items-center
-                            justify-content-center
-                            me-3"
-                             style="
-                            width:42px;
-                            height:42px;
-                            min-width:42px;
-                            background:#EEE4DA;">
-
-                            <strong style="color:#806C5D;">
-                                3
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <h6 class="fw-bold mb-1"
-                                style="color:#5F5146;">
-
-                                Suggest Available Time
-
-                            </h6>
-
-                            <p class="text-muted mb-0">
-
-                                If all psychologists are busy
-                                at the selected time, the system
-                                suggests another free time.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ================= Step 4 ================= -->
-
-                    <div class="d-flex">
-
-                        <div class="rounded-circle
-                            d-flex
-                            align-items-center
-                            justify-content-center
-                            me-3"
-                             style="
-                            width:42px;
-                            height:42px;
-                            min-width:42px;
-                            background:#EEE4DA;">
-
-                            <strong style="color:#806C5D;">
-                                4
-                            </strong>
-
-                        </div>
-
-
-                        <div>
-
-                            <h6 class="fw-bold mb-1"
-                                style="color:#5F5146;">
-
-                                Psychologist Assigned
-
-                            </h6>
-
-                            <p class="text-muted mb-0">
-
-                                Among the available psychologists,
-                                the psychologist with fewer appointments
-                                receives priority.
-
-                                If appointment counts are equal,
-                                alphabetical order is used.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================= Automatic Time Notice ================= -->
-
-            <div class="card border-0 shadow-sm rounded-4 mt-4"
-                 style="background:#F7F2ED;">
-
-                <div class="card-body p-4">
-
-                    <div class="d-flex align-items-start">
-
-                        <i class="bi bi-clock-fill fs-4 me-3"
-                           style="color:#A67C52;">
-                        </i>
-
-
-                        <div>
-
-                            <h6 class="fw-bold"
-                                style="color:#5F5146;">
-
-                                Automatic 1 Hour Session
-
-                            </h6>
-
-                            <p class="text-muted mb-0">
-
-                                You only select the starting time.
-
-                                For example, if you select
-                                10:00 AM, the system automatically
-                                schedules the session from
-                                10:00 AM to 11:00 AM.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
     </div>
-
 </div>
 
-
-@section Scripts
-{
-    <partial name="_ValidationScriptsPartial" />
-
-
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
-
-        // ================= Select Suggested Time =================
-
         function selectSuggestedTime(time) {
-            document.getElementById(
-                "StartTime"
-            ).value = time;
-
-
-            document.getElementById(
-                "StartTime"
-            ).scrollIntoView(
-                {
-                    behavior: "smooth",
-                    block: "center"
-                }
-            );
+            var startInput = document.getElementById("StartTime");
+            if (startInput) {
+                startInput.value = time;
+                startInput.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
         }
-
     </script>
 }

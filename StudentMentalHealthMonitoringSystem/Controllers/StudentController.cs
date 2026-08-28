@@ -2291,7 +2291,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // ================= Appointment GET =================
 
         [HttpGet]
-        public IActionResult Appointment()
+        public async Task<IActionResult> Appointment()
         {
             var studentId =
                 HttpContext.Session.GetInt32(
@@ -2304,6 +2304,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login"
                 );
             }
+
+            // Check if student already has an active, pending, or scheduled appointment
+            var activeAppointment = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId.Value && c.Status != "Completed" && c.Status != "Cancelled")
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .FirstOrDefaultAsync();
+
+            ViewBag.ActiveAppointment = activeAppointment;
 
             var model =
                 new AppointmentViewModel
@@ -2336,6 +2346,26 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction(
                     "Login"
                 );
+            }
+
+            // Check if student already has an active, pending, or scheduled appointment
+            var activeAppointment = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId.Value && c.Status != "Completed" && c.Status != "Cancelled")
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .FirstOrDefaultAsync();
+
+            if (activeAppointment != null)
+            {
+                ViewBag.ActiveAppointment = activeAppointment;
+                TempData["Error"] = "Appointment already scheduled! You cannot request a new appointment while an active or pending appointment exists.";
+                ModelState.AddModelError(
+                    "",
+                    "Appointment already scheduled! You already have an active or pending counseling appointment."
+                );
+
+                return View(model);
             }
 
 

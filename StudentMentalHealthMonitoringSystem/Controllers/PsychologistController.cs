@@ -2312,50 +2312,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
 
-        // =========================================================
-        // PROFILE
-        // =========================================================
 
-        public IActionResult Profile()
-        {
-            // ================= Check Session =================
-
-            var psychologistId =
-                HttpContext.Session.GetInt32(
-                    "PsychologistId"
-                );
-
-
-            if (psychologistId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-
-            // ================= Get Psychologist =================
-
-            var psychologist =
-                _context.Psychologists
-                    .FirstOrDefault(
-                        p => p.PsychologistId ==
-                             psychologistId.Value
-                    );
-
-
-            if (psychologist == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-
-            return View(
-                psychologist
-            );
-        }
 
 
         // =========================================================
@@ -2635,6 +2592,148 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             var model = ProgressScoringService.BuildDetailViewModel(report, obsList);
             return View(model);
+        }
+
+        // =========================================================
+        // PSYCHOLOGIST PROFILE
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
+
+            if (psychologist == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Statistics for Psychologist Profile
+            ViewBag.TotalCounselings = await _context.Counselings
+                .CountAsync(c => c.PsychologistId == psychologistId.Value);
+
+            ViewBag.CompletedCounselings = await _context.Counselings
+                .CountAsync(c => c.PsychologistId == psychologistId.Value && c.Status == "Completed");
+
+            ViewBag.UpcomingCounselings = await _context.Counselings
+                .CountAsync(c => c.PsychologistId == psychologistId.Value && c.Status == "Scheduled");
+
+            ViewBag.ActivePatients = await _context.Counselings
+                .Where(c => c.PsychologistId == psychologistId.Value)
+                .Select(c => c.StudentId)
+                .Distinct()
+                .CountAsync();
+
+            ViewBag.TotalObservationReports = await _context.ObservationReports
+                .CountAsync(o => o.PsychologistId == psychologistId.Value);
+
+            return View(psychologist);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(Psychologist model)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
+
+            if (psychologist == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Validate non-password fields
+            if (string.IsNullOrWhiteSpace(model.FullName))
+            {
+                ModelState.AddModelError("FullName", "Full Name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Phone))
+            {
+                ModelState.AddModelError("Phone", "Phone number is required.");
+            }
+
+            // Update image if uploaded
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(model.ImageFile.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError("ImageFile", "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+                else
+                {
+                    var uploadFolder = Path.Combine(_environment.WebRootPath, "images", "psychologists");
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(model.ImageFile.FileName)}";
+                    var filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.ImageFile.CopyToAsync(fileStream);
+                    }
+
+                    psychologist.ProfileImage = $"/images/psychologists/{uniqueFileName}";
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Re-calculate statistics for the view
+                ViewBag.TotalCounselings = await _context.Counselings
+                    .CountAsync(c => c.PsychologistId == psychologistId.Value);
+                ViewBag.CompletedCounselings = await _context.Counselings
+                    .CountAsync(c => c.PsychologistId == psychologistId.Value && c.Status == "Completed");
+                ViewBag.UpcomingCounselings = await _context.Counselings
+                    .CountAsync(c => c.PsychologistId == psychologistId.Value && c.Status == "Scheduled");
+                ViewBag.ActivePatients = await _context.Counselings
+                    .Where(c => c.PsychologistId == psychologistId.Value)
+                    .Select(c => c.StudentId)
+                    .Distinct()
+                    .CountAsync();
+                ViewBag.TotalObservationReports = await _context.ObservationReports
+                    .CountAsync(o => o.PsychologistId == psychologistId.Value);
+
+                return View(psychologist);
+            }
+
+            // Update properties
+            psychologist.FullName = model.FullName.Trim();
+            psychologist.Phone = model.Phone.Trim();
+            psychologist.Specialization = model.Specialization?.Trim();
+            psychologist.Qualification = model.Qualification?.Trim();
+            psychologist.Experience = model.Experience;
+
+            // Optional password update
+            if (!string.IsNullOrWhiteSpace(model.Password) && model.Password.Length >= 8)
+            {
+                psychologist.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
+            }
+
+            await _context.SaveChangesAsync();
+            HttpContext.Session.SetString("PsychologistName", psychologist.FullName);
+            TempData["Success"] = "Profile updated successfully!";
+
+            return RedirectToAction("Profile");
         }
     }
 }
