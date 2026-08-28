@@ -1523,10 +1523,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.Observations =
                 observations;
 
+            ViewBag.ProgressDetail =
+                ProgressScoringService.BuildDetailViewModel(
+                    observationReport,
+                    observations
+                );
 
             ViewBag.DepartmentName =
                 department.DepartmentName;
-
 
             return View(
                 observationReport);

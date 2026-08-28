@@ -251,7 +251,14 @@ namespace StudentMentalHealthMonitoringSystem.Data
                         StudentId = student.StudentId,
                         PsychologistId = psychologist.PsychologistId,
                         InitialStatus = cfg.IsFinal ? "Severe" : "Moderate",
+                        CurrentStatus = cfg.IsFinal ? "Normal" : "Moderate",
+                        OverallProgressStatus = cfg.IsFinal ? "Improving" : "Improving",
+                        CurrentSafetyRisk = "No Current Risk",
+                        LatestAssessmentBasis = "Clinical Interview | PHQ-9 Baseline | Behavioral Observation",
+                        LatestRecommendedAction = cfg.IsFinal ? "Discharge from active counseling | Self-care routine" : "Schedule Follow-up Counseling | Continue CBT Exercises",
+                        LatestConditionSummary = cfg.IsFinal ? "Student has achieved recovery and normal functioning." : "Student is actively participating in counseling with steady progress.",
                         IsFinal = cfg.IsFinal,
+                        FinalizedAt = cfg.IsFinal ? DateTime.Now.AddDays(-12) : null,
                         CreatedAt = DateTime.Now.AddDays(-48),
                         UpdatedAt = DateTime.Now.AddDays(-60 + (sessionCount * 12))
                     };
@@ -260,7 +267,15 @@ namespace StudentMentalHealthMonitoringSystem.Data
                 else
                 {
                     obsReport.RootCounselingId = rootCounselingId;
+                    obsReport.InitialStatus = cfg.IsFinal ? "Severe" : "Moderate";
+                    obsReport.CurrentStatus = cfg.IsFinal ? "Normal" : "Moderate";
+                    obsReport.OverallProgressStatus = "Improving";
+                    obsReport.CurrentSafetyRisk = "No Current Risk";
+                    obsReport.LatestAssessmentBasis = "Clinical Interview | PHQ-9 Baseline | Behavioral Observation";
+                    obsReport.LatestRecommendedAction = cfg.IsFinal ? "Discharge from active counseling | Self-care routine" : "Schedule Follow-up Counseling | Continue CBT Exercises";
+                    obsReport.LatestConditionSummary = cfg.IsFinal ? "Student has achieved recovery and normal functioning." : "Student is actively participating in counseling with steady progress.";
                     obsReport.IsFinal = cfg.IsFinal;
+                    obsReport.FinalizedAt = cfg.IsFinal ? DateTime.Now.AddDays(-12) : null;
                     obsReport.UpdatedAt = DateTime.Now.AddDays(-60 + (sessionCount * 12));
                 }
                 context.SaveChanges();

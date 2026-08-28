@@ -84,10 +84,13 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public int CounselingObservationId { get; set; }
         public int CounselingId { get; set; }
         public int SessionNumber { get; set; }
+        public string SessionTitle => SessionNumber == 1 ? "Session 1 (Initial Assessment)" : $"Follow-up {SessionNumber - 1} (Session {SessionNumber})";
         public DateTime SessionDate { get; set; }
         public string CounselingTime { get; set; } = string.Empty;
 
         public double SessionScore { get; set; } // 0 to 100
+        public double PreviousScore { get; set; }
+        public double ScoreChange => SessionNumber == 1 ? 0 : Math.Round(SessionScore - PreviousScore, 1);
         public string SessionImprovementStatus { get; set; } = "Baseline"; // "Baseline", "Improved", "Stable", "Deteriorated"
         public string SessionBadgeClass => SessionImprovementStatus switch
         {
@@ -108,5 +111,11 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string EmotionalRegulation { get; set; } = string.Empty;
         public string ClinicalObservation { get; set; } = string.Empty;
         public string StudentReportedImprovement { get; set; } = string.Empty;
+        public string AssessmentBasis { get; set; } = string.Empty;
+        public string AssessmentSummary { get; set; } = string.Empty;
+        public string RecommendedAction { get; set; } = string.Empty;
+        public int? PHQScore { get; set; }
+        public string? PHQProjectStatus { get; set; }
+        public string? CSSRSRiskLevel { get; set; }
     }
 }

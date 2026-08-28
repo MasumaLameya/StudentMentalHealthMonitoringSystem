@@ -210,34 +210,23 @@ using (var scope = app.Services.CreateScope())
         }
         catch (Exception) { }
 
-        // Ensure ObservationReports table exists in engine
+        // Ensure ObservationReports and CounselingObservations tables are healthy in engine
+        bool obsTableHealthy = false;
         try
         {
-            context.Database.ExecuteSqlRaw(@"
-                CREATE TABLE IF NOT EXISTS `ObservationReports` (
-                  `ObservationReportId` int NOT NULL AUTO_INCREMENT,
-                  `RootCounselingId` int NOT NULL,
-                  `StudentId` int NOT NULL,
-                  `PsychologistId` int NOT NULL,
-                  `InitialStatus` varchar(50) NOT NULL,
-                  `CurrentStatus` varchar(50) NOT NULL,
-                  `OverallProgressStatus` varchar(50) NOT NULL,
-                  `CurrentSafetyRisk` varchar(50) NOT NULL,
-                  `LatestAssessmentBasis` text NOT NULL,
-                  `LatestRecommendedAction` text NOT NULL,
-                  `LatestConditionSummary` text NOT NULL,
-                  `IsFinal` tinyint(1) NOT NULL DEFAULT 0,
-                  `FinalizedAt` datetime(6) NULL,
-                  `CreatedAt` datetime(6) NOT NULL,
-                  `UpdatedAt` datetime(6) NOT NULL,
-                  PRIMARY KEY (`ObservationReportId`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-            ");
+            context.Database.ExecuteSqlRaw("SELECT 1 FROM `ObservationReports` LIMIT 1;");
+            obsTableHealthy = true;
         }
         catch
         {
+            obsTableHealthy = false;
+        }
+
+        if (!obsTableHealthy)
+        {
             try
             {
+                context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 0;");
                 context.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS `ObservationReports`;");
                 context.Database.ExecuteSqlRaw(@"
                     CREATE TABLE `ObservationReports` (
@@ -245,63 +234,41 @@ using (var scope = app.Services.CreateScope())
                       `RootCounselingId` int NOT NULL,
                       `StudentId` int NOT NULL,
                       `PsychologistId` int NOT NULL,
-                      `InitialStatus` varchar(50) NOT NULL,
-                      `CurrentStatus` varchar(50) NOT NULL,
-                      `OverallProgressStatus` varchar(50) NOT NULL,
-                      `CurrentSafetyRisk` varchar(50) NOT NULL,
+                      `InitialStatus` varchar(50) NOT NULL DEFAULT 'Not Assessed',
+                      `CurrentStatus` varchar(50) NOT NULL DEFAULT 'Not Assessed',
+                      `OverallProgressStatus` varchar(50) NOT NULL DEFAULT '',
+                      `CurrentSafetyRisk` varchar(50) NOT NULL DEFAULT '',
                       `LatestAssessmentBasis` text NOT NULL,
                       `LatestRecommendedAction` text NOT NULL,
                       `LatestConditionSummary` text NOT NULL,
                       `IsFinal` tinyint(1) NOT NULL DEFAULT 0,
                       `FinalizedAt` datetime(6) NULL,
-                      `CreatedAt` datetime(6) NOT NULL,
-                      `UpdatedAt` datetime(6) NOT NULL,
+                      `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                      `UpdatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                       PRIMARY KEY (`ObservationReportId`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
                 ");
+                context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 1;");
             }
             catch { }
         }
 
-        // Ensure CounselingObservations table exists in engine
+        bool counselingObsTableHealthy = false;
         try
         {
-            context.Database.ExecuteSqlRaw(@"
-                CREATE TABLE IF NOT EXISTS `CounselingObservations` (
-                  `CounselingObservationId` int NOT NULL AUTO_INCREMENT,
-                  `CounselingId` int NOT NULL,
-                  `RootCounselingId` int NOT NULL,
-                  `StudentId` int NOT NULL,
-                  `PsychologistId` int NOT NULL,
-                  `OverallProgressStatus` varchar(50) NOT NULL,
-                  `CurrentMentalHealthStatus` varchar(50) NOT NULL,
-                  `PHQScore` int NULL,
-                  `PHQOfficialInterpretation` varchar(100) NULL,
-                  `PHQProjectStatus` varchar(50) NULL,
-                  `CSSRSRiskLevel` varchar(50) NULL,
-                  `CSSRSProjectStatus` varchar(50) NULL,
-                  `AcademicFunctioning` varchar(50) NOT NULL,
-                  `SleepCondition` varchar(50) NOT NULL,
-                  `SocialInteraction` varchar(50) NOT NULL,
-                  `DailyActivities` varchar(50) NOT NULL,
-                  `EmotionalRegulation` varchar(50) NOT NULL,
-                  `CurrentSafetyRisk` varchar(50) NOT NULL,
-                  `AssessmentBasis` text NOT NULL,
-                  `ClinicalObservation` text NOT NULL,
-                  `StudentReportedImprovement` varchar(50) NOT NULL,
-                  `AssessmentSummary` text NOT NULL,
-                  `RecommendedAction` text NOT NULL,
-                  `FollowUpRequired` tinyint(1) NOT NULL,
-                  `CreatedAt` datetime(6) NOT NULL,
-                  `UpdatedAt` datetime(6) NULL,
-                  PRIMARY KEY (`CounselingObservationId`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-            ");
+            context.Database.ExecuteSqlRaw("SELECT 1 FROM `CounselingObservations` LIMIT 1;");
+            counselingObsTableHealthy = true;
         }
         catch
         {
+            counselingObsTableHealthy = false;
+        }
+
+        if (!counselingObsTableHealthy)
+        {
             try
             {
+                context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 0;");
                 context.Database.ExecuteSqlRaw("DROP TABLE IF EXISTS `CounselingObservations`;");
                 context.Database.ExecuteSqlRaw(@"
                     CREATE TABLE `CounselingObservations` (
@@ -310,30 +277,31 @@ using (var scope = app.Services.CreateScope())
                       `RootCounselingId` int NOT NULL,
                       `StudentId` int NOT NULL,
                       `PsychologistId` int NOT NULL,
-                      `OverallProgressStatus` varchar(50) NOT NULL,
-                      `CurrentMentalHealthStatus` varchar(50) NOT NULL,
+                      `OverallProgressStatus` varchar(50) NOT NULL DEFAULT '',
+                      `CurrentMentalHealthStatus` varchar(50) NOT NULL DEFAULT '',
                       `PHQScore` int NULL,
                       `PHQOfficialInterpretation` varchar(100) NULL,
                       `PHQProjectStatus` varchar(50) NULL,
                       `CSSRSRiskLevel` varchar(50) NULL,
                       `CSSRSProjectStatus` varchar(50) NULL,
-                      `AcademicFunctioning` varchar(50) NOT NULL,
-                      `SleepCondition` varchar(50) NOT NULL,
-                      `SocialInteraction` varchar(50) NOT NULL,
-                      `DailyActivities` varchar(50) NOT NULL,
-                      `EmotionalRegulation` varchar(50) NOT NULL,
-                      `CurrentSafetyRisk` varchar(50) NOT NULL,
+                      `AcademicFunctioning` varchar(50) NOT NULL DEFAULT '',
+                      `SleepCondition` varchar(50) NOT NULL DEFAULT '',
+                      `SocialInteraction` varchar(50) NOT NULL DEFAULT '',
+                      `DailyActivities` varchar(50) NOT NULL DEFAULT '',
+                      `EmotionalRegulation` varchar(50) NOT NULL DEFAULT '',
+                      `CurrentSafetyRisk` varchar(50) NOT NULL DEFAULT '',
                       `AssessmentBasis` text NOT NULL,
                       `ClinicalObservation` text NOT NULL,
-                      `StudentReportedImprovement` varchar(50) NOT NULL,
+                      `StudentReportedImprovement` varchar(50) NOT NULL DEFAULT '',
                       `AssessmentSummary` text NOT NULL,
                       `RecommendedAction` text NOT NULL,
-                      `FollowUpRequired` tinyint(1) NOT NULL,
-                      `CreatedAt` datetime(6) NOT NULL,
+                      `FollowUpRequired` tinyint(1) NOT NULL DEFAULT 0,
+                      `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                       `UpdatedAt` datetime(6) NULL,
                       PRIMARY KEY (`CounselingObservationId`)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
                 ");
+                context.Database.ExecuteSqlRaw("SET FOREIGN_KEY_CHECKS = 1;");
             }
             catch { }
         }

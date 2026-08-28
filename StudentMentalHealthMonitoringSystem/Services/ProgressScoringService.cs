@@ -39,9 +39,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
             // 3. Functional Status (5 components, Max 25 pts total -> 5 pts each)
             double FuncScore(string val) => val switch
             {
-                "Normal" => 5.0,
-                "Moderately Affected" => 3.3,
-                "Severely Affected" => 1.6,
+                "Normal" or "Normal Functioning" => 5.0,
+                "Moderately Affected" or "Moderately Impaired" or "Slightly Impaired" => 3.3,
+                "Severely Affected" or "Significantly Impaired" => 1.6,
                 "Extremely Affected" => 0.0,
                 _ => 3.0
             };
@@ -65,9 +65,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             double studentImprovementPts = obs.StudentReportedImprovement switch
             {
-                "Significantly Improved" => 12.5,
-                "Partially Improved" => 9.5,
-                "No Change" => 6.0,
+                "Significantly Improved" or "Significant Improvement" => 12.5,
+                "Partially Improved" or "Moderate Improvement" or "Slight Improvement" => 9.5,
+                "No Change" or "No Improvement Yet" => 6.0,
                 "Unable to Determine" => 6.0,
                 "Condition Worsened" => 0.0,
                 _ => 6.0
@@ -121,6 +121,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
                 var obs = sortedObservations[i];
                 double score = CalculateObservationScore(obs);
                 string impStatus = DetermineSessionImprovement(score, prevScore, i == 0);
+                double priorScore = prevScore;
                 prevScore = score;
 
                 var counselingDate = obs.Counseling?.CounselingDate ?? obs.CreatedAt;
@@ -136,6 +137,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     SessionDate = counselingDate,
                     CounselingTime = counselingTimeStr,
                     SessionScore = score,
+                    PreviousScore = priorScore,
                     SessionImprovementStatus = impStatus,
                     OverallProgressStatus = obs.OverallProgressStatus,
                     MentalHealthStatus = obs.CurrentMentalHealthStatus,
@@ -146,7 +148,13 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     DailyActivities = obs.DailyActivities,
                     EmotionalRegulation = obs.EmotionalRegulation,
                     ClinicalObservation = obs.ClinicalObservation,
-                    StudentReportedImprovement = obs.StudentReportedImprovement
+                    StudentReportedImprovement = obs.StudentReportedImprovement,
+                    AssessmentBasis = obs.AssessmentBasis,
+                    AssessmentSummary = obs.AssessmentSummary,
+                    RecommendedAction = obs.RecommendedAction,
+                    PHQScore = obs.PHQScore,
+                    PHQProjectStatus = obs.PHQProjectStatus,
+                    CSSRSRiskLevel = obs.CSSRSRiskLevel
                 });
             }
 

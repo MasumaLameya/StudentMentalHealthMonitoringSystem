@@ -1230,6 +1230,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.Observations =
                 observations;
 
+            ViewBag.ProgressDetail =
+                ProgressScoringService.BuildDetailViewModel(
+                    observationReport,
+                    observations
+                );
 
             return View(
                 observationReport
