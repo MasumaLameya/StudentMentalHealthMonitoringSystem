@@ -1,0 +1,153 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentAIDetailsViewModel
+
+@{
+    ViewData["Title"] = "AI Session Transcript & Guidance";
+}
+
+<style>
+    .student-app-bg {
+        background: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    /* Chat bubble styling */
+    .chat-bubble-user {
+        background: #EFF6FF;
+        border: 1px solid #DBEAFE;
+        border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+        padding: 1rem 1.25rem;
+        max-width: 80%;
+        margin-left: auto;
+        color: #1E3A8A;
+    }
+
+    .chat-bubble-ai {
+        background: #F1F5F9;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+        padding: 1rem 1.25rem;
+        max-width: 80%;
+        margin-right: auto;
+        color: #0F172A;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                @await Html.PartialAsync("_StudentSidebar")
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%); color: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-bold">
+                                <i class="bi @(Model.SessionType == "Voice Bot" ? "bi-mic-fill text-success" : "bi-robot text-primary") me-1"></i>
+                                @Model.SessionType Session #@Model.SessionId
+                            </div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-chat-quote me-2"></i>Consultation Dialogue &amp; Insights
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Recorded on @Model.StartedAt.ToString("dd MMMM, yyyy - hh:mm tt")</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
+                                <i class="bi bi-printer me-1"></i> Print Transcript
+                            </button>
+                            <a href="/Student/AIHistory" class="btn btn-light rounded-pill px-4 py-2 fw-semibold shadow-sm text-dark">
+                                <i class="bi bi-arrow-left me-1"></i> Back to History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinical & Coping Insights Card -->
+                <div class="glass-card p-4 mb-4" style="background: #FAF8F5; border-left: 5px solid #4338CA;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-stars text-warning me-1"></i> AI Wellness Insights &amp; Coping Recommendations
+                        </h5>
+                        <span class="badge @(Model.RiskStatus == "Normal" ? "bg-success" : Model.RiskStatus == "Moderate" ? "bg-warning text-dark" : "bg-danger") rounded-pill px-3 py-1.5">
+                            Status: @Model.RiskStatus
+                        </span>
+                    </div>
+                    <p class="text-secondary small mb-3">@Model.Summary</p>
+
+                    <div class="p-3 bg-white rounded-3 border">
+                        <strong class="text-primary d-block mb-1"><i class="bi bi-heart-pulse me-1"></i> Prescribed Mindfulness Exercise:</strong>
+                        <p class="mb-0 text-dark small">@Model.CopingAdvice</p>
+                    </div>
+                </div>
+
+                <!-- Conversation Messages -->
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">
+                        <i class="bi bi-chat-left-dots me-2 text-primary"></i> Session Transcript Log
+                    </h5>
+
+                    @if (Model.SessionType == "Voice Bot" && Model.VoiceTranscripts.Any())
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var t in Model.VoiceTranscripts)
+                            {
+                                bool isStudent = t.Speaker == "Student";
+                                <div class="d-flex flex-column @(isStudent ? "align-items-end" : "align-items-start")">
+                                    <div class="@(isStudent ? "chat-bubble-user" : "chat-bubble-ai") shadow-sm">
+                                        <div class="d-flex align-items-center gap-1 mb-1">
+                                            <i class="bi @(isStudent ? "bi-person-fill text-primary" : "bi-mic-fill text-success")"></i>
+                                            <strong style="font-size: 0.82rem;">@(isStudent ? "You (Student Voice)" : "Voice Bot Companion")</strong>
+                                        </div>
+                                        <div style="font-size: 0.95rem; line-height: 1.5;">@t.TranscriptText</div>
+                                    </div>
+                                    <small class="text-muted mt-1 px-2" style="font-size: 0.72rem;">@t.CreatedAt.ToString("hh:mm:ss tt")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (Model.SessionType == "AI Chat" && Model.ChatMessages.Any())
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var m in Model.ChatMessages)
+                            {
+                                bool isStudent = m.Sender == "Student";
+                                <div class="d-flex flex-column @(isStudent ? "align-items-end" : "align-items-start")">
+                                    <div class="@(isStudent ? "chat-bubble-user" : "chat-bubble-ai") shadow-sm">
+                                        <div class="d-flex align-items-center gap-1 mb-1">
+                                            <i class="bi @(isStudent ? "bi-person-fill text-primary" : "bi-robot text-primary")"></i>
+                                            <strong style="font-size: 0.82rem;">@(isStudent ? "You" : "AI Companion")</strong>
+                                        </div>
+                                        <div style="font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">@m.MessageText</div>
+                                    </div>
+                                    <small class="text-muted mt-1 px-2" style="font-size: 0.72rem;">@m.CreatedAt.ToString("hh:mm:ss tt")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <p class="mb-0">No recorded messages for this session.</p>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

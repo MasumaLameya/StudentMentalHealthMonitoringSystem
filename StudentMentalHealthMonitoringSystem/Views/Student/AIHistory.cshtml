@@ -1,0 +1,191 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentAIHistoryViewModel
+
+@{
+    ViewData["Title"] = "AI Telehealth & Coping History";
+}
+
+<style>
+    .student-app-bg {
+        background: #F8FAFC;
+        min-height: 100vh;
+        padding-bottom: 2rem;
+    }
+
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E2E8F0;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .ai-session-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ai-session-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+        border-color: #BFDBFE;
+    }
+</style>
+
+<div class="student-app-bg py-3">
+    <div class="container-fluid">
+        <div class="row g-4">
+
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                @await Html.PartialAsync("_StudentSidebar")
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col-lg-9">
+
+                <!-- Header Banner -->
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%); color: #ffffff;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-bold">
+                                <i class="bi bi-robot text-primary me-1"></i> AI Digital Self-Care
+                            </div>
+                            <h2 class="fw-bold mb-1 text-white">
+                                <i class="bi bi-chat-heart me-2"></i>AI Telehealth &amp; Coping History
+                            </h2>
+                            <p class="text-white-50 fs-6 mb-0">Review your past AI Companion chat conversations, live voice bot check-ins, and personalized coping advice.</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="/Student/Reports" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left me-1"></i> Reports Hub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Summary Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="glass-card p-3 text-center h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Total AI Sessions</small>
+                            <h3 class="fw-bold mb-0 text-primary">@Model.TotalSessions</h3>
+                            <small class="text-muted">Interactions</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="glass-card p-3 text-center h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">AI Companion Chats</small>
+                            <h3 class="fw-bold mb-0" style="color: #4F46E5;">@Model.TotalChatSessions</h3>
+                            <small class="text-muted">Text Conversations</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="glass-card p-3 text-center h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Live Voice Bot Consultations</small>
+                            <h3 class="fw-bold mb-0 text-success">@Model.TotalVoiceSessions</h3>
+                            <small class="text-muted">Acoustic Audio Calls</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="glass-card p-3 text-center h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Emotional State</small>
+                            <h4 class="fw-bold mb-0 @(Model.DominantEmotionalState == "Stable" ? "text-success" : "text-warning")">
+                                <i class="bi @(Model.DominantEmotionalState == "Stable" ? "bi-emoji-smile-fill" : "bi-heart-pulse-fill") me-1"></i>
+                                @Model.DominantEmotionalState
+                            </h4>
+                            <small class="text-muted">Current Trajectory</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Toolbar -->
+                <div class="glass-card p-3 mb-4">
+                    <form method="get" asp-controller="Student" asp-action="AIHistory" class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-funnel text-primary fs-5"></i>
+                            <span class="fw-bold text-dark">Filter Session Type:</span>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a href="/Student/AIHistory?type=All" class="btn btn-sm @(Model.SelectedType == "All" ? "btn-primary fw-bold" : "btn-outline-secondary")">
+                                All Sessions (@Model.TotalSessions)
+                            </a>
+                            <a href="/Student/AIHistory?type=Chat" class="btn btn-sm @(Model.SelectedType == "Chat" ? "btn-primary fw-bold" : "btn-outline-secondary")">
+                                <i class="bi bi-chat-dots me-1"></i> AI Chat (@Model.TotalChatSessions)
+                            </a>
+                            <a href="/Student/AIHistory?type=Voice" class="btn btn-sm @(Model.SelectedType == "Voice" ? "btn-primary fw-bold" : "btn-outline-secondary")">
+                                <i class="bi bi-mic me-1"></i> Voice Bot (@Model.TotalVoiceSessions)
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sessions List -->
+                @if (Model.Sessions != null && Model.Sessions.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var s in Model.Sessions)
+                        {
+                            <div class="col-12">
+                                <div class="ai-session-card p-4">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="p-2 rounded-circle @(s.SessionType == "AI Chat" ? "bg-primary-subtle text-primary" : "bg-success-subtle text-success")">
+                                                <i class="bi @(s.SessionType == "AI Chat" ? "bi-robot" : "bi-mic-fill") fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="fw-bold mb-0 text-dark">@s.SessionType Session #@s.SessionId</h5>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>@s.StartedAt.ToString("MMM dd, yyyy - hh:mm tt")
+                                                    <span class="mx-1">•</span> @s.DurationText
+                                                    <span class="mx-1">•</span> @s.TotalExchanges exchanges
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge @(s.RiskStatus == "Normal" ? "bg-success" : s.RiskStatus == "Moderate" ? "bg-warning text-dark" : "bg-danger") rounded-pill px-3 py-1.5">
+                                                @s.RiskStatus Mood
+                                            </span>
+                                            <a asp-controller="Student" asp-action="AIDetails" asp-route-type="@(s.SessionType == "Voice Bot" ? "Voice" : "Chat")" asp-route-id="@s.SessionId"
+                                               class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                                View Transcript <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3 bg-light rounded-3 mb-2">
+                                        <small class="text-secondary fw-bold d-block text-uppercase mb-1" style="font-size: 0.72rem;">Session Summary &amp; Emotional Context:</small>
+                                        <p class="mb-0 text-dark small" style="line-height: 1.5;">@s.Summary</p>
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2 text-muted small mt-2">
+                                        <i class="bi bi-lightbulb-fill text-warning"></i>
+                                        <span><strong>Recommended Self-Care:</strong> @s.CopingAdvice</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="glass-card p-5 text-center">
+                        <i class="bi bi-chat-square-heart text-muted fs-1 mb-3 d-block"></i>
+                        <h5 class="fw-bold text-dark">No AI Telehealth Sessions Found</h5>
+                        <p class="text-muted mb-3">You haven't had any AI companion chats or voice bot sessions yet.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/Student/AIChat" class="btn btn-primary rounded-pill px-4">
+                                <i class="bi bi-robot me-1"></i> Start AI Chat
+                            </a>
+                            <a href="/VoiceBot/Index" class="btn btn-success rounded-pill px-4">
+                                <i class="bi bi-mic me-1"></i> Start Voice Bot
+                            </a>
+                        </div>
+                    </div>
+                }
+
+            </div>
+
+        </div>
+    </div>
+</div>

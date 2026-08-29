@@ -82,59 +82,77 @@
                 </div>
 
                 <div class="row g-4">
-                    <!-- Semester Report -->
-                    <div class="col-md-6 col-xl-3">
+                    <!-- 1. Semester Screening Report -->
+                    <div class="col-md-6">
                         <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="badge bg-primary-subtle text-primary p-3 rounded-circle mb-3">
-                                    <i class="bi bi-journal-text fs-3"></i>
+                                    <i class="bi bi-journal-text fs-2"></i>
                                 </div>
-                                <h5 class="fw-bold text-dark mb-2">Semester Report</h5>
-                                <p class="text-muted small mb-3">Comprehensive semester screening evaluation report.</p>
+                                <h4 class="fw-bold text-dark mb-2">Semester Screening Report</h4>
+                                <p class="text-muted fs-6 mb-4">
+                                    Comprehensive semester screening evaluation report including PHQ-9 depression scale and C-SSRS suicide risk classification.
+                                </p>
                             </div>
-                            <a href="/Student/SemesterScreening" class="btn btn-outline-primary w-100 rounded-3">View Report</a>
+                            <a href="/Student/SemesterScreening" class="btn btn-outline-primary btn-lg rounded-pill fw-semibold w-100 shadow-sm py-2.5">
+                                <i class="bi bi-file-earmark-text me-1"></i> View Semester Report
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Risk Assessment Report -->
-                    <div class="col-md-6 col-xl-3">
-                        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="badge bg-success-subtle text-success p-3 rounded-circle mb-3">
-                                    <i class="bi bi-activity fs-3"></i>
-                                </div>
-                                <h5 class="fw-bold text-dark mb-2">Risk Assessment</h5>
-                                <p class="text-muted small mb-3">AI & screening risk level evaluation summary.</p>
-                            </div>
-                            <a href="/Student/Progress" class="btn btn-outline-success w-100 rounded-3">View Report</a>
-                        </div>
-                    </div>
-
-                    <!-- Counseling Report -->
-                    <div class="col-md-6 col-xl-3">
+                    <!-- 2. Counseling & Progress Report -->
+                    <div class="col-md-6">
                         <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="badge bg-danger-subtle text-danger p-3 rounded-circle mb-3">
-                                    <i class="bi bi-heart-pulse fs-3"></i>
+                                    <i class="bi bi-heart-pulse fs-2"></i>
                                 </div>
-                                <h5 class="fw-bold text-dark mb-2">Counseling Report</h5>
-                                <p class="text-muted small mb-3">Psychologist observation and session progress logs.</p>
+                                <h4 class="fw-bold text-dark mb-2">Counseling &amp; Clinical Progress Report</h4>
+                                <p class="text-muted fs-6 mb-4">
+                                    Psychologist observation notes, session-by-session improvement indicators, coping guidance, and recovery trajectory.
+                                </p>
                             </div>
-                            <a href="/Student/Progress" class="btn btn-outline-danger w-100 rounded-3">View Report</a>
+                            <a href="/Student/Progress" class="btn btn-outline-danger btn-lg rounded-pill fw-semibold w-100 shadow-sm py-2.5">
+                                <i class="bi bi-graph-up-arrow me-1"></i> View Counseling Report
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Overall Summary Report -->
-                    <div class="col-md-6 col-xl-3">
-                        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between">
+                    <!-- 3. Official Screening Clearance Certificate -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between border-success-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%);">
                             <div>
-                                <div class="badge bg-info-subtle text-info p-3 rounded-circle mb-3">
-                                    <i class="bi bi-file-earmark-check fs-3"></i>
+                                <div class="badge bg-success-subtle text-success p-3 rounded-circle mb-3">
+                                    <i class="bi bi-patch-check-fill fs-2"></i>
                                 </div>
-                                <h5 class="fw-bold text-dark mb-2">Overall Summary</h5>
-                                <p class="text-muted small mb-3">Cumulative mental health progress and recovery trajectory.</p>
+                                <div class="badge bg-success text-white rounded-pill px-3 py-1 mb-2">Official Certificate</div>
+                                <h4 class="fw-bold text-dark mb-2">Screening Clearance Certificate</h4>
+                                <p class="text-muted fs-6 mb-4">
+                                    Official institutional certificate verifying completion of mandatory semester mental health screening for course registration.
+                                </p>
                             </div>
-                            <a href="/Student/Progress" class="btn btn-outline-info w-100 rounded-3">View Report</a>
+                            <a href="/Student/ClearanceCertificate" class="btn btn-success btn-lg rounded-pill fw-semibold w-100 shadow-sm py-2.5 text-white">
+                                <i class="bi bi-award-fill me-1"></i> View Official Certificate
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 4. AI Telehealth & Coping History -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 text-center h-100 d-flex flex-column justify-content-between border-primary-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #EEF2FF 100%);">
+                            <div>
+                                <div class="badge p-3 rounded-circle mb-3" style="background: #E0E7FF; color: #4338CA;">
+                                    <i class="bi bi-chat-heart-fill fs-2"></i>
+                                </div>
+                                <div class="badge rounded-pill px-3 py-1 mb-2 text-white" style="background: #4338CA;">Digital Care</div>
+                                <h4 class="fw-bold text-dark mb-2">AI Telehealth &amp; Coping History</h4>
+                                <p class="text-muted fs-6 mb-4">
+                                    Confidential consultation history from 24/7 AI Companion chat and Live Voice Bot sessions with personalized coping advice.
+                                </p>
+                            </div>
+                            <a href="/Student/AIHistory" class="btn btn-lg rounded-pill fw-semibold w-100 shadow-sm py-2.5 text-white" style="background: #4338CA;">
+                                <i class="bi bi-robot me-1"></i> View AI Telehealth History
+                            </a>
                         </div>
                     </div>
                 </div>

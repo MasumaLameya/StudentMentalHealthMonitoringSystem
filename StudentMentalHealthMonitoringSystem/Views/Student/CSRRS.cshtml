@@ -169,8 +169,27 @@
                                             <p class="text-muted small mb-0">Have you done anything, started to do anything, or prepared to do anything to end your life?</p>
                                             <span asp-validation-for="Question6Answer" class="text-danger small d-block"></span>
                                         </td>
-                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="true" class="form-check-input" /></td>
-                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="false" class="form-check-input" /></td>
+                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="true" class="form-check-input" id="q6Yes" /></td>
+                                        <td class="text-center"><input asp-for="Question6Answer" type="radio" value="false" class="form-check-input" id="q6No" /></td>
+                                    </tr>
+                                    <!-- Q6 Sub-Question: Recent Behavior (Past 3 Months) -->
+                                    <tr id="recentBehaviorRow" style="@(Model?.Question6Answer == true ? "" : "display:none;")" class="bg-light border-start border-3 border-danger">
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-arrow-return-right text-danger fs-5"></i>
+                                                <div>
+                                                    <strong class="text-danger">Was this behaviour within the past three months?</strong>
+                                                    <p class="text-muted small mb-0">Please specify whether the suicidal behaviour, attempt, or preparatory act occurred within the past 3 months.</p>
+                                                    <span asp-validation-for="RecentBehavior" class="text-danger small d-block"></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <input asp-for="RecentBehavior" type="radio" value="true" class="form-check-input" id="recentBehaviorYes" />
+                                        </td>
+                                        <td class="text-center">
+                                            <input asp-for="RecentBehavior" type="radio" value="false" class="form-check-input" id="recentBehaviorNo" />
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -195,4 +214,28 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const q6Yes = document.getElementById('q6Yes');
+            const q6No = document.getElementById('q6No');
+            const recentRow = document.getElementById('recentBehaviorRow');
+            const recentYes = document.getElementById('recentBehaviorYes');
+            const recentNo = document.getElementById('recentBehaviorNo');
+
+            function toggleRecentBehavior() {
+                if (q6Yes && q6Yes.checked) {
+                    recentRow.style.display = '';
+                } else {
+                    recentRow.style.display = 'none';
+                    if (recentYes) recentYes.checked = false;
+                    if (recentNo) recentNo.checked = false;
+                }
+            }
+
+            if (q6Yes) q6Yes.addEventListener('change', toggleRecentBehavior);
+            if (q6No) q6No.addEventListener('change', toggleRecentBehavior);
+
+            toggleRecentBehavior();
+        });
+    </script>
 }

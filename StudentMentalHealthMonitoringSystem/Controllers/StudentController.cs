@@ -1425,6 +1425,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 model.RecentBehavior == null)
             {
                 ModelState.AddModelError(
+                    nameof(CSSRSAssessment.RecentBehavior),
+                    "Please specify whether the behaviour occurred within the past three months."
+                );
+
+                ModelState.AddModelError(
                     "",
                     "Please specify whether the behaviour occurred within the past three months."
                 );
@@ -2947,6 +2952,291 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         public IActionResult Reports()
         {
             return View();
+        }
+
+        // =====================================================
+        // OFFICIAL CLEARANCE CERTIFICATE
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> ClearanceCertificate(string? semester)
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FindAsync(studentId.Value);
+            if (student == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var availableSemestersFromPHQ = await _context.PHQAssessments
+                .Where(p => p.StudentId == student.StudentId && !string.IsNullOrEmpty(p.Semester))
+                .Select(p => p.Semester!)
+                .Distinct()
+                .ToListAsync();
+
+            var availableSemestersFromCSSRS = await _context.CSSRSAssessments
+                .Where(c => c.StudentId == student.StudentId && !string.IsNullOrEmpty(c.Semester))
+                .Select(c => c.Semester!)
+                .Distinct()
+                .ToListAsync();
+
+            var availableSemesters = availableSemestersFromPHQ
+                .Union(availableSemestersFromCSSRS)
+                .Distinct()
+                .OrderByDescending(s => s)
+                .ToList();
+
+            if (!availableSemesters.Contains(student.ActiveSemester))
+            {
+                availableSemesters.Insert(0, student.ActiveSemester);
+            }
+
+            var currentSem = string.IsNullOrWhiteSpace(semester) ? student.ActiveSemester : semester.Trim();
+
+            var phq = await _context.PHQAssessments
+                .Where(p => p.StudentId == student.StudentId && p.Semester == currentSem)
+                .OrderByDescending(p => p.AssessmentDate)
+                .FirstOrDefaultAsync();
+
+            var cssrs = await _context.CSSRSAssessments
+                .Where(c => c.StudentId == student.StudentId && c.Semester == currentSem)
+                .OrderByDescending(c => c.AssessmentDate)
+                .FirstOrDefaultAsync();
+
+            var semCode = currentSem.Replace(" ", "-").ToUpper();
+            var certCode = $"SMHMS-CERT-{semCode}-STU{student.StudentId:D4}";
+            var verificationToken = $"{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}-{student.StudentId:D3}";
+
+            var model = new StudentClearanceCertificateViewModel
+            {
+                StudentId = student.StudentId,
+                FullName = student.FullName,
+                StudentIdNumber = student.StudentIdNumber ?? $"STU-{student.StudentId}",
+                Department = student.Department ?? "General",
+                SelectedSemester = currentSem,
+                AvailableSemesters = availableSemesters,
+                CertificateNumber = certCode,
+                IssuedDate = DateTime.Now,
+                HasCompletedPHQ = phq != null,
+                PHQCompletionDate = phq?.AssessmentDate,
+                PHQSeverityLevel = phq?.SeverityLevel ?? "Not Completed",
+                HasCompletedCSSRS = cssrs != null,
+                CSSRSCompletionDate = cssrs?.AssessmentDate,
+                CSSRSRiskLevel = cssrs?.RiskLevel ?? "Not Completed",
+                VerificationCode = verificationToken
+            };
+
+            return View(model);
+        }
+
+        // =====================================================
+        // AI TELEHEALTH & COPING HISTORY
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> AIHistory(string? type)
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var selType = string.IsNullOrWhiteSpace(type) ? "All" : type.Trim();
+
+            // Load Chat Sessions
+            var chatSessions = await _context.ChatSessions
+                .Where(s => s.StudentId == studentId.Value)
+                .OrderByDescending(s => s.StartedAt)
+                .ToListAsync();
+
+            // Load Voice Bot Sessions
+            var voiceSessions = await _context.VoiceBotSessions
+                .Where(v => v.StudentId == studentId.Value)
+                .OrderByDescending(v => v.StartedAt)
+                .ToListAsync();
+
+            var sessionList = new List<StudentAISessionItemViewModel>();
+
+            // Process Chat Sessions
+            foreach (var cs in chatSessions)
+            {
+                var msgCount = await _context.ChatMessages.CountAsync(m => m.ChatSessionId == cs.ChatSessionId);
+                var risk = await _context.ChatRiskAssessments
+                    .Where(r => r.ChatSessionId == cs.ChatSessionId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                var dur = cs.EndedAt.HasValue
+                    ? $"{(int)(cs.EndedAt.Value - cs.StartedAt).TotalMinutes} mins"
+                    : "Ongoing / Completed";
+
+                sessionList.Add(new StudentAISessionItemViewModel
+                {
+                    SessionId = cs.ChatSessionId,
+                    SessionType = "AI Chat",
+                    StartedAt = cs.StartedAt,
+                    EndedAt = cs.EndedAt,
+                    DurationText = dur,
+                    TotalExchanges = msgCount,
+                    RiskStatus = risk?.RiskStatus ?? "Normal",
+                    Summary = !string.IsNullOrEmpty(cs.Summary) ? cs.Summary : (risk?.Summary ?? "Routine wellness companion interaction."),
+                    CopingAdvice = "Deep breathing, grounding 5-4-3-2-1 technique, and daily journaling."
+                });
+            }
+
+            // Process Voice Sessions
+            foreach (var vs in voiceSessions)
+            {
+                var tCount = await _context.VoiceBotTranscripts.CountAsync(t => t.VoiceBotSessionId == vs.VoiceBotSessionId);
+                var vReport = await _context.VoiceBotReports
+                    .Where(r => r.VoiceBotSessionId == vs.VoiceBotSessionId)
+                    .OrderByDescending(r => r.LastUpdatedAt)
+                    .FirstOrDefaultAsync();
+
+                var dur = vs.EndedAt.HasValue
+                    ? $"{(int)(vs.EndedAt.Value - vs.StartedAt).TotalMinutes} mins"
+                    : "Completed call";
+
+                var status = !string.IsNullOrEmpty(vReport?.FinalStatus) ? vReport.FinalStatus : (vs.CurrentStatus ?? "Normal");
+                var summary = !string.IsNullOrEmpty(vReport?.FinalSummary) ? vReport.FinalSummary : (vs.CurrentSummary ?? "Acoustic wellness check-in.");
+
+                sessionList.Add(new StudentAISessionItemViewModel
+                {
+                    SessionId = vs.VoiceBotSessionId,
+                    SessionType = "Voice Bot",
+                    StartedAt = vs.StartedAt,
+                    EndedAt = vs.EndedAt,
+                    DurationText = dur,
+                    TotalExchanges = tCount,
+                    RiskStatus = status,
+                    Summary = summary,
+                    CopingAdvice = "Progressive muscle relaxation, positive self-affirmation, and regular sleep schedule."
+                });
+            }
+
+            var allSorted = sessionList.OrderByDescending(s => s.StartedAt).ToList();
+
+            if (selType == "Chat")
+            {
+                allSorted = allSorted.Where(s => s.SessionType == "AI Chat").ToList();
+            }
+            else if (selType == "Voice")
+            {
+                allSorted = allSorted.Where(s => s.SessionType == "Voice Bot").ToList();
+            }
+
+            var model = new StudentAIHistoryViewModel
+            {
+                TotalSessions = sessionList.Count,
+                TotalChatSessions = chatSessions.Count,
+                TotalVoiceSessions = voiceSessions.Count,
+                SelectedType = selType,
+                DominantEmotionalState = sessionList.Any(s => s.RiskStatus == "Severe" || s.RiskStatus == "Extremely Severe") ? "Needs Care" : "Stable",
+                Sessions = allSorted
+            };
+
+            return View(model);
+        }
+
+        // =====================================================
+        // AI TELEHEALTH CONVERSATION DETAILS
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> AIDetails(string type, int id)
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (string.Equals(type, "Voice", StringComparison.OrdinalIgnoreCase))
+            {
+                var session = await _context.VoiceBotSessions
+                    .FirstOrDefaultAsync(v => v.VoiceBotSessionId == id && v.StudentId == studentId.Value);
+
+                if (session == null)
+                {
+                    return NotFound();
+                }
+
+                var report = await _context.VoiceBotReports
+                    .Where(r => r.VoiceBotSessionId == id)
+                    .OrderByDescending(r => r.LastUpdatedAt)
+                    .FirstOrDefaultAsync();
+
+                var transcripts = await _context.VoiceBotTranscripts
+                    .Where(t => t.VoiceBotSessionId == id)
+                    .OrderBy(t => t.CreatedAt)
+                    .Select(t => new VoiceTranscriptItemViewModel
+                    {
+                        Speaker = t.Speaker,
+                        TranscriptText = t.TranscriptText,
+                        CreatedAt = t.CreatedAt
+                    })
+                    .ToListAsync();
+
+                var vm = new StudentAIDetailsViewModel
+                {
+                    SessionId = session.VoiceBotSessionId,
+                    SessionType = "Voice Bot",
+                    StartedAt = session.StartedAt,
+                    EndedAt = session.EndedAt,
+                    RiskStatus = report?.FinalStatus ?? session.CurrentStatus ?? "Normal",
+                    Summary = report?.FinalSummary ?? session.CurrentSummary ?? "Acoustic live consultation summary.",
+                    CopingAdvice = "Keep a relaxed posture, practice 4-7-8 breathing exercises, and stay connected with campus support.",
+                    VoiceTranscripts = transcripts
+                };
+
+                return View(vm);
+            }
+            else
+            {
+                var session = await _context.ChatSessions
+                    .FirstOrDefaultAsync(s => s.ChatSessionId == id && s.StudentId == studentId.Value);
+
+                if (session == null)
+                {
+                    return NotFound();
+                }
+
+                var risk = await _context.ChatRiskAssessments
+                    .Where(r => r.ChatSessionId == id)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                var messages = await _context.ChatMessages
+                    .Where(m => m.ChatSessionId == id)
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => new ChatMessageItemViewModel
+                    {
+                        Sender = m.Sender,
+                        MessageText = m.MessageText,
+                        CreatedAt = m.CreatedAt
+                    })
+                    .ToListAsync();
+
+                var vm = new StudentAIDetailsViewModel
+                {
+                    SessionId = session.ChatSessionId,
+                    SessionType = "AI Chat",
+                    StartedAt = session.StartedAt,
+                    EndedAt = session.EndedAt,
+                    RiskStatus = risk?.RiskStatus ?? "Normal",
+                    Summary = session.Summary ?? risk?.Summary ?? "Confidential AI Companion session.",
+                    CopingAdvice = "Focus on one manageable task at a time, take short study breaks, and maintain hydration.",
+                    ChatMessages = messages
+                };
+
+                return View(vm);
+            }
         }
 
         // =====================================================
