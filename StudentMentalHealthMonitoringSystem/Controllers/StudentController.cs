@@ -2955,11 +2955,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
         // =====================================================
-        // OFFICIAL CLEARANCE CERTIFICATE
+        // SEMESTER SCREENING CLEARANCE REPORT
         // =====================================================
 
         [HttpGet]
-        public async Task<IActionResult> ClearanceCertificate(string? semester)
+        public async Task<IActionResult> ScreeningClearance(string? semester)
         {
             var studentId = HttpContext.Session.GetInt32("StudentId");
             if (studentId == null)
@@ -3008,11 +3008,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 .OrderByDescending(c => c.AssessmentDate)
                 .FirstOrDefaultAsync();
 
-            var semCode = currentSem.Replace(" ", "-").ToUpper();
-            var certCode = $"SMHMS-CERT-{semCode}-STU{student.StudentId:D4}";
-            var verificationToken = $"{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}-{student.StudentId:D3}";
+            bool isCleared = phq != null && cssrs != null;
+            string remarks = isCleared
+                ? "All mandatory screening evaluations for this semester have been completed. Your academic course registration and semester promotion hold is removed."
+                : (phq == null && cssrs == null
+                    ? "Pending completion of both PHQ-9 and C-SSRS assessments. Please complete both screening modules to clear registration holds."
+                    : (phq == null
+                        ? "Pending completion of PHQ-9 depression screening assessment."
+                        : "Pending completion of C-SSRS suicide risk screening assessment."));
 
-            var model = new StudentClearanceCertificateViewModel
+            var model = new StudentScreeningClearanceViewModel
             {
                 StudentId = student.StudentId,
                 FullName = student.FullName,
@@ -3020,18 +3025,23 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 Department = student.Department ?? "General",
                 SelectedSemester = currentSem,
                 AvailableSemesters = availableSemesters,
-                CertificateNumber = certCode,
-                IssuedDate = DateTime.Now,
+                CheckedDate = DateTime.Now,
                 HasCompletedPHQ = phq != null,
                 PHQCompletionDate = phq?.AssessmentDate,
                 PHQSeverityLevel = phq?.SeverityLevel ?? "Not Completed",
                 HasCompletedCSSRS = cssrs != null,
                 CSSRSCompletionDate = cssrs?.AssessmentDate,
                 CSSRSRiskLevel = cssrs?.RiskLevel ?? "Not Completed",
-                VerificationCode = verificationToken
+                AdministrativeRemarks = remarks
             };
 
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ClearanceCertificate(string? semester)
+        {
+            return RedirectToAction("ScreeningClearance", new { semester });
         }
 
         // =====================================================

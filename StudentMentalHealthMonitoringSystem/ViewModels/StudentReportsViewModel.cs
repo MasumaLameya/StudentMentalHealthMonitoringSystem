@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace StudentMentalHealthMonitoringSystem.ViewModels
 {
     // ==========================================
-    // CLEARANCE CERTIFICATE VIEW MODEL
+    // SCREENING CLEARANCE VIEW MODEL
     // ==========================================
-    public class StudentClearanceCertificateViewModel
+    public class StudentScreeningClearanceViewModel
     {
         public int StudentId { get; set; }
         public string FullName { get; set; } = string.Empty;
@@ -15,8 +15,7 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string SelectedSemester { get; set; } = string.Empty;
         public List<string> AvailableSemesters { get; set; } = new List<string>();
 
-        public string CertificateNumber { get; set; } = string.Empty;
-        public DateTime IssuedDate { get; set; } = DateTime.Now;
+        public DateTime CheckedDate { get; set; } = DateTime.Now;
 
         public bool HasCompletedPHQ { get; set; }
         public DateTime? PHQCompletionDate { get; set; }
@@ -27,8 +26,8 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string CSSRSRiskLevel { get; set; } = "Not Taken";
 
         public bool IsCleared => HasCompletedPHQ && HasCompletedCSSRS;
-        public string ClearanceStatus => IsCleared ? "VERIFIED & CLEARED" : "CLEARANCE PENDING";
-        public string VerificationCode { get; set; } = string.Empty;
+        public string ClearanceStatus => IsCleared ? "Cleared for Registration" : "Clearance Pending";
+        public string AdministrativeRemarks { get; set; } = string.Empty;
     }
 
     // ==========================================
