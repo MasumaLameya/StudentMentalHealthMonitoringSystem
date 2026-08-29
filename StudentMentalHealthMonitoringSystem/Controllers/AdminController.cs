@@ -1589,7 +1589,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 availableSemesters.Add("Spring 2026");
             }
 
-            var selectedSemester = string.IsNullOrWhiteSpace(semester) ? availableSemesters.First() : semester.Trim();
+            // Insert Overall option at the top
+            availableSemesters.Insert(0, "Overall (All Semesters)");
+
+            var selectedSemester = string.IsNullOrWhiteSpace(semester) ? "Overall (All Semesters)" : semester.Trim();
+            bool isOverall = selectedSemester == "Overall" || selectedSemester == "Overall (All Semesters)" || selectedSemester == "All";
+            if (isOverall)
+            {
+                selectedSemester = "Overall (All Semesters)";
+            }
 
             // Get available departments
             var availableDepartmentsFromDb = await _context.Departments
@@ -1624,18 +1632,39 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var targetStudents = await studentsQuery.ToListAsync();
             var targetStudentIds = targetStudents.Select(s => s.StudentId).ToHashSet();
 
-            // Load Assessments for selectedSemester
-            var phqAssessments = await _context.PHQAssessments
-                .Where(p => p.Semester == selectedSemester && targetStudentIds.Contains(p.StudentId))
-                .ToListAsync();
+            // Load Assessments
+            List<PHQAssessment> phqAssessments;
+            List<CSSRSAssessment> cssrsAssessments;
+            List<StudentSemesterRecord> semesterRecords;
 
-            var cssrsAssessments = await _context.CSSRSAssessments
-                .Where(c => c.Semester == selectedSemester && targetStudentIds.Contains(c.StudentId))
-                .ToListAsync();
+            if (isOverall)
+            {
+                phqAssessments = await _context.PHQAssessments
+                    .Where(p => targetStudentIds.Contains(p.StudentId))
+                    .ToListAsync();
 
-            var semesterRecords = await _context.StudentSemesterRecords
-                .Where(r => r.Semester == selectedSemester && targetStudentIds.Contains(r.StudentId))
-                .ToListAsync();
+                cssrsAssessments = await _context.CSSRSAssessments
+                    .Where(c => targetStudentIds.Contains(c.StudentId))
+                    .ToListAsync();
+
+                semesterRecords = await _context.StudentSemesterRecords
+                    .Where(r => targetStudentIds.Contains(r.StudentId))
+                    .ToListAsync();
+            }
+            else
+            {
+                phqAssessments = await _context.PHQAssessments
+                    .Where(p => p.Semester == selectedSemester && targetStudentIds.Contains(p.StudentId))
+                    .ToListAsync();
+
+                cssrsAssessments = await _context.CSSRSAssessments
+                    .Where(c => c.Semester == selectedSemester && targetStudentIds.Contains(c.StudentId))
+                    .ToListAsync();
+
+                semesterRecords = await _context.StudentSemesterRecords
+                    .Where(r => r.Semester == selectedSemester && targetStudentIds.Contains(r.StudentId))
+                    .ToListAsync();
+            }
 
             int totalScreeningsConducted = phqAssessments.Count + cssrsAssessments.Count + semesterRecords.Count;
 
@@ -1666,9 +1695,22 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var departmentSummaries = new List<DepartmentSeveritySummary>();
             var deptsToProcess = (selectedDepartment == "All") ? availableDepartments : new List<string> { selectedDepartment };
 
-            var allPhq = await _context.PHQAssessments.Where(p => p.Semester == selectedSemester).ToListAsync();
-            var allCssrs = await _context.CSSRSAssessments.Where(c => c.Semester == selectedSemester).ToListAsync();
-            var allRecords = await _context.StudentSemesterRecords.Where(r => r.Semester == selectedSemester).ToListAsync();
+            List<PHQAssessment> allPhq;
+            List<CSSRSAssessment> allCssrs;
+            List<StudentSemesterRecord> allRecords;
+
+            if (isOverall)
+            {
+                allPhq = await _context.PHQAssessments.ToListAsync();
+                allCssrs = await _context.CSSRSAssessments.ToListAsync();
+                allRecords = await _context.StudentSemesterRecords.ToListAsync();
+            }
+            else
+            {
+                allPhq = await _context.PHQAssessments.Where(p => p.Semester == selectedSemester).ToListAsync();
+                allCssrs = await _context.CSSRSAssessments.Where(c => c.Semester == selectedSemester).ToListAsync();
+                allRecords = await _context.StudentSemesterRecords.Where(r => r.Semester == selectedSemester).ToListAsync();
+            }
 
             foreach (var deptName in deptsToProcess)
             {
@@ -2427,6 +2469,841 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.SelectedDepartment = department;
 
             return View(deptReports);
+        }
+
+        // =========================================================
+        // AI CONVERSATION & TELEHEALTH REPORTS
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> AIConversationReports(string? sessionType, string? riskStatus, string? department, string? searchTerm)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var type = string.IsNullOrWhiteSpace(sessionType) ? "All" : sessionType.Trim();
+            var risk = string.IsNullOrWhiteSpace(riskStatus) ? "All" : riskStatus.Trim();
+            var dept = string.IsNullOrWhiteSpace(department) ? "All" : department.Trim();
+            var search = string.IsNullOrWhiteSpace(searchTerm) ? "" : searchTerm.Trim().ToLower();
+
+            var availableDepartments = await _context.Departments
+                .Select(d => d.DepartmentName)
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            var conversationItems = new List<AdminAIConversationItemViewModel>();
+
+            // 1. Fetch Chat Sessions
+            if (type == "All" || type == "Chat")
+            {
+                var chatQuery = _context.ChatSessions
+                    .Include(s => s.Student)
+                    .Include(s => s.ChatMessages)
+                    .Include(s => s.RiskAssessments)
+                    .AsQueryable();
+
+                if (dept != "All")
+                {
+                    chatQuery = chatQuery.Where(s => s.Student != null && s.Student.Department == dept);
+                }
+
+                var chatSessions = await chatQuery.ToListAsync();
+
+                foreach (var cs in chatSessions)
+                {
+                    var latestAssessment = cs.RiskAssessments.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
+                    var riskVal = latestAssessment?.RiskStatus ?? "Normal";
+                    var summaryVal = latestAssessment?.Summary ?? cs.Summary ?? "General mental wellness chat support.";
+
+                    if (risk != "All" && !string.Equals(riskVal, risk, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        bool match = (cs.Student?.FullName ?? "").ToLower().Contains(search) ||
+                                     (cs.Student?.StudentIdNumber ?? "").ToLower().Contains(search) ||
+                                     summaryVal.ToLower().Contains(search);
+                        if (!match) continue;
+                    }
+
+                    var duration = (cs.EndedAt.HasValue && cs.EndedAt > cs.StartedAt)
+                        ? $"{Math.Max(1, (int)(cs.EndedAt.Value - cs.StartedAt).TotalMinutes)} mins"
+                        : "Active";
+
+                    conversationItems.Add(new AdminAIConversationItemViewModel
+                    {
+                        SessionId = cs.ChatSessionId,
+                        SessionType = "Chat",
+                        StudentId = cs.StudentId,
+                        StudentName = cs.Student?.FullName ?? "Student",
+                        StudentIdNumber = cs.Student?.StudentIdNumber ?? "-",
+                        Department = cs.Student?.Department ?? "-",
+                        ProfileImage = cs.Student?.ProfileImage,
+                        RiskStatus = riskVal,
+                        Summary = summaryVal,
+                        StartedAt = cs.StartedAt,
+                        EndedAt = cs.EndedAt,
+                        DurationFormatted = duration,
+                        MessageOrTranscriptCount = cs.ChatMessages.Count,
+                        IsActive = cs.IsActive
+                    });
+                }
+            }
+
+            // 2. Fetch Voice Bot Sessions
+            if (type == "All" || type == "VoiceBot")
+            {
+                var voiceQuery = _context.VoiceBotSessions
+                    .Include(s => s.Student)
+                    .AsQueryable();
+
+                if (dept != "All")
+                {
+                    voiceQuery = voiceQuery.Where(s => s.Student != null && s.Student.Department == dept);
+                }
+
+                var voiceSessions = await voiceQuery.ToListAsync();
+                var voiceSessionIds = voiceSessions.Select(v => v.VoiceBotSessionId).ToList();
+
+                var voiceReports = await _context.VoiceBotReports
+                    .Where(r => voiceSessionIds.Contains(r.VoiceBotSessionId))
+                    .ToListAsync();
+
+                var voiceTranscripts = await _context.VoiceBotTranscripts
+                    .Where(t => voiceSessionIds.Contains(t.VoiceBotSessionId))
+                    .ToListAsync();
+
+                foreach (var vs in voiceSessions)
+                {
+                    var report = voiceReports.FirstOrDefault(r => r.VoiceBotSessionId == vs.VoiceBotSessionId);
+                    var transcripts = voiceTranscripts.Where(t => t.VoiceBotSessionId == vs.VoiceBotSessionId).ToList();
+
+                    var riskVal = report != null
+                        ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalStatus) ? report.FinalStatus : report.CurrentStatus)
+                        : vs.CurrentStatus;
+
+                    var summaryVal = report != null
+                        ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalSummary) ? report.FinalSummary : report.CurrentSummary)
+                        : vs.CurrentSummary ?? "Live voice consultation.";
+
+                    if (risk != "All" && !string.Equals(riskVal, risk, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(search))
+                    {
+                        bool match = (vs.Student?.FullName ?? "").ToLower().Contains(search) ||
+                                     (vs.Student?.StudentIdNumber ?? "").ToLower().Contains(search) ||
+                                     (summaryVal ?? "").ToLower().Contains(search);
+                        if (!match) continue;
+                    }
+
+                    var duration = (vs.EndedAt.HasValue && vs.EndedAt > vs.StartedAt)
+                        ? $"{Math.Max(1, (int)(vs.EndedAt.Value - vs.StartedAt).TotalMinutes)} mins"
+                        : (vs.IsActive ? "Live Call" : "Completed");
+
+                    conversationItems.Add(new AdminAIConversationItemViewModel
+                    {
+                        SessionId = vs.VoiceBotSessionId,
+                        SessionType = "VoiceBot",
+                        StudentId = vs.StudentId,
+                        StudentName = vs.Student?.FullName ?? "Student",
+                        StudentIdNumber = vs.Student?.StudentIdNumber ?? "-",
+                        Department = vs.Student?.Department ?? "-",
+                        ProfileImage = vs.Student?.ProfileImage,
+                        RiskStatus = riskVal,
+                        Summary = summaryVal,
+                        StartedAt = vs.StartedAt,
+                        EndedAt = vs.EndedAt,
+                        DurationFormatted = duration,
+                        MessageOrTranscriptCount = transcripts.Count,
+                        IsActive = vs.IsActive
+                    });
+                }
+            }
+
+            var sortedItems = conversationItems.OrderByDescending(x => x.StartedAt).ToList();
+
+            int nightCount = sortedItems.Count(x => x.StartedAt.Hour >= 22 || x.StartedAt.Hour < 6);
+            int severeCount = sortedItems.Count(x => x.RiskStatus == "Severe" || x.RiskStatus == "Extremely Severe");
+
+            var model = new AdminAIReportsListViewModel
+            {
+                SelectedType = type,
+                SelectedRisk = risk,
+                SelectedDepartment = dept,
+                SearchTerm = searchTerm,
+                AvailableDepartments = availableDepartments,
+                TotalSessions = sortedItems.Count,
+                TotalChatSessions = sortedItems.Count(x => x.SessionType == "Chat"),
+                TotalVoiceSessions = sortedItems.Count(x => x.SessionType == "VoiceBot"),
+                SevereOrCriticalCount = severeCount,
+                NightTimeSessionsCount = nightCount,
+                Sessions = sortedItems
+            };
+
+            return View(model);
+        }
+
+        // =========================================================
+        // AI CONVERSATION DETAILS & TRANSCRIPT VIEWER
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> AIConversationDetails(int id, string type)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var sessionType = string.Equals(type, "VoiceBot", StringComparison.OrdinalIgnoreCase) ? "VoiceBot" : "Chat";
+
+            if (sessionType == "Chat")
+            {
+                var chatSession = await _context.ChatSessions
+                    .Include(s => s.Student)
+                    .Include(s => s.ChatMessages)
+                    .Include(s => s.RiskAssessments)
+                    .FirstOrDefaultAsync(s => s.ChatSessionId == id);
+
+                if (chatSession == null)
+                {
+                    return NotFound();
+                }
+
+                var latestAssessment = chatSession.RiskAssessments.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
+                var riskVal = latestAssessment?.RiskStatus ?? "Normal";
+                var summaryVal = latestAssessment?.Summary ?? chatSession.Summary ?? "No automated summary recorded for this chat session.";
+
+                var duration = (chatSession.EndedAt.HasValue && chatSession.EndedAt > chatSession.StartedAt)
+                    ? $"{Math.Max(1, (int)(chatSession.EndedAt.Value - chatSession.StartedAt).TotalMinutes)} mins"
+                    : (chatSession.IsActive ? "Active Session" : "Closed");
+
+                var model = new AdminAIConversationDetailsViewModel
+                {
+                    SessionId = chatSession.ChatSessionId,
+                    SessionType = "Chat",
+                    StudentId = chatSession.StudentId,
+                    StudentName = chatSession.Student?.FullName ?? "Student",
+                    StudentIdNumber = chatSession.Student?.StudentIdNumber ?? "-",
+                    Department = chatSession.Student?.Department ?? "-",
+                    Email = chatSession.Student?.Email ?? "-",
+                    Phone = chatSession.Student?.Phone ?? "-",
+                    ProfileImage = chatSession.Student?.ProfileImage,
+                    StartedAt = chatSession.StartedAt,
+                    EndedAt = chatSession.EndedAt,
+                    DurationFormatted = duration,
+                    IsActive = chatSession.IsActive,
+                    RiskStatus = riskVal,
+                    ClinicalSummary = summaryVal,
+                    ChatMessages = chatSession.ChatMessages
+                        .OrderBy(m => m.CreatedAt)
+                        .Select(m => new ChatMessageItemViewModel
+                        {
+                            Sender = m.Sender,
+                            MessageText = m.MessageText,
+                            CreatedAt = m.CreatedAt
+                        }).ToList()
+                };
+
+                return View(model);
+            }
+            else
+            {
+                var voiceSession = await _context.VoiceBotSessions
+                    .Include(s => s.Student)
+                    .FirstOrDefaultAsync(s => s.VoiceBotSessionId == id);
+
+                if (voiceSession == null)
+                {
+                    return NotFound();
+                }
+
+                var report = await _context.VoiceBotReports
+                    .FirstOrDefaultAsync(r => r.VoiceBotSessionId == id);
+
+                var transcripts = await _context.VoiceBotTranscripts
+                    .Where(t => t.VoiceBotSessionId == id)
+                    .OrderBy(t => t.CreatedAt)
+                    .ToListAsync();
+
+                var riskVal = report != null
+                    ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalStatus) ? report.FinalStatus : report.CurrentStatus)
+                    : voiceSession.CurrentStatus;
+
+                var summaryVal = report != null
+                    ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalSummary) ? report.FinalSummary : report.CurrentSummary)
+                    : voiceSession.CurrentSummary ?? "Live voice call recorded.";
+
+                var duration = (voiceSession.EndedAt.HasValue && voiceSession.EndedAt > voiceSession.StartedAt)
+                    ? $"{Math.Max(1, (int)(voiceSession.EndedAt.Value - voiceSession.StartedAt).TotalMinutes)} mins"
+                    : (voiceSession.IsActive ? "Live In-Progress" : "Completed");
+
+                var model = new AdminAIConversationDetailsViewModel
+                {
+                    SessionId = voiceSession.VoiceBotSessionId,
+                    SessionType = "VoiceBot",
+                    StudentId = voiceSession.StudentId,
+                    StudentName = voiceSession.Student?.FullName ?? "Student",
+                    StudentIdNumber = voiceSession.Student?.StudentIdNumber ?? "-",
+                    Department = voiceSession.Student?.Department ?? "-",
+                    Email = voiceSession.Student?.Email ?? "-",
+                    Phone = voiceSession.Student?.Phone ?? "-",
+                    ProfileImage = voiceSession.Student?.ProfileImage,
+                    StartedAt = voiceSession.StartedAt,
+                    EndedAt = voiceSession.EndedAt,
+                    DurationFormatted = duration,
+                    IsActive = voiceSession.IsActive,
+                    RiskStatus = riskVal,
+                    ClinicalSummary = summaryVal,
+                    VoiceTranscripts = transcripts.Select(t => new VoiceTranscriptItemViewModel
+                    {
+                        Speaker = t.Speaker,
+                        TranscriptText = t.TranscriptText,
+                        CreatedAt = t.CreatedAt
+                    }).ToList()
+                };
+
+                return View(model);
+            }
+        }
+
+        // =========================================================
+        // MULTI-SOURCE CRISIS ESCALATION & SAFETY AUDIT REPORT
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> CrisisEscalationReport(string? sourceFilter, string? department, string? statusFilter)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var src = string.IsNullOrWhiteSpace(sourceFilter) ? "All" : sourceFilter.Trim();
+            var dept = string.IsNullOrWhiteSpace(department) ? "All" : department.Trim();
+            var stat = string.IsNullOrWhiteSpace(statusFilter) ? "All" : statusFilter.Trim();
+
+            var availableDepartments = await _context.Departments
+                .Select(d => d.DepartmentName)
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            var crisisItems = new List<CrisisEscalationItemViewModel>();
+
+            var students = await _context.Students.ToListAsync();
+            var counselings = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .ToListAsync();
+
+            // 1. C-SSRS High Risk
+            if (src == "All" || src == "C-SSRS")
+            {
+                var highCSSRS = await _context.CSSRSAssessments
+                    .Where(c => c.RiskLevel == "High" || c.RequiresImmediateAction)
+                    .ToListAsync();
+
+                foreach (var c in highCSSRS)
+                {
+                    var st = students.FirstOrDefault(s => s.StudentId == c.StudentId);
+                    if (st == null) continue;
+                    if (dept != "All" && st.Department != dept) continue;
+
+                    var appt = counselings.Where(x => x.StudentId == st.StudentId && x.CreatedAt >= c.AssessmentDate.AddHours(-24))
+                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                    bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - c.AssessmentDate).TotalHours > 48;
+                    string apptStatus = appt?.Status ?? "Unassigned";
+
+                    if (stat == "Overdue" && !isOverdue) continue;
+                    if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
+                    if (stat == "Completed" && apptStatus != "Completed") continue;
+
+                    crisisItems.Add(new CrisisEscalationItemViewModel
+                    {
+                        StudentId = st.StudentId,
+                        StudentName = st.FullName,
+                        StudentIdNumber = st.StudentIdNumber,
+                        Department = st.Department ?? "-",
+                        Semester = c.Semester ?? st.Semester ?? "-",
+                        ProfileImage = st.ProfileImage,
+                        TriggerSource = "C-SSRS",
+                        SeverityLevel = "Extremely Severe",
+                        TriggerDetails = "High suicide risk / protocol positive answers.",
+                        TriggerDate = c.AssessmentDate,
+                        AssignedPsychologistName = appt?.Psychologist?.FullName,
+                        CounselingId = appt?.CounselingId,
+                        CounselingStatus = apptStatus,
+                        CounselingDate = appt?.CounselingDate,
+                        IsOverdue = isOverdue
+                    });
+                }
+            }
+
+            // 2. PHQ-9 Severe or Q9 > 0
+            if (src == "All" || src == "PHQ-9")
+            {
+                var severePHQ = await _context.PHQAssessments
+                    .Where(p => p.SeverityLevel == "Severe" || p.Question9Score > 0 || p.RequiresImmediateReview)
+                    .ToListAsync();
+
+                foreach (var p in severePHQ)
+                {
+                    var st = students.FirstOrDefault(s => s.StudentId == p.StudentId);
+                    if (st == null) continue;
+                    if (dept != "All" && st.Department != dept) continue;
+
+                    var appt = counselings.Where(x => x.StudentId == st.StudentId && x.CreatedAt >= p.AssessmentDate.AddHours(-24))
+                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                    bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - p.AssessmentDate).TotalHours > 48;
+                    string apptStatus = appt?.Status ?? "Unassigned";
+
+                    if (stat == "Overdue" && !isOverdue) continue;
+                    if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
+                    if (stat == "Completed" && apptStatus != "Completed") continue;
+
+                    string sev = (p.SeverityLevel == "Severe" || p.Question9Score >= 2) ? "Extremely Severe" : "Severe";
+                    string details = p.Question9Score > 0 ? $"Question 9 (Self-harm score: {p.Question9Score}), Total PHQ-9: {p.TotalScore}" : $"Total PHQ-9 Score: {p.TotalScore} ({p.SeverityLevel})";
+
+                    crisisItems.Add(new CrisisEscalationItemViewModel
+                    {
+                        StudentId = st.StudentId,
+                        StudentName = st.FullName,
+                        StudentIdNumber = st.StudentIdNumber,
+                        Department = st.Department ?? "-",
+                        Semester = p.Semester ?? st.Semester ?? "-",
+                        ProfileImage = st.ProfileImage,
+                        TriggerSource = "PHQ-9",
+                        SeverityLevel = sev,
+                        TriggerDetails = details,
+                        TriggerDate = p.AssessmentDate,
+                        AssignedPsychologistName = appt?.Psychologist?.FullName,
+                        CounselingId = appt?.CounselingId,
+                        CounselingStatus = apptStatus,
+                        CounselingDate = appt?.CounselingDate,
+                        IsOverdue = isOverdue
+                    });
+                }
+            }
+
+            // 3. AI Chat Severe / Extremely Severe
+            if (src == "All" || src == "AI Chat")
+            {
+                var severeChats = await _context.ChatRiskAssessments
+                    .Where(r => r.RiskStatus == "Severe" || r.RiskStatus == "Extremely Severe")
+                    .ToListAsync();
+
+                foreach (var c in severeChats)
+                {
+                    var st = students.FirstOrDefault(s => s.StudentId == c.StudentId);
+                    if (st == null) continue;
+                    if (dept != "All" && st.Department != dept) continue;
+
+                    var appt = counselings.Where(x => x.StudentId == st.StudentId && x.CreatedAt >= c.CreatedAt.AddHours(-24))
+                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                    bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - c.CreatedAt).TotalHours > 48;
+                    string apptStatus = appt?.Status ?? "Unassigned";
+
+                    if (stat == "Overdue" && !isOverdue) continue;
+                    if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
+                    if (stat == "Completed" && apptStatus != "Completed") continue;
+
+                    crisisItems.Add(new CrisisEscalationItemViewModel
+                    {
+                        StudentId = st.StudentId,
+                        StudentName = st.FullName,
+                        StudentIdNumber = st.StudentIdNumber,
+                        Department = st.Department ?? "-",
+                        Semester = st.Semester ?? "-",
+                        ProfileImage = st.ProfileImage,
+                        TriggerSource = "AI Chat",
+                        SeverityLevel = c.RiskStatus,
+                        TriggerDetails = c.Summary ?? "Severe emotional distress detected during chat session.",
+                        TriggerDate = c.CreatedAt,
+                        AssignedPsychologistName = appt?.Psychologist?.FullName,
+                        CounselingId = appt?.CounselingId,
+                        CounselingStatus = apptStatus,
+                        CounselingDate = appt?.CounselingDate,
+                        IsOverdue = isOverdue
+                    });
+                }
+            }
+
+            // 4. Voice Bot Severe / Extremely Severe
+            if (src == "All" || src == "Voice Bot")
+            {
+                var severeVoice = await _context.VoiceBotReports
+                    .Where(r => r.CurrentStatus == "Severe" || r.CurrentStatus == "Extremely Severe" || r.FinalStatus == "Severe" || r.FinalStatus == "Extremely Severe")
+                    .ToListAsync();
+
+                foreach (var v in severeVoice)
+                {
+                    var st = students.FirstOrDefault(s => s.StudentId == v.StudentId);
+                    if (st == null) continue;
+                    if (dept != "All" && st.Department != dept) continue;
+
+                    var appt = counselings.Where(x => x.StudentId == st.StudentId && x.CreatedAt >= v.LastUpdatedAt.AddHours(-24))
+                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                    bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - v.LastUpdatedAt).TotalHours > 48;
+                    string apptStatus = appt?.Status ?? "Unassigned";
+
+                    if (stat == "Overdue" && !isOverdue) continue;
+                    if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
+                    if (stat == "Completed" && apptStatus != "Completed") continue;
+
+                    string sev = v.IsFinal && !string.IsNullOrWhiteSpace(v.FinalStatus) ? v.FinalStatus : v.CurrentStatus;
+                    string sum = v.IsFinal && !string.IsNullOrWhiteSpace(v.FinalSummary) ? v.FinalSummary : (v.CurrentSummary ?? "Acoustic / verbal high risk detected.");
+
+                    crisisItems.Add(new CrisisEscalationItemViewModel
+                    {
+                        StudentId = st.StudentId,
+                        StudentName = st.FullName,
+                        StudentIdNumber = st.StudentIdNumber,
+                        Department = st.Department ?? "-",
+                        Semester = st.Semester ?? "-",
+                        ProfileImage = st.ProfileImage,
+                        TriggerSource = "Voice Bot",
+                        SeverityLevel = sev,
+                        TriggerDetails = sum,
+                        TriggerDate = v.LastUpdatedAt,
+                        AssignedPsychologistName = appt?.Psychologist?.FullName,
+                        CounselingId = appt?.CounselingId,
+                        CounselingStatus = apptStatus,
+                        CounselingDate = appt?.CounselingDate,
+                        IsOverdue = isOverdue
+                    });
+                }
+            }
+
+            var sortedItems = crisisItems.OrderByDescending(x => x.TriggerDate).ToList();
+
+            var model = new AdminCrisisReportViewModel
+            {
+                SelectedSource = src,
+                SelectedDepartment = dept,
+                SelectedStatus = stat,
+                AvailableDepartments = availableDepartments,
+                TotalCrisisEvents = sortedItems.Count,
+                ExtremelySevereCount = sortedItems.Count(x => x.SeverityLevel == "Extremely Severe"),
+                OverdueInterventionsCount = sortedItems.Count(x => x.IsOverdue),
+                ResolvedInterventionsCount = sortedItems.Count(x => x.CounselingStatus == "Completed"),
+                Items = sortedItems
+            };
+
+            return View(model);
+        }
+
+        // =========================================================
+        // PSYCHOLOGIST WORKLOAD & COUNSELING UTILIZATION REPORT
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> PsychologistWorkloadReport()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var psychologists = await _context.Psychologists.OrderBy(p => p.FullName).ToListAsync();
+            var counselings = await _context.Counselings.ToListAsync();
+
+            var psychItems = new List<PsychologistWorkloadItemViewModel>();
+
+            foreach (var p in psychologists)
+            {
+                var pSessions = counselings.Where(c => c.PsychologistId == p.PsychologistId).ToList();
+                int total = pSessions.Count;
+                int completed = pSessions.Count(c => c.Status == "Completed");
+                int confirmed = pSessions.Count(c => c.Status == "Confirmed");
+                int cancelled = pSessions.Count(c => c.Status == "Cancelled");
+                int followUps = pSessions.Count(c => c.ParentCounselingId != null || c.AppointmentSource == "FollowUp");
+
+                // Utilization based on 3 daily working slots * 20 working days/month = 60 capacity
+                double utilization = Math.Min(100.0, Math.Round((double)total / 60.0 * 100, 1));
+
+                psychItems.Add(new PsychologistWorkloadItemViewModel
+                {
+                    PsychologistId = p.PsychologistId,
+                    FullName = p.FullName,
+                    Email = p.Email,
+                    Phone = p.Phone,
+                    ProfileImage = p.ProfileImage,
+                    Specialization = p.Specialization ?? "General Clinical Counseling",
+                    TotalAssignedCases = total,
+                    CompletedSessions = completed,
+                    ConfirmedPendingSessions = confirmed,
+                    CancelledSessions = cancelled,
+                    FollowUpCasesCount = followUps,
+                    CapacityUtilizationPercentage = utilization
+                });
+            }
+
+            // Calculate Slot Occupancies
+            int slot9 = counselings.Count(c => c.AppointmentTime.Hours == 9);
+            int slot10 = counselings.Count(c => c.AppointmentTime.Hours == 10);
+            int slot11 = counselings.Count(c => c.AppointmentTime.Hours == 11);
+            int otherSlots = counselings.Count(c => c.AppointmentTime.Hours != 9 && c.AppointmentTime.Hours != 10 && c.AppointmentTime.Hours != 11);
+
+            int totalValidBookings = counselings.Count;
+            var slotOccupancies = new List<SlotOccupancyViewModel>
+            {
+                new SlotOccupancyViewModel
+                {
+                    SlotName = "09:00 AM - 10:00 AM (Slot 1)",
+                    TotalBookings = slot9,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot9 / totalValidBookings * 100, 1) : 0
+                },
+                new SlotOccupancyViewModel
+                {
+                    SlotName = "10:00 AM - 11:00 AM (Slot 2)",
+                    TotalBookings = slot10,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot10 / totalValidBookings * 100, 1) : 0
+                },
+                new SlotOccupancyViewModel
+                {
+                    SlotName = "11:00 AM - 12:00 PM (Slot 3)",
+                    TotalBookings = slot11,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot11 / totalValidBookings * 100, 1) : 0
+                }
+            };
+
+            if (otherSlots > 0)
+            {
+                slotOccupancies.Add(new SlotOccupancyViewModel
+                {
+                    SlotName = "Afternoon / Custom Follow-up Slots",
+                    TotalBookings = otherSlots,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)otherSlots / totalValidBookings * 100, 1) : 0
+                });
+            }
+
+            int totalCompleted = counselings.Count(c => c.Status == "Completed");
+            int totalConfirmed = counselings.Count(c => c.Status == "Confirmed");
+
+            var model = new PsychologistWorkloadReportViewModel
+            {
+                TotalPsychologists = psychologists.Count,
+                TotalCounselingSessions = totalValidBookings,
+                CompletedSessions = totalCompleted,
+                ConfirmedPendingSessions = totalConfirmed,
+                AverageSessionsPerPsychologist = psychologists.Count > 0 ? Math.Round((double)totalValidBookings / psychologists.Count, 1) : 0,
+                SlotOccupancies = slotOccupancies,
+                Psychologists = psychItems.OrderByDescending(x => x.TotalAssignedCases).ToList()
+            };
+
+            return View(model);
+        }
+
+        // =========================================================
+        // ACADEMIC ADMINISTRATION & COORDINATOR ACTION REPORT
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> AcademicAdministrationReport(string? department, string? status, string? semester, string? searchTerm)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var dept = string.IsNullOrWhiteSpace(department) ? "All" : department.Trim();
+            var stat = string.IsNullOrWhiteSpace(status) ? "All" : status.Trim();
+            var sem = string.IsNullOrWhiteSpace(semester) ? "Overall" : semester.Trim();
+            var search = string.IsNullOrWhiteSpace(searchTerm) ? "" : searchTerm.Trim().ToLower();
+
+            var availableDepartments = await _context.Departments
+                .Select(d => d.DepartmentName)
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            var semestersFromPHQ = await _context.PHQAssessments
+                .Select(p => p.Semester)
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Distinct()
+                .ToListAsync();
+
+            var semestersFromCSSRS = await _context.CSSRSAssessments
+                .Select(c => c.Semester)
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Distinct()
+                .ToListAsync();
+
+            var availableSemesters = semestersFromPHQ
+                .Union(semestersFromCSSRS)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s!)
+                .Distinct()
+                .OrderByDescending(s => s)
+                .ToList();
+
+            availableSemesters.Insert(0, "Overall");
+
+            var allStudents = await _context.Students.ToListAsync();
+            var allPhq = await _context.PHQAssessments.ToListAsync();
+            var allCssrs = await _context.CSSRSAssessments.ToListAsync();
+
+            var deptStatusList = new List<DepartmentAcademicStatusItem>();
+            var rosterList = new List<StudentAcademicRosterItem>();
+
+            // Calculate department summaries
+            foreach (var d in availableDepartments)
+            {
+                var dStudents = allStudents.Where(s => s.Department == d).ToList();
+                int dTotal = dStudents.Count;
+                int dCleared = 0;
+                int dBlocked = 0;
+                int dHighRisk = 0;
+
+                foreach (var st in dStudents)
+                {
+                    bool hasP = (sem == "Overall")
+                        ? allPhq.Any(p => p.StudentId == st.StudentId)
+                        : allPhq.Any(p => p.StudentId == st.StudentId && p.Semester == sem);
+
+                    bool hasC = (sem == "Overall")
+                        ? allCssrs.Any(c => c.StudentId == st.StudentId)
+                        : allCssrs.Any(c => c.StudentId == st.StudentId && c.Semester == sem);
+
+                    bool isCleared = hasP && hasC;
+                    if (isCleared) dCleared++;
+                    else dBlocked++;
+
+                    var latestP = allPhq.Where(p => p.StudentId == st.StudentId).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
+                    var latestC = allCssrs.Where(c => c.StudentId == st.StudentId).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
+
+                    bool isHr = (latestP != null && (latestP.SeverityLevel == "Severe" || latestP.Question9Score > 0)) ||
+                                (latestC != null && (latestC.RiskLevel == "High" || latestC.RequiresImmediateAction));
+
+                    if (isHr) dHighRisk++;
+                }
+
+                double clrPct = dTotal > 0 ? Math.Round((double)dCleared / dTotal * 100, 1) : 0;
+                deptStatusList.Add(new DepartmentAcademicStatusItem
+                {
+                    DepartmentName = d,
+                    TotalStudents = dTotal,
+                    ClearedStudents = dCleared,
+                    BlockedStudents = dBlocked,
+                    HighRiskStudents = dHighRisk,
+                    ClearancePercentage = clrPct,
+                    NoticesDispatched = dBlocked > 0 ? dBlocked : 0
+                });
+            }
+
+            // Build student roster
+            var filteredStudents = allStudents.AsQueryable();
+            if (dept != "All")
+            {
+                filteredStudents = filteredStudents.Where(s => s.Department == dept);
+            }
+
+            foreach (var st in filteredStudents.ToList())
+            {
+                bool hasP = (sem == "Overall")
+                    ? allPhq.Any(p => p.StudentId == st.StudentId)
+                    : allPhq.Any(p => p.StudentId == st.StudentId && p.Semester == sem);
+
+                bool hasC = (sem == "Overall")
+                    ? allCssrs.Any(c => c.StudentId == st.StudentId)
+                    : allCssrs.Any(c => c.StudentId == st.StudentId && c.Semester == sem);
+
+                bool isCleared = hasP && hasC;
+                string regClearance = isCleared ? "Cleared" : "Blocked";
+
+                if (stat == "Cleared" && !isCleared) continue;
+                if (stat == "Blocked" && isCleared) continue;
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    bool match = (st.FullName ?? "").ToLower().Contains(search) ||
+                                 (st.StudentIdNumber ?? "").ToLower().Contains(search) ||
+                                 (st.Department ?? "").ToLower().Contains(search);
+                    if (!match) continue;
+                }
+
+                var latestP = allPhq.Where(p => p.StudentId == st.StudentId).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
+                var latestC = allCssrs.Where(c => c.StudentId == st.StudentId).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
+
+                string sev = "Normal";
+                if (latestC != null && (latestC.RiskLevel == "High" || latestC.RequiresImmediateAction))
+                {
+                    sev = "Extremely Severe";
+                }
+                else if (latestP != null && (latestP.SeverityLevel == "Severe" || latestP.Question9Score >= 2))
+                {
+                    sev = "Extremely Severe";
+                }
+                else if (latestP != null && latestP.SeverityLevel == "Moderately Severe")
+                {
+                    sev = "Severe";
+                }
+                else if (latestP != null && latestP.SeverityLevel == "Moderate")
+                {
+                    sev = "Moderate";
+                }
+
+                string actionReq = isCleared
+                    ? "Full clearance granted. Eligible for course registration & promotion."
+                    : (!hasP && !hasC
+                        ? "Course registration locked. Pending both PHQ-9 and C-SSRS screenings."
+                        : (!hasP ? "Pending PHQ-9 depression screening." : "Pending C-SSRS suicide risk screening."));
+
+                rosterList.Add(new StudentAcademicRosterItem
+                {
+                    StudentId = st.StudentId,
+                    StudentName = st.FullName,
+                    StudentIdNumber = st.StudentIdNumber,
+                    Department = st.Department ?? "-",
+                    Semester = st.Semester ?? "-",
+                    ProfileImage = st.ProfileImage,
+                    ScreeningStatus = isCleared ? "Completed" : "Non-Compliant",
+                    RegistrationClearance = regClearance,
+                    MentalHealthSeverity = sev,
+                    HasPHQ = hasP,
+                    HasCSSRS = hasC,
+                    ActionRequired = actionReq
+                });
+            }
+
+            int totalCampus = allStudents.Count;
+            int totalCleared = deptStatusList.Sum(x => x.ClearedStudents);
+            int totalBlocked = deptStatusList.Sum(x => x.BlockedStudents);
+            int totalHighRisk = deptStatusList.Sum(x => x.HighRiskStudents);
+            double campusClearance = totalCampus > 0 ? Math.Round((double)totalCleared / totalCampus * 100, 1) : 0;
+
+            var model = new AcademicAdministrationReportViewModel
+            {
+                SelectedDepartment = dept,
+                SelectedStatus = stat,
+                SelectedSemester = sem,
+                SearchTerm = searchTerm,
+                AvailableDepartments = availableDepartments,
+                AvailableSemesters = availableSemesters,
+                TotalCampusStudents = totalCampus,
+                TotalClearedStudents = totalCleared,
+                TotalBlockedStudents = totalBlocked,
+                TotalHighRiskMonitored = totalHighRisk,
+                OverallCampusClearanceRate = campusClearance,
+                DepartmentStatuses = deptStatusList,
+                StudentRoster = rosterList.OrderBy(x => x.RegistrationClearance == "Blocked" ? 0 : 1).ThenBy(x => x.StudentName).ToList()
+            };
+
+            return View(model);
         }
     }
 }

@@ -1,0 +1,256 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.AdminAIConversationDetailsViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "AI Session Transcript - " + Model.StudentName;
+}
+
+<style>
+    .glass-card-admin {
+        background: #ffffff;
+        border: 1px solid #E5D8CC;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 24px rgba(94, 80, 63, 0.06);
+    }
+    .metric-card-admin {
+        background: #FAF6F0;
+        border: 1px solid #EDE2D8;
+        border-radius: 1rem;
+    }
+    .chat-container {
+        background: #FAF8F5;
+        border: 1px solid #EDE2D8;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        max-height: 650px;
+        overflow-y: auto;
+    }
+    .chat-bubble-student {
+        background: #2563EB;
+        color: #ffffff;
+        border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+        padding: 0.9rem 1.2rem;
+        max-width: 75%;
+        margin-left: auto;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+    .chat-bubble-ai {
+        background: #ffffff;
+        color: #2C2623;
+        border: 1px solid #E5D8CC;
+        border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+        padding: 0.9rem 1.2rem;
+        max-width: 75%;
+        margin-right: auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+    .voice-timeline-item {
+        border-left: 3px solid #CBD5E1;
+        padding-left: 1.25rem;
+        margin-bottom: 1.25rem;
+        position: relative;
+    }
+    .voice-timeline-item.student {
+        border-left-color: #3B82F6;
+    }
+    .voice-timeline-item.voicebot {
+        border-left-color: #10B981;
+    }
+</style>
+
+<div class="container-fluid py-2">
+
+    <!-- ================= Top Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <div class="badge bg-white text-primary rounded-pill px-3 py-1.5 mb-2 fw-semibold shadow-sm">
+                        <i class="bi bi-file-earmark-text me-1"></i> Session Audit &amp; Clinical Transcript
+                    </div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        @(Model.SessionType == "VoiceBot" ? "AI Live Voice Session Transcript" : "AI Chat Companion Transcript")
+                    </h2>
+                    <p class="text-white-50 mb-0 fs-6">
+                        Complete verbatim transcript with automated emotional assessment and risk classification.
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-printer me-1"></i> Print Transcript
+                    </button>
+                    <a asp-controller="Admin" asp-action="AIConversationReports" class="btn btn-light text-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to AI Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Student Profile & Session Meta ================= -->
+    <div class="glass-card-admin mb-4">
+        <div class="card-body p-4">
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-7">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="@(string.IsNullOrEmpty(Model.ProfileImage) ? "/images/default-avatar.png" : Model.ProfileImage)"
+                             class="rounded-circle shadow-sm border border-3 border-secondary-subtle"
+                             style="width: 76px; height: 76px; object-fit: cover;"
+                             alt="@Model.StudentName" />
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <h4 class="fw-bold mb-0" style="color: #5E503F;">@Model.StudentName</h4>
+                                @if (Model.RiskStatus == "Extremely Severe")
+                                {
+                                    <span class="badge bg-danger text-white rounded-pill px-3 py-1.5">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Extremely Severe Risk
+                                    </span>
+                                }
+                                else if (Model.RiskStatus == "Severe")
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Severe Risk
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success text-white rounded-pill px-3 py-1.5">
+                                        @Model.RiskStatus
+                                    </span>
+                                }
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap gap-2 text-muted fs-6 mt-1">
+                                <span><i class="bi bi-card-text me-1 text-secondary"></i> ID: <strong>@Model.StudentIdNumber</strong></span>
+                                <span>•</span>
+                                <span><i class="bi bi-building me-1 text-secondary"></i> Dept: <strong>@Model.Department</strong></span>
+                                <span>•</span>
+                                <span><i class="bi bi-envelope me-1 text-secondary"></i> @Model.Email</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="p-3 rounded-4" style="background:#FAF6F0; border:1px solid #EDE2D8;">
+                        <div class="row g-2 text-center text-md-start">
+                            <div class="col-6">
+                                <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem;">Session Channel</small>
+                                <span class="badge rounded-pill px-3 py-1.5 fw-bold @(Model.SessionType == "VoiceBot" ? "bg-success text-white" : "bg-primary text-white")">
+                                    @(Model.SessionType == "VoiceBot" ? "AI Live Voice Bot" : "AI Text Chatbot")
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.72rem;">Session Date &amp; Duration</small>
+                                <strong style="color: #5E503F; font-size: 0.88rem;">
+                                    @Model.StartedAt.ToString("dd MMM yyyy, h:mm tt")
+                                </strong>
+                                <small class="text-muted d-block">Duration: @Model.DurationFormatted</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= AI Clinical Insight & Emotion Summary Card ================= -->
+    <div class="glass-card-admin mb-4 border-start border-4 @(Model.RiskStatus == "Severe" || Model.RiskStatus == "Extremely Severe" ? "border-danger" : "border-primary")">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-stars text-primary fs-5"></i>
+                <h5 class="fw-bold mb-0" style="color: #5E503F;">AI Clinical Insight &amp; Risk Summary</h5>
+            </div>
+            <p class="mb-0 text-dark fs-6" style="line-height: 1.7; background: #FAF8F5; padding: 1rem 1.25rem; border-radius: 0.75rem; border: 1px solid #EDE2D8;">
+                @(string.IsNullOrWhiteSpace(Model.ClinicalSummary) ? "No automated summary recorded for this session." : Model.ClinicalSummary)
+            </p>
+        </div>
+    </div>
+
+    <!-- ================= Verbatim Interactive Transcript ================= -->
+    <div class="glass-card-admin">
+        <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center" style="background:#F4EEE8;">
+            <h5 class="mb-0 fw-bold" style="color:#5E503F;">
+                <i class="bi bi-chat-quote-fill me-2"></i> Verbatim Conversation Transcript
+            </h5>
+            <span class="badge bg-white text-dark rounded-pill px-3 py-1.5 border">
+                @(Model.SessionType == "Chat" ? $"{Model.ChatMessages.Count} messages" : $"{Model.VoiceTranscripts.Count} audio utterances")
+            </span>
+        </div>
+
+        <div class="card-body p-4">
+            @if (Model.SessionType == "Chat")
+            {
+                if (Model.ChatMessages != null && Model.ChatMessages.Any())
+                {
+                    <div class="chat-container d-flex flex-column gap-3">
+                        @foreach (var msg in Model.ChatMessages)
+                        {
+                            if (msg.Sender == "Student")
+                            {
+                                <div class="d-flex flex-column align-items-end">
+                                    <div class="chat-bubble-student">
+                                        <small class="d-block text-white-50 mb-1 fw-bold" style="font-size: 0.72rem;">@Model.StudentName</small>
+                                        <p class="mb-0" style="white-space: pre-wrap;">@msg.MessageText</p>
+                                    </div>
+                                    <small class="text-muted mt-1 me-2" style="font-size: 0.75rem;">@msg.CreatedAt.ToString("h:mm tt")</small>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-column align-items-start">
+                                    <div class="chat-bubble-ai">
+                                        <div class="d-flex align-items-center gap-1.5 text-primary mb-1 fw-bold" style="font-size: 0.75rem;">
+                                            <i class="bi bi-robot"></i> AI Companion
+                                        </div>
+                                        <p class="mb-0" style="white-space: pre-wrap;">@msg.MessageText</p>
+                                    </div>
+                                    <small class="text-muted mt-1 ms-2" style="font-size: 0.75rem;">@msg.CreatedAt.ToString("h:mm tt")</small>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-left-dots fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                        <p class="mb-0">No chat messages found in this session transcript.</p>
+                    </div>
+                }
+            }
+            else
+            {
+                if (Model.VoiceTranscripts != null && Model.VoiceTranscripts.Any())
+                {
+                    <div class="chat-container">
+                        @foreach (var tr in Model.VoiceTranscripts)
+                        {
+                            var isStudent = (tr.Speaker == "Student");
+                            <div class="voice-timeline-item @(isStudent ? "student" : "voicebot")">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="@(isStudent ? "text-primary" : "text-success") small">
+                                        <i class="bi @(isStudent ? "bi-person-circle" : "bi-mic-fill") me-1"></i>
+                                        @(isStudent ? Model.StudentName : "AI Voice Bot")
+                                    </strong>
+                                    <small class="text-muted">@tr.CreatedAt.ToString("h:mm:ss tt")</small>
+                                </div>
+                                <div class="p-2.5 rounded-3 bg-white border small text-dark" style="line-height: 1.5;">
+                                    @tr.TranscriptText
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-mic-mute fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                        <p class="mb-0">No voice transcripts recorded for this session.</p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>

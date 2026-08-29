@@ -1,368 +1,791 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.ScreeningReport
+@model StudentMentalHealthMonitoringSystem.Models.ScreeningReport
+@using StudentMentalHealthMonitoringSystem.Models
 
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Screening Report";
+    ViewData["Title"] = "Screening Report - " + (Model.Student?.FullName ?? "Student");
+
+    var phq = ViewBag.LatestPHQ as PHQAssessment;
+    var cssrs = ViewBag.LatestCSSRS as CSSRSAssessment;
+    var feeling = ViewBag.LatestFeeling as StudentSemesterRecord;
+    var chatAssessment = ViewBag.LatestChatAssessment as ChatRiskAssessment;
+    var voiceBotReport = ViewBag.LatestVoiceBotReport as VoiceBotReport;
+
+    var appointmentDate = Model.Counseling != null
+        ? Model.Counseling.CounselingDate.ToString("dd MMM yyyy")
+        : "-";
+
+    var appointmentDay = Model.Counseling != null
+        ? Model.Counseling.CounselingDate.ToString("dddd")
+        : "-";
+
+    var appointmentTime = Model.Counseling != null
+        ? DateTime.Today.Add(Model.Counseling.AppointmentTime).ToString("h:mm tt") + " - " + DateTime.Today.Add(Model.Counseling.AppointmentEndTime).ToString("h:mm tt")
+        : "-";
 }
 
-<div class="container-fluid py-3">
+<style>
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid #E5D8CC;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 24px rgba(95, 81, 70, 0.06);
+    }
+    .metric-card {
+        background: #FAF6F0;
+        border: 1px solid #EDE2D8;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(138, 117, 99, 0.12);
+    }
+    .section-header-badge {
+        background: #E8DDD2;
+        color: #5F5146;
+        font-weight: 700;
+        font-size: 0.82rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 0.4rem 0.9rem;
+        border-radius: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .assessment-card {
+        background: #ffffff;
+        border: 1px solid #EDE2D8;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(95, 81, 70, 0.05);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .assessment-card .card-header {
+        background: #FAF6F0;
+        border-bottom: 1px solid #EDE2D8;
+        padding: 1.1rem 1.25rem;
+    }
+    .score-circle {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+    .q-item {
+        background: #FAF8F5;
+        border: 1px solid #F0E8DF;
+        border-radius: 0.75rem;
+        padding: 0.65rem 0.9rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.88rem;
+    }
+    .q-item:last-child {
+        margin-bottom: 0;
+    }
+    .raw-report-pre {
+        background: #2C2623;
+        color: #F7EFE9;
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 0.88rem;
+        line-height: 1.6;
+        border-radius: 1rem;
+        padding: 1.25rem;
+        max-height: 450px;
+        overflow-y: auto;
+    }
+</style>
 
-    <!-- ================= Header ================= -->
+<div class="container-fluid py-4">
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4"
-         style="background:#F4EEE8;">
-
-        <div class="card-body p-4">
-
+    <!-- ================= Top Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5F5146 0%, #8A7563 100%);">
+        <div class="card-body p-4 text-white">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-
                 <div>
-
-                    <h2 class="fw-bold mb-1"
-                        style="color:#5F5146;">
-
-                        <i class="bi bi-file-earmark-medical me-2"></i>
-
-                        Screening Report
-
+                    <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-semibold shadow-sm">
+                        <i class="bi bi-shield-check text-primary me-1"></i> Multi-Source Clinical Screening
+                    </div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-file-earmark-medical me-2"></i> Student Screening Report
                     </h2>
-
-                    <p class="text-muted mb-0">
-
-                        Combined student screening information.
-
+                    <p class="text-white-50 mb-0 fs-6">
+                        Integrated evaluation from standardized questionnaires (PHQ-9, C-SSRS), AI chat/voice interactions, and student feelings.
                     </p>
-
                 </div>
 
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-printer me-1"></i> Print
+                    </button>
 
-                <a asp-controller="Psychologist"
-                   asp-action="ScreeningReports"
-                   class="btn btn-sm rounded-3 px-3"
-                   style="
-                    background:#806C5D;
-                    color:white;">
+                    @if (Model.Counseling != null)
+                    {
+                        <a asp-controller="Psychologist" asp-action="CounselingDetails" asp-route-id="@Model.CounselingId" class="btn btn-warning rounded-pill px-3 py-2 fw-semibold text-dark shadow-sm">
+                            <i class="bi bi-clipboard2-pulse-fill me-1"></i> Open Counseling
+                        </a>
+                    }
 
-                    <i class="bi bi-arrow-left me-1"></i>
-
-                    Back to Screening Reports
-
-                </a>
-
+                    <a asp-controller="Psychologist" asp-action="ScreeningReports" class="btn btn-light rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Reports
+                    </a>
+                </div>
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- ================= Student Information ================= -->
-
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-        <div class="card-header border-0 py-3"
-             style="background:#E8DDD2;">
-
-            <h5 class="mb-0"
-                style="color:#5F5146;">
-
-                <i class="bi bi-person me-2"></i>
-
-                Student Information
-
-            </h5>
-
-        </div>
-
-
+    <!-- ================= Student Profile & Trigger Summary Card ================= -->
+    <div class="glass-card mb-4">
         <div class="card-body p-4">
-
-            <div class="row g-4">
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Student Name
-                    </small>
-
-                    <strong style="color:#5F5146;">
-
-                        @(Model.Student?.FullName ?? "-")
-
-                    </strong>
-
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="@(string.IsNullOrEmpty(Model.Student?.ProfileImage) ? "/images/default-avatar.png" : Model.Student.ProfileImage)"
+                             class="rounded-circle shadow-sm border border-3 border-secondary-subtle"
+                             style="width: 76px; height: 76px; object-fit: cover;"
+                             alt="@(Model.Student?.FullName ?? "Student")" />
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <h4 class="fw-bold mb-0" style="color: #5F5146;">
+                                    @(Model.Student?.FullName ?? "Student")
+                                </h4>
+                                @if (Model.TriggerSeverity == "Extremely Severe")
+                                {
+                                    <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 shadow-sm">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Extremely Severe Risk
+                                    </span>
+                                }
+                                else if (Model.TriggerSeverity == "Severe")
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 shadow-sm">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Severe Risk
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-1.5 shadow-sm">
+                                        @Model.TriggerSeverity
+                                    </span>
+                                }
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap gap-2 text-muted fs-6 mt-1">
+                                <span><i class="bi bi-card-text me-1 text-secondary"></i> ID: <strong>@(Model.Student?.StudentIdNumber ?? "-")</strong></span>
+                                <span>•</span>
+                                <span><i class="bi bi-building me-1 text-secondary"></i> Dept: <strong>@(Model.Student?.Department ?? "-")</strong></span>
+                                <span>•</span>
+                                <span><i class="bi bi-envelope me-1 text-secondary"></i> @(Model.Student?.Email ?? "-")</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Student ID
-                    </small>
-
-                    <strong style="color:#5F5146;">
-
-                        @(Model.Student?.StudentIdNumber ?? "-")
-
-                    </strong>
-
+                <div class="col-lg-5">
+                    <div class="p-3 rounded-4" style="background:#FAF6F0; border:1px solid #EDE2D8;">
+                        <div class="row g-2 text-center text-md-start">
+                            <div class="col-6">
+                                <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.75rem;">Trigger Source</small>
+                                <span class="badge rounded-pill px-3 py-1.5 fw-bold" style="background:#E8DDD2; color:#5F5146; font-size:0.85rem;">
+                                    <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> @Model.TriggerSource
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block fw-semibold text-uppercase" style="font-size: 0.75rem;">Report Created</small>
+                                <strong style="color: #5F5146; font-size: 0.9rem;">
+                                    @Model.CreatedAt.ToString("dd MMM yyyy, h:mm tt")
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Department
-                    </small>
-
-                    <strong style="color:#5F5146;">
-
-                        @(Model.Student?.Department ?? "-")
-
-                    </strong>
-
-                </div>
-
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- ================= Trigger Information ================= -->
-
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-        <div class="card-header border-0 py-3"
-             style="background:#E8DDD2;">
-
-            <h5 class="mb-0"
-                style="color:#5F5146;">
-
-                <i class="bi bi-clipboard-data me-2"></i>
-
-                Screening Information
-
-            </h5>
-
-        </div>
-
-
-        <div class="card-body p-4">
-
-            <div class="row g-4">
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Trigger Source
-                    </small>
-
-                    <strong style="color:#5F5146;">
-
-                        @Model.TriggerSource
-
-                    </strong>
-
-                </div>
-
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Trigger Severity
-                    </small>
-
-                    @if (Model.TriggerSeverity ==
-                         "Extremely Severe")
-                    {
-                        <span class="badge bg-danger rounded-pill px-3 py-2">
-
-                            Extremely Severe
-
-                        </span>
-                    }
-                    else if (Model.TriggerSeverity ==
-                             "Severe")
-                    {
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
-
-                            Severe
-
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary rounded-pill px-3 py-2">
-
-                            @Model.TriggerSeverity
-
-                        </span>
-                    }
-
-                </div>
-
-
-                <div class="col-md-4">
-
-                    <small class="text-muted d-block">
-                        Report Created
-                    </small>
-
-                    <strong style="color:#5F5146;">
-
-                        @Model.CreatedAt.ToString(
-                            "dd MMM yyyy, h:mm tt"
-                        )
-
-                    </strong>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ================= Appointment Information ================= -->
+    <!-- ================= Assigned Counseling Appointment Card ================= -->
     @if (Model.Counseling != null)
     {
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-            <div class="card-header border-0 py-3"
-                 style="background:#E8DDD2;">
-
-                <h5 class="mb-0"
-                    style="color:#5F5146;">
-
-                    <i class="bi bi-calendar-check me-2"></i>
-
-                    Assigned Counseling Appointment
-
-                </h5>
-
-            </div>
-
-
+        <div class="glass-card mb-4 border-start border-4 border-primary">
             <div class="card-body p-4">
-
-                <div class="row g-4">
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted d-block">
-                            Date
-                        </small>
-
-                        <strong style="color:#5F5146;">
-
-                            @Model.Counseling
-                            .CounselingDate
-                            .ToString("dd MMM yyyy")
-
-                        </strong>
-
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="section-header-badge">
+                            <i class="bi bi-calendar2-check-fill text-primary"></i> Assigned Counseling Appointment
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                            <i class="bi bi-check-circle-fill me-1"></i> Auto Scheduled
+                        </span>
                     </div>
 
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted d-block">
-                            Time
-                        </small>
-
-                        <strong style="color:#5F5146;">
-
-                            @DateTime.Today
-                            .Add(
-                            Model.Counseling
-                            .AppointmentTime
-                            )
-                            .ToString("h:mm tt")
-
-                            -
-
-                            @DateTime.Today
-                            .Add(
-                            Model.Counseling
-                            .AppointmentEndTime
-                            )
-                            .ToString("h:mm tt")
-
-                        </strong>
-
-                    </div>
-
-
-                    <div class="col-md-4">
-
-                        <small class="text-muted d-block">
-                            Status
-                        </small>
-
-                        <strong style="color:#5F5146;">
-
-                            @Model.Counseling.Status
-
-                        </strong>
-
-                    </div>
-
+                    <a asp-controller="Psychologist" asp-action="CounselingDetails" asp-route-id="@Model.CounselingId" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                        <i class="bi bi-box-arrow-up-right me-1"></i> View Appointment Details
+                    </a>
                 </div>
 
-            </div>
+                <div class="row g-3">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="metric-card p-3 h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.75rem;">Session Date</small>
+                            <h5 class="fw-bold mb-0" style="color: #5F5146;">
+                                <i class="bi bi-calendar-event me-1 text-secondary"></i> @appointmentDate
+                            </h5>
+                            <small class="text-muted">@appointmentDay</small>
+                        </div>
+                    </div>
 
+                    <div class="col-md-4 col-sm-6">
+                        <div class="metric-card p-3 h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.75rem;">Time Slot</small>
+                            <h5 class="fw-bold mb-0" style="color: #5F5146;">
+                                <i class="bi bi-clock-history me-1 text-secondary"></i> @appointmentTime
+                            </h5>
+                            <small class="text-muted">1 Hour Clinical Counseling</small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-12">
+                        <div class="metric-card p-3 h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.75rem;">Current Status</small>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                @if (Model.Counseling.Status == "Completed")
+                                {
+                                    <span class="badge bg-success text-white rounded-pill px-3 py-2 fs-6">
+                                        <i class="bi bi-check2-all me-1"></i> Completed
+                                    </span>
+                                }
+                                else if (Model.Counseling.Status == "Confirmed")
+                                {
+                                    <span class="badge bg-primary text-white rounded-pill px-3 py-2 fs-6">
+                                        <i class="bi bi-calendar-check me-1"></i> Confirmed (Pending Session)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary text-white rounded-pill px-3 py-2 fs-6">
+                                        @Model.Counseling.Status
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 
+    <!-- ================= Multi-Source Clinical Screening Modules ================= -->
+    <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
+        <h4 class="fw-bold mb-0" style="color: #5F5146;">
+            <i class="bi bi-grid-1x2-fill me-2"></i> Clinical Screening Modules
+        </h4>
+        <span class="text-muted small">Standardized psychometric scales &amp; automated observations</span>
+    </div>
 
-    <!-- ================= Combined Screening Report ================= -->
+    <div class="row g-4 mb-4">
+        <!-- ================= 1. PHQ-9 Depression Questionnaire ================= -->
+        <div class="col-lg-6">
+            <div class="assessment-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 rounded-3 bg-white text-primary shadow-sm border border-secondary-subtle">
+                            <i class="bi bi-clipboard-pulse fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0" style="color: #5F5146;">PHQ-9 Depression Scale</h6>
+                            <small class="text-muted">Standard 9-Question Screening</small>
+                        </div>
+                    </div>
 
-    <div class="card border-0 shadow-sm rounded-4">
+                    @if (phq != null)
+                    {
+                        <span class="badge rounded-pill px-3 py-1.5" style="background:#E8DDD2; color:#5F5146;">
+                            @(phq.Semester)
+                        </span>
+                    }
+                </div>
 
-        <div class="card-header border-0 py-3"
-             style="background:#E8DDD2;">
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    @if (phq != null)
+                    {
+                        <div>
+                            <!-- Score Summary Row -->
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3"
+                                 style="background: @(phq.TotalScore >= 20 ? "#FDE8E8" : phq.TotalScore >= 15 ? "#FEF08A" : phq.TotalScore >= 10 ? "#FEF9C3" : "#F0FDF4"); border: 1px solid rgba(0,0,0,0.06);">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="score-circle @(phq.TotalScore >= 20 ? "bg-danger text-white" : phq.TotalScore >= 15 ? "bg-warning text-dark" : "bg-info text-dark") shadow-sm">
+                                        <span class="fs-4">@phq.TotalScore</span>
+                                        <span style="font-size: 0.65rem;">/ 27</span>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Severity Result</small>
+                                        <h5 class="fw-bold mb-0" style="color: #333;">@phq.SeverityLevel</h5>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Assessed on</small>
+                                    <strong class="text-dark small">@phq.AssessmentDate.ToString("dd MMM yyyy")</strong>
+                                </div>
+                            </div>
 
-            <h5 class="mb-0"
-                style="color:#5F5146;">
+                            <!-- Progress Bar -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>Depression Severity Index</span>
+                                    <span>@(Math.Round((phq.TotalScore / 27.0) * 100))%</span>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius: 1rem; background: #EADDD0;">
+                                    <div class="progress-bar @(phq.TotalScore >= 20 ? "bg-danger" : phq.TotalScore >= 15 ? "bg-warning" : "bg-primary")"
+                                         role="progressbar" style="width: @((phq.TotalScore / 27.0) * 100)%;"></div>
+                                </div>
+                            </div>
 
-                <i class="bi bi-file-text me-2"></i>
+                            <!-- Question Responses Breakdown -->
+                            <h6 class="fw-bold mb-2 small text-uppercase text-muted" style="letter-spacing: 0.5px;">Question Responses</h6>
+                            <div class="mb-3">
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">1. Little interest or pleasure</span>
+                                    <span class="badge @(phq.Question1Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question1Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">2. Feeling down, depressed, hopeless</span>
+                                    <span class="badge @(phq.Question2Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question2Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">3. Trouble falling/staying asleep</span>
+                                    <span class="badge @(phq.Question3Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question3Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">4. Feeling tired or little energy</span>
+                                    <span class="badge @(phq.Question4Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question4Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">5. Poor appetite or overeating</span>
+                                    <span class="badge @(phq.Question5Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question5Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">6. Feeling bad about yourself</span>
+                                    <span class="badge @(phq.Question6Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question6Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">7. Trouble concentrating</span>
+                                    <span class="badge @(phq.Question7Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question7Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center">
+                                    <span class="text-dark">8. Moving/speaking slowly or fidgety</span>
+                                    <span class="badge @(phq.Question8Score >= 2 ? "bg-danger" : "bg-secondary") rounded-pill px-2.5">Score: @(phq.Question8Score ?? 0)</span>
+                                </div>
+                                <div class="q-item d-flex justify-content-between align-items-center @(phq.Question9Score > 0 ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="fw-bold @(phq.Question9Score > 0 ? "text-danger" : "text-dark")">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> 9. Thoughts of self-harm / death
+                                    </span>
+                                    <span class="badge @(phq.Question9Score > 0 ? "bg-danger text-white" : "bg-secondary") rounded-pill px-2.5">
+                                        Score: @(phq.Question9Score ?? 0)
+                                    </span>
+                                </div>
+                            </div>
 
-                Combined Screening Report
+                            @if (!string.IsNullOrWhiteSpace(phq.FunctionalDifficulty))
+                            {
+                                <div class="p-2.5 rounded-3 mb-2 small" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <strong class="text-secondary">Functional Difficulty:</strong>
+                                    <span class="text-dark">@phq.FunctionalDifficulty</span>
+                                </div>
+                            }
 
-            </h5>
-
+                            @if (!string.IsNullOrWhiteSpace(phq.AdditionalComments))
+                            {
+                                <div class="p-2.5 rounded-3 small" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <strong class="text-secondary">Additional Comments:</strong>
+                                    <span class="text-dark">@phq.AdditionalComments</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted my-auto">
+                            <i class="bi bi-clipboard-x fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                            <h6 class="fw-bold text-secondary">No PHQ-9 Assessment Available</h6>
+                            <p class="small mb-0">The student has not yet submitted a PHQ-9 assessment.</p>
+                        </div>
+                    }
+                </div>
+            </div>
         </div>
 
+        <!-- ================= 2. C-SSRS Suicide Risk Assessment ================= -->
+        <div class="col-lg-6">
+            <div class="assessment-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 rounded-3 bg-white text-danger shadow-sm border border-secondary-subtle">
+                            <i class="bi bi-shield-shaded fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0" style="color: #5F5146;">C-SSRS Suicide Risk Scale</h6>
+                            <small class="text-muted">Columbia-Suicide Severity Rating Scale</small>
+                        </div>
+                    </div>
+
+                    @if (cssrs != null)
+                    {
+                        <span class="badge rounded-pill px-3 py-1.5" style="background:#E8DDD2; color:#5F5146;">
+                            @(cssrs.Semester)
+                        </span>
+                    }
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    @if (cssrs != null)
+                    {
+                        <div>
+                            <!-- Risk Summary Row -->
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-4 mb-3"
+                                 style="background: @(cssrs.RiskLevel == "High" ? "#FDE8E8" : cssrs.RiskLevel == "Moderate" ? "#FEF08A" : "#F0FDF4"); border: 1px solid rgba(0,0,0,0.06);">
+                                <div>
+                                    <small class="text-muted fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Assessed Risk Level</small>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        @if (cssrs.RiskLevel == "High")
+                                        {
+                                            <span class="badge bg-danger text-white rounded-pill px-3 py-2 fs-6 shadow-sm">
+                                                <i class="bi bi-exclamation-octagon-fill me-1"></i> High Suicide Risk
+                                            </span>
+                                        }
+                                        else if (cssrs.RiskLevel == "Moderate")
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fs-6 shadow-sm">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Moderate Risk
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success text-white rounded-pill px-3 py-2 fs-6 shadow-sm">
+                                                <i class="bi bi-shield-check me-1"></i> @(cssrs.RiskLevel ?? "Low Risk")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block" style="font-size: 0.75rem;">Assessed on</small>
+                                    <strong class="text-dark small">@cssrs.AssessmentDate.ToString("dd MMM yyyy")</strong>
+                                </div>
+                            </div>
+
+                            <!-- Question Responses Checklist -->
+                            <h6 class="fw-bold mb-2 small text-uppercase text-muted" style="letter-spacing: 0.5px;">C-SSRS Risk Protocol Checklist</h6>
+                            <div class="mb-3">
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question1Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">1. Wish to be dead</span>
+                                    <span class="badge @(cssrs.Question1Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question1Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question2Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">2. Suicidal thoughts</span>
+                                    <span class="badge @(cssrs.Question2Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question2Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question3Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">3. Suicidal thoughts with method</span>
+                                    <span class="badge @(cssrs.Question3Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question3Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question4Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">4. Suicidal intent without specific plan</span>
+                                    <span class="badge @(cssrs.Question4Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question4Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question5Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">5. Suicidal intent with specific plan</span>
+                                    <span class="badge @(cssrs.Question5Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question5Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+
+                                <div class="q-item d-flex justify-content-between align-items-center @(cssrs.Question6Answer == true ? "border-danger bg-danger-subtle" : "")">
+                                    <span class="text-dark">6. Preparatory acts or suicide attempt</span>
+                                    <span class="badge @(cssrs.Question6Answer == true ? "bg-danger text-white" : "bg-secondary-subtle text-secondary") rounded-pill px-3 py-1">
+                                        @(cssrs.Question6Answer == true ? "Yes" : "No")
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if (cssrs.RecentBehavior.HasValue)
+                            {
+                                <div class="p-2.5 rounded-3 mb-2 small" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <strong class="text-secondary">Recent Behaviour Concern:</strong>
+                                    <span class="badge @(cssrs.RecentBehavior.Value ? "bg-danger" : "bg-secondary") rounded-pill px-2.5 ms-1">
+                                        @(cssrs.RecentBehavior.Value ? "Yes (Reported)" : "No")
+                                    </span>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(cssrs.AdditionalInformation))
+                            {
+                                <div class="p-2.5 rounded-3 small" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <strong class="text-secondary">Additional Notes:</strong>
+                                    <span class="text-dark">@cssrs.AdditionalInformation</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted my-auto">
+                            <i class="bi bi-shield-x fs-1 text-secondary opacity-50 d-block mb-2"></i>
+                            <h6 class="fw-bold text-secondary">No C-SSRS Assessment Available</h6>
+                            <p class="small mb-0">The student has not yet submitted a C-SSRS assessment.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Additional AI & Behavioral Screening Grid ================= -->
+    <div class="row g-4 mb-4">
+        <!-- ================= 3. Student Feelings & Self-Report ================= -->
+        <div class="col-lg-4">
+            <div class="assessment-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 rounded-3 bg-white text-danger shadow-sm border border-secondary-subtle">
+                            <i class="bi bi-heart-pulse-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0" style="color: #5F5146;">Feelings Journal</h6>
+                            <small class="text-muted">Student Self-Report</small>
+                        </div>
+                    </div>
+
+                    @if (feeling != null && !string.IsNullOrEmpty(feeling.FeelingRiskLevel))
+                    {
+                        <span class="badge @(feeling.FeelingRiskLevel == "Severe" || feeling.FeelingRiskLevel == "Extremely Severe" ? "bg-danger" : feeling.FeelingRiskLevel == "Moderate" ? "bg-warning text-dark" : "bg-success") rounded-pill px-2.5 py-1">
+                            @feeling.FeelingRiskLevel
+                        </span>
+                    }
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    @if (feeling != null)
+                    {
+                        <div>
+                            @if (!string.IsNullOrWhiteSpace(feeling.FeelingText))
+                            {
+                                <div class="p-3 rounded-3 mb-3" style="background:#FAF8F5; border-left: 3px solid #8A7563;">
+                                    <small class="text-muted d-block mb-1 fw-bold">Student Statement:</small>
+                                    <p class="mb-0 text-dark" style="font-size: 0.9rem; font-style: italic;">"@feeling.FeelingText"</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(feeling.FeelingSummary))
+                            {
+                                <div class="p-3 rounded-3 mb-3" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <small class="text-muted d-block mb-1 fw-bold">NLP Emotional Analysis:</small>
+                                    <p class="mb-0 text-dark small">@feeling.FeelingSummary</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(feeling.AvailableDay) || feeling.StartTime.HasValue)
+                            {
+                                <div class="p-2.5 rounded-3 small" style="background:#FAF6F0; border: 1px solid #EDE2D8;">
+                                    <strong class="text-secondary">Preferred Time:</strong>
+                                    <span class="text-dark">@(feeling.AvailableDay ?? "Any") @(feeling.StartTime.HasValue ? DateTime.Today.Add(feeling.StartTime.Value).ToString("h:mm tt") : "")</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mt-3 text-muted small">
+                            <i class="bi bi-clock me-1"></i> Submitted: @(feeling.UpdatedAt?.ToString("dd MMM yyyy, h:mm tt") ?? feeling.SubmittedAt.ToString("dd MMM yyyy, h:mm tt"))
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted my-auto">
+                            <i class="bi bi-chat-square-dots fs-2 text-secondary opacity-50 d-block mb-2"></i>
+                            <h6 class="fw-bold text-secondary mb-1">No Feelings Log</h6>
+                            <p class="small mb-0">No feelings analysis record found.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 4. AI Chatbot Screening Assessment ================= -->
+        <div class="col-lg-4">
+            <div class="assessment-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 rounded-3 bg-white text-primary shadow-sm border border-secondary-subtle">
+                            <i class="bi bi-chat-left-dots-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0" style="color: #5F5146;">AI Chatbot Companion</h6>
+                            <small class="text-muted">Chat Risk Assessment</small>
+                        </div>
+                    </div>
+
+                    @if (chatAssessment != null)
+                    {
+                        <span class="badge @(chatAssessment.RiskStatus == "Severe" || chatAssessment.RiskStatus == "Extremely Severe" ? "bg-danger" : chatAssessment.RiskStatus == "Moderate" ? "bg-warning text-dark" : "bg-success") rounded-pill px-2.5 py-1">
+                            @chatAssessment.RiskStatus
+                        </span>
+                    }
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    @if (chatAssessment != null)
+                    {
+                        <div>
+                            <div class="p-3 rounded-3 mb-3" style="background:#FAF8F5; border-left: 3px solid #2563EB;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-stars text-primary"></i>
+                                    <strong class="text-dark small">AI Clinical Emotional Summary</strong>
+                                </div>
+                                <p class="mb-0 text-dark small" style="line-height: 1.6;">
+                                    @(string.IsNullOrWhiteSpace(chatAssessment.Summary) ? "Emotional context was analyzed by AI during the session." : chatAssessment.Summary)
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-muted small">
+                            <i class="bi bi-clock me-1"></i> Evaluated: @chatAssessment.CreatedAt.ToString("dd MMM yyyy, h:mm tt")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted my-auto">
+                            <i class="bi bi-robot fs-2 text-secondary opacity-50 d-block mb-2"></i>
+                            <h6 class="fw-bold text-secondary mb-1">No AI Chat Assessment</h6>
+                            <p class="small mb-0">No active AI chatbot session records.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 5. Voice Bot Live Screening ================= -->
+        <div class="col-lg-4">
+            <div class="assessment-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="p-2 rounded-3 bg-white text-success shadow-sm border border-secondary-subtle">
+                            <i class="bi bi-mic-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0" style="color: #5F5146;">AI Voice Bot Companion</h6>
+                            <small class="text-muted">Acoustic &amp; Semantic Evaluation</small>
+                        </div>
+                    </div>
+
+                    @if (voiceBotReport != null)
+                    {
+                        var status = voiceBotReport.IsFinal && !string.IsNullOrWhiteSpace(voiceBotReport.FinalStatus)
+                            ? voiceBotReport.FinalStatus
+                            : voiceBotReport.CurrentStatus;
+
+                        <span class="badge @(status == "Severe" || status == "Extremely Severe" ? "bg-danger" : status == "Moderate" ? "bg-warning text-dark" : "bg-success") rounded-pill px-2.5 py-1">
+                            @status
+                        </span>
+                    }
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    @if (voiceBotReport != null)
+                    {
+                        var summary = voiceBotReport.IsFinal && !string.IsNullOrWhiteSpace(voiceBotReport.FinalSummary)
+                            ? voiceBotReport.FinalSummary
+                            : voiceBotReport.CurrentSummary;
+
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge @(voiceBotReport.IsFinal ? "bg-success-subtle text-success border border-success" : "bg-warning-subtle text-warning-emphasis border border-warning") rounded-pill px-2.5 py-1 small">
+                                    @(voiceBotReport.IsFinal ? "Report Finalized" : "Live / Ongoing")
+                                </span>
+                            </div>
+
+                            <div class="p-3 rounded-3 mb-3" style="background:#FAF8F5; border-left: 3px solid #16A34A;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-soundwave text-success"></i>
+                                    <strong class="text-dark small">Voice Interaction Clinical Summary</strong>
+                                </div>
+                                <p class="mb-0 text-dark small" style="line-height: 1.6;">
+                                    @(string.IsNullOrWhiteSpace(summary) ? "Voice conversation was processed and analyzed for psychological risk." : summary)
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-muted small">
+                            <i class="bi bi-clock me-1"></i> Last Updated: @voiceBotReport.LastUpdatedAt.ToString("dd MMM yyyy, h:mm tt")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted my-auto">
+                            <i class="bi bi-mic-mute fs-2 text-secondary opacity-50 d-block mb-2"></i>
+                            <h6 class="fw-bold text-secondary mb-1">No Voice Bot Record</h6>
+                            <p class="small mb-0">No voice bot screening records found.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Raw Combined Clinical Text Summary (Audit & Copy) ================= -->
+    <div class="glass-card mb-4">
+        <div class="card-header border-0 py-3" style="background:#E8DDD2; border-radius: 1.25rem 1.25rem 0 0;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0 fw-bold" style="color:#5F5146;">
+                    <i class="bi bi-file-earmark-text me-2"></i> System Generated Combined Screening Transcript
+                </h5>
+                <button type="button" class="btn btn-sm btn-dark rounded-pill px-3" onclick="copyReportText()">
+                    <i class="bi bi-clipboard me-1"></i> Copy Report Text
+                </button>
+            </div>
+        </div>
 
         <div class="card-body p-4">
-
-            @if (!string.IsNullOrWhiteSpace(
-                Model.ReportContent))
+            @if (!string.IsNullOrWhiteSpace(Model.ReportContent))
             {
-                <div class="p-4 rounded-4"
-                     style="
-                    background:#FAF7F4;
-                    color:#4F463F;
-                    white-space:pre-wrap;
-                    line-height:1.8;">
-                    @Model.ReportContent
-                </div>
+                <pre class="raw-report-pre mb-0" id="rawReportContent">@Model.ReportContent</pre>
             }
             else
             {
                 <div class="alert alert-secondary mb-0">
-
-                    Screening report information is not available.
-
+                    Screening report text information is not available.
                 </div>
             }
-
         </div>
-
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        function copyReportText() {
+            var text = document.getElementById("rawReportContent")?.innerText;
+            if (text) {
+                navigator.clipboard.writeText(text).then(function () {
+                    alert("Screening report text copied to clipboard!");
+                }).catch(function (err) {
+                    console.error('Could not copy text: ', err);
+                });
+            }
+        }
+    </script>
+}

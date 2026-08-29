@@ -219,8 +219,8 @@
 
     <!-- Final Overall Report: Initial vs Final Condition Summary -->
     @{
-        var firstSession = Model.Sessions.FirstOrDefault();
-        var lastSession = Model.Sessions.LastOrDefault();
+        var firstSession = Model.Sessions?.FirstOrDefault();
+        var lastSession = Model.Sessions?.LastOrDefault();
     }
     @if (firstSession != null && lastSession != null)
     {
@@ -323,10 +323,10 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const sessionLabels = [
-                @Html.Raw(string.Join(",", Model.Sessions.Select(s => $"'Session {s.SessionNumber} ({s.SessionDate:MMM dd})'")))
+                @Html.Raw(string.Join(",", (Model.Sessions ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.SessionProgressDetail>()).Select(s => $"'Session {s.SessionNumber} ({s.SessionDate:MMM dd})'")))
             ];
 
-            const scoresData = [@string.Join(",", Model.Sessions.Select(s => s.SessionScore))];
+            const scoresData = [@string.Join(",", (Model.Sessions ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.SessionProgressDetail>()).Select(s => s.SessionScore))];
 
             const ctx = document.getElementById('psychologistProgressLineChart').getContext('2d');
             new Chart(ctx, {

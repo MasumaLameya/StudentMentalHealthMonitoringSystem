@@ -2151,6 +2151,37 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
+            // Load all detailed screening source data for rich presentation
+            var latestPHQ = await _context.PHQAssessments
+                .Where(p => p.StudentId == screeningReport.StudentId)
+                .OrderByDescending(p => p.AssessmentDate)
+                .FirstOrDefaultAsync();
+
+            var latestCSSRS = await _context.CSSRSAssessments
+                .Where(c => c.StudentId == screeningReport.StudentId)
+                .OrderByDescending(c => c.AssessmentDate)
+                .FirstOrDefaultAsync();
+
+            var latestFeeling = await _context.StudentSemesterRecords
+                .Where(r => r.StudentId == screeningReport.StudentId)
+                .OrderByDescending(r => r.UpdatedAt ?? r.SubmittedAt)
+                .FirstOrDefaultAsync();
+
+            var latestChatAssessment = await _context.ChatRiskAssessments
+                .Where(r => r.StudentId == screeningReport.StudentId)
+                .OrderByDescending(r => r.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            var latestVoiceBotReport = await _context.VoiceBotReports
+                .Where(r => r.StudentId == screeningReport.StudentId)
+                .OrderByDescending(r => r.LastUpdatedAt)
+                .FirstOrDefaultAsync();
+
+            ViewBag.LatestPHQ = latestPHQ;
+            ViewBag.LatestCSSRS = latestCSSRS;
+            ViewBag.LatestFeeling = latestFeeling;
+            ViewBag.LatestChatAssessment = latestChatAssessment;
+            ViewBag.LatestVoiceBotReport = latestVoiceBotReport;
 
             return View(
                 screeningReport

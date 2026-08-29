@@ -1,368 +1,318 @@
-﻿@{
+@{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Reports";
+    ViewData["Title"] = "Reports & Analytics Hub";
 }
 
-<div class="container-fluid">
+<style>
+    .report-card {
+        background: #ffffff;
+        border: 1px solid #EDE2D8;
+        border-radius: 1.25rem;
+        box-shadow: 0 6px 20px rgba(95, 81, 70, 0.05);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .report-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px rgba(138, 117, 99, 0.15);
+        border-color: #D5C2B2;
+    }
+    .report-icon-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    .section-title-badge {
+        background: #E8DDD2;
+        color: #5F5146;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 0.35rem 0.85rem;
+        border-radius: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+</style>
 
-    <!-- ================= Header ================= -->
+<div class="container-fluid py-2">
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4"
-         style="background:#F3EAE2;">
-
-        <div class="card-body p-4">
-
-            <div class="d-flex justify-content-between align-items-center">
-
+    <!-- ================= Top Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5F5146 0%, #8A7563 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-
-                    <h2 class="fw-bold mb-1"
-                        style="color:#5C5148;">
-
-                        📊 Reports
-
+                    <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-semibold shadow-sm">
+                        <i class="bi bi-shield-check text-primary me-1"></i> Institutional Governance &amp; Analytics
+                    </div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i> Reports &amp; Analytics Control Hub
                     </h2>
-
-                    <p class="text-muted mb-0">
-
-                        View and manage different reports of the
-                        Student Mental Health Monitoring System.
-
+                    <p class="text-white-50 mb-0 fs-6">
+                        Access multi-source screening analytics, AI telehealth conversations, clinical follow-ups, clinician workload, and compliance reports.
                     </p>
-
                 </div>
 
-                <div class="rounded-4 d-flex align-items-center justify-content-center"
-                     style="width:60px;
-                    height:60px;
-                    background:#E5D7CB;">
-
-                    <i class="bi bi-file-earmark-bar-graph"
-                       style="font-size:28px;
-                    color:#806C5D;"></i>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ================= Report Cards ================= -->
-
-    <div class="row">
-
-        <!-- Student Report -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#E6D9CE;">
-
-                        <i class="bi bi-people"
-                           style="font-size:27px;
-                        color:#806C5D;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        Student Report
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        View the complete list of registered students
-                        with their academic and contact information.
-
-                    </p>
-
-                    <a asp-controller="Admin"
-                       asp-action="StudentReport"
-                       class="btn rounded-3 px-4"
-                       style="background:#A67C52;
-                        color:white;">
-
-                        View Report
-
-                        <i class="bi bi-arrow-right ms-1"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- High Risk Report -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#F0DDD8;">
-
-                        <i class="bi bi-exclamation-triangle"
-                           style="font-size:27px;
-                        color:#A45E53;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        High Risk Report
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        View students identified with High, Severe,
-                        or Extremely Severe risk levels.
-
-                    </p>
-
-                    <a asp-controller="Admin"
-                       asp-action="HighRiskReport"
-                       class="btn rounded-3 px-4"
-                       style="background:#B96A5B;
-                        color:white;">
-
-                        View Report
-
-                        <i class="bi bi-arrow-right ms-1"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Counseling Report -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#DDE5DD;">
-
-                        <i class="bi bi-chat-heart"
-                           style="font-size:27px;
-                        color:#687D68;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        Counseling Report
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        View counseling records, students,
-                        psychologists and counseling dates.
-
-                    </p>
-
-                    <a asp-controller="Admin"
-                       asp-action="CounselingReport"
-                       class="btn rounded-3 px-4"
-                       style="background:#718471;
-                        color:white;">
-
-                        View Report
-
-                        <i class="bi bi-arrow-right ms-1"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Psychologist Report -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#E2DCD8;">
-
-                        <i class="bi bi-person-badge"
-                           style="font-size:27px;
-                        color:#76695F;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        Psychologist Report
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        View all registered psychologists and
-                        their professional information.
-
-                    </p>
-
-                    <a asp-controller="Admin"
-                       asp-action="PsychologistReport"
-                       class="btn rounded-3 px-4"
-                       style="background:#806C5D;
-                        color:white;">
-
-                        View Report
-
-                        <i class="bi bi-arrow-right ms-1"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Department Report -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#E5DED5;">
-
-                        <i class="bi bi-building"
-                           style="font-size:27px;
-                        color:#806C5D;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        Department Report
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        View departments and the total number
-                        of students in each department.
-
-                    </p>
-
-                    <a asp-controller="Admin"
-                       asp-action="DepartmentReport"
-                       class="btn rounded-3 px-4"
-                       style="background:#8A7563;
-                        color:white;">
-
-                        View Report
-
-                        <i class="bi bi-arrow-right ms-1"></i>
-
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Report Summary -->
-
-        <div class="col-xl-4 col-md-6 mb-4">
-
-            <div class="card border-0 shadow-sm rounded-4 h-100"
-                 style="background:#F7F2ED;">
-
-                <div class="card-body p-4">
-
-                    <div class="rounded-4 d-flex align-items-center justify-content-center mb-4"
-                         style="width:60px;
-                        height:60px;
-                        background:#E1D2C5;">
-
-                        <i class="bi bi-bar-chart-line"
-                           style="font-size:27px;
-                        color:#806C5D;"></i>
-
-                    </div>
-
-                    <h4 class="fw-bold"
-                        style="color:#5C5148;">
-
-                        Report Overview
-
-                    </h4>
-
-                    <p class="text-muted">
-
-                        Access student, risk, counseling,
-                        psychologist and department reports
-                        from one place.
-
-                    </p>
-
-                    <span class="badge rounded-pill px-3 py-2"
-                          style="background:#E5D7CB;
-                        color:#6B5B4E;">
-
-                        5 Reports Available
-
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                        <i class="bi bi-grid-fill me-1 text-primary"></i> 11 Advanced Reports Active
                     </span>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-</div></div>
+    <!-- ================= Section 1: AI Telehealth & Digital Care Reports ================= -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="section-title-badge" style="background:#DBEAFE; color:#1E40AF;">
+                <i class="bi bi-robot text-primary"></i> AI Telehealth &amp; Digital Companion
+            </span>
+            <h5 class="fw-bold mb-0" style="color:#5F5146;">AI Conversation &amp; Telemetry Reports</h5>
+        </div>
+
+        <div class="row g-4">
+            <!-- AI Conversation & Transcript Reports -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4 border-primary-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#EFF6FF; color:#2563EB;">
+                                <i class="bi bi-chat-quote-fill"></i>
+                            </div>
+                            <span class="badge bg-primary rounded-pill px-2.5 py-1">New Feature</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">AI Conversation &amp; Transcript Reports</h5>
+                        <p class="text-muted small mb-3">
+                            Verbatim chat &amp; voice bot interaction transcripts, real-time sentiment shifts, emotion summaries, and late-night support analytics.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="AIConversationReports" class="btn btn-primary rounded-pill px-4 fw-semibold w-100">
+                        View AI Reports <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Multi-Source Crisis Escalation Report -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4 border-danger-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #FFF5F5 100%);">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#FEE2E2; color:#DC2626;">
+                                <i class="bi bi-exclamation-octagon-fill"></i>
+                            </div>
+                            <span class="badge bg-danger rounded-pill px-2.5 py-1">Safety Critical</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Crisis Escalation &amp; Safety Audit</h5>
+                        <p class="text-muted small mb-3">
+                            Unified multi-source tracking of C-SSRS high risk, PHQ-9 Q9 self-harm, AI Chat &amp; Voice crisis triggers with psychologist follow-up audit.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="CrisisEscalationReport" class="btn btn-danger rounded-pill px-4 fw-semibold w-100">
+                        View Crisis Audit <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Screening Analytics -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#E0E7FF; color:#4F46E5;">
+                                <i class="bi bi-pie-chart-fill"></i>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Analytics</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Screening Distribution Analytics</h5>
+                        <p class="text-muted small mb-3">
+                            Semester-wise distribution of PHQ-9, C-SSRS and feelings scores across departments with severity breakdown charts.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="ScreeningAnalytics" class="btn btn-dark rounded-pill px-4 fw-semibold w-100">
+                        View Analytics <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Section 2: Clinical Operations & Workload ================= -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="section-title-badge" style="background:#FEF3C7; color:#92400E;">
+                <i class="bi bi-person-badge text-warning-emphasis"></i> Clinical Operations
+            </span>
+            <h5 class="fw-bold mb-0" style="color:#5F5146;">Counseling Caseload &amp; Clinician Performance</h5>
+        </div>
+
+        <div class="row g-4">
+            <!-- Psychologist Workload Report -->
+            <div class="col-xl-6 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#FDF2F8; color:#DB2777;">
+                                <i class="bi bi-person-heart"></i>
+                            </div>
+                            <span class="badge bg-dark rounded-pill px-2.5 py-1">Operations</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Psychologist Workload &amp; Capacity</h5>
+                        <p class="text-muted small mb-3">
+                            Clinician caseload utilization, assigned appointments, confirmed vs completed sessions, and 9/10/11 AM slot occupancy.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="PsychologistWorkloadReport" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Workload Report <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Student Longitudinal Progress Reports -->
+            <div class="col-xl-6 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#ECFDF5; color:#059669;">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </div>
+                            <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1">Therapeutic</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Student Progress &amp; Recovery Reports</h5>
+                        <p class="text-muted small mb-3">
+                            Session-by-session improvement indicators, baseline score changes, progress line charts, and clinical recovery status.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="StudentProgressReports" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Progress Reports <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Section 3: Compliance & Academic Governance ================= -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="section-title-badge" style="background:#E0E7FF; color:#3730A3;">
+                <i class="bi bi-shield-check text-primary"></i> Academic Governance
+            </span>
+            <h5 class="fw-bold mb-0" style="color:#5F5146;">Compliance, Clearance &amp; Academic Administration</h5>
+        </div>
+
+        <div class="row g-4">
+            <!-- Academic Administration & Clearance Report -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4 border-primary-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#F1F5F9; color:#1E293B;">
+                                <i class="bi bi-file-earmark-ruled"></i>
+                            </div>
+                            <span class="badge bg-primary rounded-pill px-2.5 py-1">Governance</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Academic Administration &amp; Clearance</h5>
+                        <p class="text-muted small mb-3">
+                            Monitor campus-wide course registration clearance, blocked non-compliant students, and coordinator action logs.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="AcademicAdministrationReport" class="btn btn-primary rounded-pill px-4 fw-semibold w-100">
+                        View Academic Report <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Screening Compliance -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#F1F5F9; color:#475569;">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Clearance</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Screening Compliance</h5>
+                        <p class="text-muted small mb-3">
+                            Track student completion of mandatory PHQ-9 &amp; C-SSRS semester screening clearance.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="ScreeningCompliance" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Compliance <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Semester End Reports -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#F1F5F9; color:#475569;">
+                                <i class="bi bi-journal-text"></i>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Term End</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Semester End Reports</h5>
+                        <p class="text-muted small mb-3">
+                            Department-wise term-closing summaries and promotion vs course blocking metrics.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="SemesterEndReports" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Term Reports <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Counseling Appointments Roster -->
+            <div class="col-xl-6 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#F1F5F9; color:#475569;">
+                                <i class="bi bi-calendar2-heart"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Counseling Appointments</h5>
+                        <p class="text-muted small mb-3">
+                            Complete log of scheduled, confirmed, and completed counseling consultations.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="CounselingReport" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Appointments <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Master Student Report -->
+            <div class="col-xl-6 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#F1F5F9; color:#475569;">
+                                <i class="bi bi-mortarboard"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Student Directory</h5>
+                        <p class="text-muted small mb-3">
+                            Master student directory with academic standing and contact information.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="StudentReport" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
+                        View Directory <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

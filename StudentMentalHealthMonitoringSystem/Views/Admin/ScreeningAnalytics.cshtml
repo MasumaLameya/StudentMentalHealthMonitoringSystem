@@ -255,13 +255,13 @@
 
             // Chart 2: Stacked Bar Chart by Department
             const deptLabels = [
-                @Html.Raw(string.Join(",", Model.DepartmentBreakdowns.Select(d => $"'{d.DepartmentName}'")))
+                @Html.Raw(string.Join(",", (Model.DepartmentBreakdowns ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSeveritySummary>()).Select(d => $"'{d.DepartmentName}'")))
             ];
 
-            const normalPctData = [@string.Join(",", Model.DepartmentBreakdowns.Select(d => d.NormalPercentage))];
-            const moderatePctData = [@string.Join(",", Model.DepartmentBreakdowns.Select(d => d.ModeratePercentage))];
-            const severePctData = [@string.Join(",", Model.DepartmentBreakdowns.Select(d => d.SeverePercentage))];
-            const extremelySeverePctData = [@string.Join(",", Model.DepartmentBreakdowns.Select(d => d.ExtremelySeverePercentage))];
+            const normalPctData = [@string.Join(",", (Model.DepartmentBreakdowns ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSeveritySummary>()).Select(d => d.NormalPercentage))];
+            const moderatePctData = [@string.Join(",", (Model.DepartmentBreakdowns ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSeveritySummary>()).Select(d => d.ModeratePercentage))];
+            const severePctData = [@string.Join(",", (Model.DepartmentBreakdowns ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSeveritySummary>()).Select(d => d.SeverePercentage))];
+            const extremelySeverePctData = [@string.Join(",", (Model.DepartmentBreakdowns ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentSeveritySummary>()).Select(d => d.ExtremelySeverePercentage))];
 
             const ctxBar = document.getElementById('departmentBarChart').getContext('2d');
             new Chart(ctxBar, {

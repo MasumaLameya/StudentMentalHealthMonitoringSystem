@@ -1,0 +1,249 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistWorkloadReportViewModel
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Psychologist Workload & Capacity Report";
+}
+
+<style>
+    .glass-card-admin {
+        background: #ffffff;
+        border: 1px solid #E5D8CC;
+        border-radius: 1.25rem;
+        box-shadow: 0 8px 24px rgba(94, 80, 63, 0.06);
+    }
+    .metric-card-admin {
+        background: #FAF6F0;
+        border: 1px solid #EDE2D8;
+        border-radius: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .metric-card-admin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(166, 124, 82, 0.12);
+    }
+    .table-admin thead th {
+        background-color: #F4EEE8;
+        color: #5E503F;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #E5D8CC;
+        padding: 0.9rem 0.75rem;
+    }
+    .table-admin tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #F0E8DF;
+    }
+    .table-admin tbody tr:hover {
+        background-color: #FCFAF8;
+    }
+</style>
+
+<div class="container-fluid py-2">
+
+    <!-- ================= Top Header Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5F5146 0%, #8A7563 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-semibold shadow-sm">
+                        <i class="bi bi-person-check-fill text-primary me-1"></i> Clinical Operations &amp; Resource Management
+                    </div>
+                    <h2 class="fw-bold mb-1 text-white">
+                        <i class="bi bi-pie-chart me-2"></i> Psychologist Workload &amp; Capacity Utilization
+                    </h2>
+                    <p class="text-white-50 mb-0 fs-6">
+                        Monitor clinical caseload distribution, completed consultations, fixed slot occupancy, and counselor capacity.
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-printer me-1"></i> Print Report
+                    </button>
+                    <a asp-controller="Admin" asp-action="Reports" class="btn btn-light rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KPI Summary Metric Cards ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="metric-card-admin p-3 text-center h-100">
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Active Psychologists</small>
+                <h3 class="fw-bold mb-0" style="color: #5E503F;">@Model.TotalPsychologists</h3>
+                <small class="text-muted">Clinical Staff</small>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6">
+            <div class="metric-card-admin p-3 text-center h-100">
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Total Assigned Appointments</small>
+                <h3 class="fw-bold mb-0 text-primary">@Model.TotalCounselingSessions</h3>
+                <small class="text-muted">All Time Consultations</small>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="metric-card-admin p-3 text-center h-100">
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Completed Sessions</small>
+                <h3 class="fw-bold mb-0 text-success">@Model.CompletedSessions</h3>
+                <small class="text-muted">Conducted</small>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 col-sm-6">
+            <div class="metric-card-admin p-3 text-center h-100">
+                <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Pending / Confirmed</small>
+                <h3 class="fw-bold mb-0 text-warning-emphasis">@Model.ConfirmedPendingSessions</h3>
+                <small class="text-muted">Upcoming</small>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 col-sm-12">
+            <div class="metric-card-admin p-3 text-center h-100" style="background:#FAF8F5;">
+                <small class="text-secondary text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Average Caseload</small>
+                <h3 class="fw-bold mb-0" style="color: #806C5D;">@Model.AverageSessionsPerPsychologist</h3>
+                <small class="text-muted">Sessions per Clinician</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Slot Occupancy Breakdown ================= -->
+    <div class="glass-card-admin mb-4">
+        <div class="card-header border-0 py-3" style="background:#F4EEE8;">
+            <h5 class="mb-0 fw-bold" style="color:#5E503F;">
+                <i class="bi bi-clock-history me-2"></i> Fixed Counseling Slot Occupancy &amp; Demand Breakdown
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                @foreach (var slot in Model.SlotOccupancies)
+                {
+                    <div class="col-md-4">
+                        <div class="p-3 rounded-4" style="background:#FAF6F0; border:1px solid #EDE2D8;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="text-dark small">@slot.SlotName</strong>
+                                <span class="badge bg-white text-dark border rounded-pill px-2.5 py-1">@slot.TotalBookings sessions</span>
+                            </div>
+                            <div class="progress" style="height: 10px; border-radius: 1rem; background: #EADDD0;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: @slot.PercentageOfTotal%;"></div>
+                            </div>
+                            <small class="text-muted mt-1 d-block text-end">@slot.PercentageOfTotal% of Total Bookings</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Clinician Caseload Table ================= -->
+    <div class="glass-card-admin">
+        <div class="card-header border-0 py-3 d-flex justify-content-between align-items-center" style="background:#F4EEE8;">
+            <h5 class="mb-0 fw-bold" style="color:#5E503F;">
+                <i class="bi bi-people-fill me-2"></i> Clinician Workload &amp; Performance Roster
+            </h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-1">@Model.Psychologists.Count Clinicians</span>
+        </div>
+
+        <div class="card-body p-0">
+            @if (Model.Psychologists != null && Model.Psychologists.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-admin align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Psychologist</th>
+                                <th>Specialization</th>
+                                <th class="text-center">Total Cases</th>
+                                <th class="text-center">Completed</th>
+                                <th class="text-center">Pending</th>
+                                <th class="text-center">Follow-ups</th>
+                                <th style="width: 22%;">Monthly Capacity Utilization</th>
+                                <th class="text-center pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Psychologists)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@(string.IsNullOrEmpty(p.ProfileImage) ? "/images/default-avatar.png" : p.ProfileImage)"
+                                                 class="rounded-circle border" style="width: 42px; height: 42px; object-fit: cover;" alt="@p.FullName" />
+                                            <div>
+                                                <strong class="d-block text-dark">@p.FullName</strong>
+                                                <small class="text-muted">@p.Email • @p.Phone</small>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge rounded-pill px-3 py-1.5" style="background:#E8DDD2; color:#5F5146;">
+                                            @p.Specialization
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-dark text-white rounded-pill px-3 py-1.5 fw-bold">
+                                            @p.TotalAssignedCases
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
+                                            @p.CompletedSessions
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill px-3 py-1">
+                                            @p.ConfirmedPendingSessions
+                                        </span>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info rounded-pill px-3 py-1">
+                                            @p.FollowUpCasesCount
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex justify-content-between align-items-center text-muted small mb-1">
+                                            <span>@p.TotalAssignedCases / 60 max</span>
+                                            <strong class="text-dark">@p.CapacityUtilizationPercentage%</strong>
+                                        </div>
+                                        <div class="progress" style="height: 8px; border-radius: 1rem; background: #EADDD0;">
+                                            <div class="progress-bar @(p.CapacityUtilizationPercentage >= 80 ? "bg-danger" : p.CapacityUtilizationPercentage >= 50 ? "bg-warning" : "bg-success")"
+                                                 role="progressbar" style="width: @p.CapacityUtilizationPercentage%;"></div>
+                                        </div>
+                                    </td>
+
+                                    <td class="text-center pe-4">
+                                        <a asp-controller="Admin" asp-action="PsychologistDetails" asp-route-id="@p.PsychologistId"
+                                           class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold">
+                                            <i class="bi bi-eye me-1"></i> Profile &amp; Cases
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted mb-0">No psychologist records found.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>

@@ -2080,6 +2080,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 .Union(semestersFromRecord)
                 .Union(semestersFromStudent)
                 .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct()
                 .OrderByDescending(s => s)
                 .ToList();
 
@@ -2088,20 +2089,49 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 availableSemesters.Add("Spring 2026");
             }
 
-            var selectedSemester = string.IsNullOrWhiteSpace(semester) ? availableSemesters.First() : semester.Trim();
+            // Insert Overall option at the top
+            availableSemesters.Insert(0, "Overall (All Semesters)");
+
+            var selectedSemester = string.IsNullOrWhiteSpace(semester) ? "Overall (All Semesters)" : semester.Trim();
+            bool isOverall = selectedSemester == "Overall" || selectedSemester == "Overall (All Semesters)" || selectedSemester == "All";
+            if (isOverall)
+            {
+                selectedSemester = "Overall (All Semesters)";
+            }
 
             // Load Assessments for selectedSemester & Dept Students
-            var phqAssessments = await _context.PHQAssessments
-                .Where(p => p.Semester == selectedSemester && deptStudentIds.Contains(p.StudentId))
-                .ToListAsync();
+            List<PHQAssessment> phqAssessments;
+            List<CSSRSAssessment> cssrsAssessments;
+            List<StudentSemesterRecord> semesterRecords;
 
-            var cssrsAssessments = await _context.CSSRSAssessments
-                .Where(c => c.Semester == selectedSemester && deptStudentIds.Contains(c.StudentId))
-                .ToListAsync();
+            if (isOverall)
+            {
+                phqAssessments = await _context.PHQAssessments
+                    .Where(p => deptStudentIds.Contains(p.StudentId))
+                    .ToListAsync();
 
-            var semesterRecords = await _context.StudentSemesterRecords
-                .Where(r => r.Semester == selectedSemester && deptStudentIds.Contains(r.StudentId))
-                .ToListAsync();
+                cssrsAssessments = await _context.CSSRSAssessments
+                    .Where(c => deptStudentIds.Contains(c.StudentId))
+                    .ToListAsync();
+
+                semesterRecords = await _context.StudentSemesterRecords
+                    .Where(r => deptStudentIds.Contains(r.StudentId))
+                    .ToListAsync();
+            }
+            else
+            {
+                phqAssessments = await _context.PHQAssessments
+                    .Where(p => p.Semester == selectedSemester && deptStudentIds.Contains(p.StudentId))
+                    .ToListAsync();
+
+                cssrsAssessments = await _context.CSSRSAssessments
+                    .Where(c => c.Semester == selectedSemester && deptStudentIds.Contains(c.StudentId))
+                    .ToListAsync();
+
+                semesterRecords = await _context.StudentSemesterRecords
+                    .Where(r => r.Semester == selectedSemester && deptStudentIds.Contains(r.StudentId))
+                    .ToListAsync();
+            }
 
             int totalScreeningsConducted = phqAssessments.Count + cssrsAssessments.Count + semesterRecords.Count;
 
