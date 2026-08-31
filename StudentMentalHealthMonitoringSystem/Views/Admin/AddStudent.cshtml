@@ -236,22 +236,23 @@
                 <div class="row">
 
                     <div class="col-md-4 mb-3">
-
                         <label asp-for="Department"
                                class="form-label fw-semibold">
-
                             Department
-
                         </label>
-
-                        <input asp-for="Department"
-                               class="form-control rounded-3"
-                               placeholder="e.g. CSE" />
-
+                        <select asp-for="Department"
+                                class="form-select rounded-3">
+                            <option value="">-- Select Department --</option>
+                            <option value="CSE">CSE</option>
+                            <option value="EEE">EEE</option>
+                            <option value="Mechanical">Mechanical</option>
+                            <option value="Civil">Civil</option>
+                            <option value="BBA">BBA</option>
+                            <option value="BATHM">BATHM</option>
+                        </select>
                         <span asp-validation-for="Department"
                               class="text-danger">
                         </span>
-
                     </div>
 
                     <div class="col-md-4 mb-3">
@@ -404,18 +405,28 @@
 
 
                     <div class="col-md-6 mb-3">
-
                         <label asp-for="Relationship"
                                class="form-label fw-semibold">
-
                             Relationship
-
                         </label>
-
-                        <input asp-for="Relationship"
-                               class="form-control rounded-3"
-                               placeholder="e.g. Father, Mother" />
-
+                        <select asp-for="Relationship"
+                                class="form-select rounded-3">
+                            <option value="">-- Select Relationship --</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Sister">Sister</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Aunt">Aunt</option>
+                            <option value="Grandfather">Grandfather</option>
+                            <option value="Grandmother">Grandmother</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Legal Guardian">Legal Guardian</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Relationship"
+                              class="text-danger">
+                        </span>
                     </div>
 
 

@@ -224,14 +224,12 @@
                                         <label asp-for="Department" class="form-label fw-bold small text-secondary">Academic Department</label>
                                         <select asp-for="Department" class="form-select">
                                             <option value="">-- Select Department --</option>
-                                            <option value="Computer Science and Engineering">Computer Science & Engineering (CSE)</option>
-                                            <option value="Electrical and Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
-                                            <option value="Business Administration">Business Administration (BBA)</option>
-                                            <option value="Pharmacy">Pharmacy</option>
-                                            <option value="English">English</option>
-                                            <option value="Law">Law</option>
-                                            <option value="Economics">Economics</option>
-                                            <option value="Civil Engineering">Civil Engineering</option>
+                                            <option value="CSE">CSE</option>
+                                            <option value="EEE">EEE</option>
+                                            <option value="Mechanical">Mechanical</option>
+                                            <option value="Civil">Civil</option>
+                                            <option value="BBA">BBA</option>
+                                            <option value="BATHM">BATHM</option>
                                         </select>
                                     </div>
 
@@ -241,8 +239,14 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label asp-for="Semester" class="form-label fw-bold small text-secondary">Current Semester</label>
-                                        <input asp-for="Semester" class="form-control" placeholder="e.g. Spring 2026" />
+                                        <label asp-for="Semester" class="form-label fw-bold small text-secondary">
+                                            Current Semester <span class="badge bg-secondary-subtle text-secondary ms-1"><i class="bi bi-lock-fill me-1"></i>Running Semester</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="Semester" class="form-control bg-light text-muted" readonly tabindex="-1" style="cursor: not-allowed;" />
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock-fill"></i></span>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i>Running semester is system managed and cannot be edited.</small>
                                     </div>
 
                                     <div class="col-md-6">
@@ -324,6 +328,9 @@
                                         <option value="Sister">Sister</option>
                                         <option value="Uncle">Uncle</option>
                                         <option value="Aunt">Aunt</option>
+                                        <option value="Grandfather">Grandfather</option>
+                                        <option value="Grandmother">Grandmother</option>
+                                        <option value="Spouse">Spouse</option>
                                         <option value="Legal Guardian">Legal Guardian</option>
                                         <option value="Other">Other</option>
                                     </select>

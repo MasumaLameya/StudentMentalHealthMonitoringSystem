@@ -124,8 +124,10 @@
             </h5>
             <small class="text-muted">Threshold score trajectory across all counseling sessions (X-axis: Sessions, Y-axis: Score 0-100)</small>
         </div>
-        <div class="card-body p-4" style="min-height: 350px;">
-            <canvas id="deptStudentProgressLineChart" style="max-height: 320px;"></canvas>
+        <div class="card-body p-4">
+            <div style="position: relative; height: 280px; width: 100%;">
+                <canvas id="deptStudentProgressLineChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -333,61 +335,79 @@
             const scoresData = [@string.Join(",", (Model.Sessions ?? new List<StudentMentalHealthMonitoringSystem.ViewModels.SessionProgressDetail>()).Select(s => s.SessionScore))];
 
             const ctx = document.getElementById('deptStudentProgressLineChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+            gradient.addColorStop(0, 'rgba(37, 99, 235, 0.28)');
+            gradient.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: sessionLabels,
-                    datasets: [{
-                        label: 'Student Progress Score',
-                        data: scoresData,
-                        fill: false,
-                        borderColor: '#a53838',
-                        borderWidth: 3,
-                        pointStyle: 'rect',
-                        pointRadius: 9,
-                        pointHoverRadius: 12,
-                        pointBackgroundColor: '#a53838',
-                        pointBorderColor: '#7a1f1f',
-                        pointBorderWidth: 2,
-                        tension: 0
-                    }]
+                    datasets: [
+                        {
+                            label: 'Student Recovery / Progress Score',
+                            data: scoresData,
+                            borderColor: '#2563EB',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#1D4ED8',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 7,
+                            pointHoverRadius: 10
+                        },
+                        {
+                            label: 'Recovery Target (75.0)',
+                            data: sessionLabels.map(() => 75),
+                            borderColor: 'rgba(22, 163, 74, 0.7)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
                     scales: {
                         x: {
                             grid: { display: true, color: '#e2e8f0' },
-                            ticks: { font: { size: 13, weight: 'bold' }, color: '#1e293b' },
-                            title: { display: true, text: 'Follow-up Sessions (Time / Date)', font: { size: 14, weight: 'bold' }, color: '#0f172a' }
+                            ticks: { font: { size: 12, weight: 'bold' }, color: '#1e293b' },
+                            title: { display: true, text: 'Follow-up Sessions (Timeline)', font: { size: 13, weight: 'bold' }, color: '#0f172a' }
                         },
                         y: {
                             min: 0,
                             max: 100,
                             ticks: {
                                 stepSize: 20,
-                                font: { size: 13, weight: 'bold' },
+                                font: { size: 12, weight: 'bold' },
                                 color: '#1e293b',
                                 callback: function(value) { return value + ' pts'; }
                             },
                             grid: { color: '#cbd5e1' },
-                            title: { display: true, text: 'Scoring Scale (0 - 100)', font: { size: 14, weight: 'bold' }, color: '#0f172a' }
+                            title: { display: true, text: 'Recovery Score Scale (0 - 100)', font: { size: 13, weight: 'bold' }, color: '#0f172a' }
                         }
                     },
                     plugins: {
                         legend: {
                             position: 'top',
                             labels: {
-                                font: { size: 14, weight: 'bold' },
+                                font: { size: 12, weight: 'bold' },
                                 color: '#0f172a',
-                                usePointStyle: true,
-                                pointStyle: 'rect'
+                                usePointStyle: true
                             }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function (ctx) {
-                                    return ` Progress Score: ${ctx.raw} / 100`;
+                                    return ` Score: ${ctx.raw} / 100`;
                                 }
                             }
                         }

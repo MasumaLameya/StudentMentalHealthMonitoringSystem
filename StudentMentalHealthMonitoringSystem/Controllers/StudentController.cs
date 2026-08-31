@@ -3614,7 +3614,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             student.Gender = model.Gender;
             student.Department = model.Department;
             student.AdmissionYear = model.AdmissionYear;
-            student.Semester = model.Semester;
+            // Running semester is system-managed and cannot be manually modified by the student
+            student.Semester = student.ActiveSemester;
             student.Height = model.Height;
             student.Weight = model.Weight;
             student.FinancialCondition = model.FinancialCondition;
