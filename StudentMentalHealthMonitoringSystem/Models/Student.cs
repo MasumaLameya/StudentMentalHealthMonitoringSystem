@@ -37,8 +37,6 @@ namespace StudentMentalHealthMonitoringSystem.Models
 
 
         [Required(ErrorMessage = "Password is required.")]
-        [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters long.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", ErrorMessage = "Password must contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.")]
         [DataType(DataType.Password)]
         public string Password { get; set; } =
             string.Empty;

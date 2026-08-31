@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentMentalHealthMonitoringSystem.Data;
 using StudentMentalHealthMonitoringSystem.Models;

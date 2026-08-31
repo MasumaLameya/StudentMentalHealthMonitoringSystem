@@ -18,15 +18,18 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
         private readonly CounselingSchedulerService _counselingSchedulerService;
+        private readonly EmailService _emailService;
 
         public PsychologistController(
             ApplicationDbContext context,
             IWebHostEnvironment environment,
-            CounselingSchedulerService counselingSchedulerService)
+            CounselingSchedulerService counselingSchedulerService,
+            EmailService emailService)
         {
             _context = context;
             _environment = environment;
             _counselingSchedulerService = counselingSchedulerService;
+            _emailService = emailService;
         }
 
 
@@ -275,6 +278,187 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             return RedirectToAction(
                 "Dashboard"
             );
+        }
+
+
+        // =========================================================
+        // FORGOT PASSWORD
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            if (HttpContext.Session.GetInt32("PsychologistId") != null)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Please enter your registered email address.";
+                return View();
+            }
+
+            email = email.Trim().ToLowerInvariant();
+
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.Email.ToLower() == email);
+
+            if (psychologist == null)
+            {
+                ViewBag.Error = "No psychologist account was found with this email address.";
+                return View();
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Psychologist_Reset_Email", psychologist.Email);
+            HttpContext.Session.SetString("Psychologist_Reset_Otp", otp);
+            HttpContext.Session.SetString("Psychologist_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                await _emailService.SendPasswordResetOtpAsync(psychologist.Email, psychologist.FullName, otp, "Psychologist");
+                TempData["SuccessMessage"] = "A 6-digit verification code (OTP) has been sent to your email. Please check your inbox.";
+                return RedirectToAction("ResetPassword");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Failed to send email OTP: {ex.Message}";
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var resetEmail = HttpContext.Session.GetString("Psychologist_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string otp, string newPassword, string confirmPassword)
+        {
+            var resetEmail = HttpContext.Session.GetString("Psychologist_Reset_Email");
+            var sessionOtp = HttpContext.Session.GetString("Psychologist_Reset_Otp");
+            var expiryStr = HttpContext.Session.GetString("Psychologist_Reset_Expiry");
+
+            if (string.IsNullOrWhiteSpace(resetEmail) || string.IsNullOrWhiteSpace(sessionOtp))
+            {
+                TempData["ErrorMessage"] = "Password reset session has expired. Please request a new code.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+
+            if (string.IsNullOrWhiteSpace(otp))
+            {
+                ViewBag.Error = "Please enter the 6-digit OTP code.";
+                return View();
+            }
+
+            if (DateTime.TryParse(expiryStr, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiryTime))
+            {
+                if (DateTime.UtcNow > expiryTime)
+                {
+                    ViewBag.Error = "The verification code has expired. Please request a new code.";
+                    return View();
+                }
+            }
+
+            if (otp.Trim() != sessionOtp.Trim())
+            {
+                ViewBag.Error = "Invalid verification code. Please check and try again.";
+                return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                ViewBag.Error = "Password must be at least 8 characters long.";
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Passwords do not match.";
+                return View();
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            {
+                ViewBag.Error = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
+                return View();
+            }
+
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.Email.ToLower() == resetEmail.ToLower());
+
+            if (psychologist == null)
+            {
+                ViewBag.Error = "Psychologist account not found.";
+                return View();
+            }
+
+            psychologist.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            // Clear reset session
+            HttpContext.Session.Remove("Psychologist_Reset_Email");
+            HttpContext.Session.Remove("Psychologist_Reset_Otp");
+            HttpContext.Session.Remove("Psychologist_Reset_Expiry");
+
+            TempData["SuccessMessage"] = "Your password has been successfully reset! Please log in with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendResetOtp()
+        {
+            var resetEmail = HttpContext.Session.GetString("Psychologist_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return Json(new { success = false, message = "Session expired. Please start over." });
+            }
+
+            var psychologist = await _context.Psychologists
+                .FirstOrDefaultAsync(p => p.Email.ToLower() == resetEmail.ToLower());
+
+            if (psychologist == null)
+            {
+                return Json(new { success = false, message = "Psychologist account not found." });
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Psychologist_Reset_Otp", otp);
+            HttpContext.Session.SetString("Psychologist_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                await _emailService.SendPasswordResetOtpAsync(psychologist.Email, psychologist.FullName, otp, "Psychologist");
+                return Json(new { success = true, message = "A new verification code has been sent to your email." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Failed to send email: {ex.Message}" });
+            }
         }
 
 

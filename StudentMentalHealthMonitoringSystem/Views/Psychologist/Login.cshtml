@@ -40,6 +40,13 @@
         </div>
 
         <div class="p-4 p-lg-5">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success border-0 rounded-3 mb-4 fs-6">
+                    <i class="bi bi-check-circle-fill me-1.5"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
             @if (ViewBag.Error != null)
             {
                 <div class="alert alert-danger border-0 rounded-3 mb-4 fs-6">
@@ -59,7 +66,10 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark fs-6 mb-1.5">Password</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1.5">
+                        <label class="form-label fw-bold text-dark fs-6 mb-0">Password</label>
+                        <a asp-controller="Psychologist" asp-action="ForgotPassword" class="text-decoration-none small fw-semibold text-danger">Forgot Password?</a>
+                    </div>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 fs-5"><i class="bi bi-lock text-danger"></i></span>
                         <input type="password" name="password" class="form-control form-control-lg fs-6 border-start-0 ps-1" placeholder="••••••••" required />

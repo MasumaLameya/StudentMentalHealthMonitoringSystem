@@ -1,0 +1,235 @@
+@{
+    ViewData["Title"] = "Verify Guardian OTP";
+    var studentName = ViewBag.StudentName as string ?? "Student";
+    var studentIdNumber = ViewBag.StudentIdNumber as string ?? "";
+    var maskedEmail = ViewBag.MaskedEmail as string ?? "registered email";
+}
+
+<style>
+    .guardian-verify-page {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 15px;
+    }
+
+    .guardian-verify-card {
+        width: 100%;
+        max-width: 450px;
+        background: #FFFFFF;
+        border: 1px solid #E1EAEE;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(70,100,120,0.10);
+    }
+
+    .guardian-verify-header {
+        background: linear-gradient(135deg, #A9D5E8, #C7DDE8, #DCD1E7);
+        padding: 30px;
+        text-align: center;
+    }
+
+    .guardian-verify-icon {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 15px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.78);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #587C8E;
+        font-size: 28px;
+    }
+
+    .guardian-verify-header h3 {
+        color: #405F70;
+        font-weight: 700;
+        margin-bottom: 7px;
+    }
+
+    .guardian-verify-header p {
+        color: #718894;
+        font-size: 13px;
+        margin: 0;
+    }
+
+    .guardian-verify-body {
+        padding: 30px;
+    }
+
+    .otp-input {
+        width: 100%;
+        border: 2px solid #D9E4E9;
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: #2C3E50;
+        outline: none;
+        letter-spacing: 8px;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .otp-input:focus {
+        border-color: #587C8E;
+        box-shadow: 0 0 0 3px rgba(88,124,142,0.18);
+    }
+
+    .guardian-verify-btn {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 13px;
+        background: #587C8E;
+        color: #FFFFFF;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.2s ease;
+    }
+
+    .guardian-verify-btn:hover {
+        background: #4A6C7D;
+        color: #FFFFFF;
+    }
+
+    .guardian-error {
+        background: #F9ECEF;
+        border: 1px solid #F0D8DE;
+        color: #966477;
+        border-radius: 12px;
+        padding: 11px 13px;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+
+    .guardian-success {
+        background: #EAF4EE;
+        border: 1px solid #D4E8DC;
+        color: #3C664C;
+        border-radius: 12px;
+        padding: 11px 13px;
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="guardian-verify-page">
+    <div class="guardian-verify-card">
+        
+        <!-- Header -->
+        <div class="guardian-verify-header">
+            <div class="guardian-verify-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h3>Verify Identity</h3>
+            <p>Guardian Verification Code</p>
+        </div>
+
+        <!-- Body -->
+        <div class="guardian-verify-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="guardian-success">
+                    <i class="bi bi-check-circle me-1.5"></i>
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="guardian-error">
+                    <i class="bi bi-exclamation-circle me-1.5"></i>
+                    @ViewBag.Error
+                </div>
+            }
+
+            <!-- Student Badge -->
+            <div style="background:#F2F7FA; border:1px solid #E1EAEE; border-radius:12px; padding:12px 16px; margin-bottom:20px;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span style="font-size:11px; color:#718894; text-transform:uppercase; font-weight:600;">Student</span>
+                        <h6 style="margin:0; color:#34495E; font-weight:700;">@studentName</h6>
+                        <small style="color:#607889;">ID: @studentIdNumber</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="badge" style="background:#D8D0E8; color:#5A4A78; font-weight:600;">Guardian</span>
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-top" style="border-color:#E1EAEE !important; font-size:12px; color:#587C8E;">
+                    <i class="bi bi-envelope-check me-1"></i> OTP sent to: <strong>@maskedEmail</strong>
+                </div>
+            </div>
+
+            <!-- Verification Form -->
+            <form asp-controller="Guardian" asp-action="VerifyOtp" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4 text-center">
+                    <label class="form-label fw-bold mb-2" style="color:#405F70; font-size:13.5px;">Enter 6-Digit Code</label>
+                    <input type="text"
+                           name="otp"
+                           class="otp-input"
+                           placeholder="••••••"
+                           maxlength="6"
+                           pattern="\d{6}"
+                           required
+                           autofocus
+                           autocomplete="one-time-code" />
+                </div>
+
+                <button type="submit" class="guardian-verify-btn shadow-sm mb-3">
+                    <i class="bi bi-box-arrow-in-right me-1.5"></i> Verify & Log In
+                </button>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color:#E1EAEE !important;">
+                <button type="button" id="btnResend" class="btn btn-link p-0 text-decoration-none small" style="color:#718894;">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Resend Code (<span id="countdown">60</span>s)
+                </button>
+
+                <a asp-controller="Guardian" asp-action="Login" class="text-decoration-none fw-semibold small" style="color:#587C8E;">
+                    <i class="bi bi-arrow-left me-1"></i> Change ID
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let timeLeft = 60;
+    const countdownEl = document.getElementById('countdown');
+    const btnResend = document.getElementById('btnResend');
+
+    const timer = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            countdownEl.parentElement.innerHTML = '<a href="javascript:void(0)" onclick="resendOtp()" class="text-decoration-none fw-semibold small" style="color:#587C8E;"><i class="bi bi-arrow-clockwise me-1"></i> Resend Code</a>';
+        } else {
+            countdownEl.textContent = timeLeft;
+        }
+    }, 1000);
+
+    async function resendOtp() {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        try {
+            const res = await fetch('@Url.Action("ResendOtp", "Guardian")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: '__RequestVerificationToken=' + encodeURIComponent(token)
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) {
+                location.reload();
+            }
+        } catch (e) {
+            alert('Failed to resend verification code. Please try again.');
+        }
+    }
+</script>

@@ -19,17 +19,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly GeminiChatService _geminiChatService;
         private readonly CounselingSchedulerService _counselingSchedulerService;
+        private readonly EmailService _emailService;
 
         public StudentController(
             ApplicationDbContext context,
             IWebHostEnvironment environment,
             GeminiChatService geminiChatService,
-            CounselingSchedulerService counselingSchedulerService)
+            CounselingSchedulerService counselingSchedulerService,
+            EmailService emailService)
         {
             _context = context;
             _environment = environment;
             _geminiChatService = geminiChatService;
             _counselingSchedulerService = counselingSchedulerService;
+            _emailService = emailService;
         }
 
         // =====================================================
@@ -124,6 +127,187 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
         // =====================================================
+        // FORGOT PASSWORD
+        // =====================================================
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            if (HttpContext.Session.GetInt32("StudentId") != null)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Please enter your registered email address.";
+                return View();
+            }
+
+            email = email.Trim().ToLowerInvariant();
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.Email.ToLower() == email);
+
+            if (student == null)
+            {
+                ViewBag.Error = "No student account was found with this email address.";
+                return View();
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Student_Reset_Email", student.Email);
+            HttpContext.Session.SetString("Student_Reset_Otp", otp);
+            HttpContext.Session.SetString("Student_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                await _emailService.SendPasswordResetOtpAsync(student.Email, student.FullName, otp, "Student");
+                TempData["SuccessMessage"] = "A 6-digit verification code (OTP) has been sent to your email. Please check your inbox.";
+                return RedirectToAction("ResetPassword");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Failed to send email OTP: {ex.Message}";
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var resetEmail = HttpContext.Session.GetString("Student_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string otp, string newPassword, string confirmPassword)
+        {
+            var resetEmail = HttpContext.Session.GetString("Student_Reset_Email");
+            var sessionOtp = HttpContext.Session.GetString("Student_Reset_Otp");
+            var expiryStr = HttpContext.Session.GetString("Student_Reset_Expiry");
+
+            if (string.IsNullOrWhiteSpace(resetEmail) || string.IsNullOrWhiteSpace(sessionOtp))
+            {
+                TempData["ErrorMessage"] = "Password reset session has expired. Please request a new code.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+
+            if (string.IsNullOrWhiteSpace(otp))
+            {
+                ViewBag.Error = "Please enter the 6-digit OTP code.";
+                return View();
+            }
+
+            if (DateTime.TryParse(expiryStr, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiryTime))
+            {
+                if (DateTime.UtcNow > expiryTime)
+                {
+                    ViewBag.Error = "The verification code has expired. Please request a new code.";
+                    return View();
+                }
+            }
+
+            if (otp.Trim() != sessionOtp.Trim())
+            {
+                ViewBag.Error = "Invalid verification code. Please check and try again.";
+                return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                ViewBag.Error = "Password must be at least 8 characters long.";
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Passwords do not match.";
+                return View();
+            }
+
+            // Strong password check: at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+            if (!System.Text.RegularExpressions.Regex.IsMatch(newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            {
+                ViewBag.Error = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
+                return View();
+            }
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.Email.ToLower() == resetEmail.ToLower());
+
+            if (student == null)
+            {
+                ViewBag.Error = "Student account not found.";
+                return View();
+            }
+
+            student.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            // Clear reset session
+            HttpContext.Session.Remove("Student_Reset_Email");
+            HttpContext.Session.Remove("Student_Reset_Otp");
+            HttpContext.Session.Remove("Student_Reset_Expiry");
+
+            TempData["SuccessMessage"] = "Your password has been successfully reset! Please log in with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendResetOtp()
+        {
+            var resetEmail = HttpContext.Session.GetString("Student_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return Json(new { success = false, message = "Session expired. Please start over." });
+            }
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.Email.ToLower() == resetEmail.ToLower());
+
+            if (student == null)
+            {
+                return Json(new { success = false, message = "Student account not found." });
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Student_Reset_Otp", otp);
+            HttpContext.Session.SetString("Student_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                await _emailService.SendPasswordResetOtpAsync(student.Email, student.FullName, otp, "Student");
+                return Json(new { success = true, message = "A new verification code has been sent to your email." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Failed to send email: {ex.Message}" });
+            }
+        }
+
+        // =====================================================
         // REGISTER
         // =====================================================
 
@@ -186,6 +370,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Student ID already exists."
                 );
 
+                return View(student);
+            }
+
+            // ================= Password Complexity Validation =================
+
+            if (string.IsNullOrWhiteSpace(student.Password) || student.Password.Length < 8 ||
+                !System.Text.RegularExpressions.Regex.IsMatch(student.Password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            {
+                ModelState.AddModelError("Password", "Password must contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
                 return View(student);
             }
 
@@ -639,42 +832,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             return View(
                 student
             );
-        }
-
-        // =====================================================
-        // STUDENT PROFILE
-        // =====================================================
-
-        public IActionResult Profile()
-        {
-            var studentId =
-                HttpContext.Session.GetInt32(
-                    "StudentId"
-                );
-
-            if (studentId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            var student =
-                _context.Students
-                    .FirstOrDefault(
-                        s =>
-                            s.StudentId ==
-                            studentId.Value
-                    );
-
-            if (student == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            return View(student);
         }
 
         // =====================================================
@@ -3247,6 +3404,209 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 return View(vm);
             }
+        }
+
+        // =====================================================
+        // STUDENT PROFILE - GET
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+
+            if (student == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var vm = new StudentProfileViewModel
+            {
+                StudentId = student.StudentId,
+                StudentIdNumber = student.StudentIdNumber,
+                FullName = student.FullName,
+                Email = student.Email,
+                Phone = student.Phone,
+                DateOfBirth = student.DateOfBirth,
+                Gender = student.Gender,
+                Department = student.Department,
+                AdmissionYear = student.AdmissionYear,
+                Semester = student.Semester,
+                Height = student.Height,
+                Weight = student.Weight,
+                FinancialCondition = student.FinancialCondition,
+                GuardianName = student.GuardianName,
+                Relationship = student.Relationship,
+                GuardianPhone = student.GuardianPhone,
+                GuardianEmail = student.GuardianEmail,
+                ProfileImage = student.ProfileImage
+            };
+
+            return View(vm);
+        }
+
+        // =====================================================
+        // STUDENT PROFILE - POST (EDIT INFO & PASSWORD)
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(StudentProfileViewModel model)
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+
+            if (student == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Validate Unique Email if changed
+            if (!string.IsNullOrWhiteSpace(model.Email) && !string.Equals(model.Email.Trim(), student.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailExists = await _context.Students
+                    .AnyAsync(s => s.StudentId != student.StudentId && s.Email.ToLower() == model.Email.Trim().ToLower());
+
+                if (emailExists)
+                {
+                    ModelState.AddModelError("Email", "This email address is already in use by another student account.");
+                }
+            }
+
+            // Password update handling
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                if (string.IsNullOrWhiteSpace(model.CurrentPassword))
+                {
+                    ModelState.AddModelError("CurrentPassword", "Current password is required to set a new password.");
+                }
+                else
+                {
+                    bool isCurrentValid = false;
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(student.Password))
+                        {
+                            isCurrentValid = BCrypt.Net.BCrypt.Verify(model.CurrentPassword, student.Password);
+                        }
+                    }
+                    catch
+                    {
+                        isCurrentValid = (student.Password == model.CurrentPassword);
+                    }
+
+                    if (!isCurrentValid && student.Password == model.CurrentPassword)
+                    {
+                        isCurrentValid = true;
+                    }
+
+                    if (!isCurrentValid)
+                    {
+                        ModelState.AddModelError("CurrentPassword", "The current password you entered is incorrect.");
+                    }
+                }
+
+                if (model.NewPassword.Length < 8)
+                {
+                    ModelState.AddModelError("NewPassword", "New password must be at least 8 characters long.");
+                }
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(model.NewPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+                {
+                    ModelState.AddModelError("NewPassword", "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
+                }
+
+                if (model.NewPassword != model.ConfirmNewPassword)
+                {
+                    ModelState.AddModelError("ConfirmNewPassword", "New passwords do not match.");
+                }
+            }
+
+            // Image Upload handling
+            if (model.ImageFile != null && model.ImageFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var extension = Path.GetExtension(model.ImageFile.FileName).ToLower();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError("ImageFile", "Only JPG, JPEG, PNG, and WEBP images are allowed.");
+                }
+                else
+                {
+                    var uploadFolder = Path.Combine(_environment.WebRootPath, "images", "students");
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var fullPath = Path.Combine(uploadFolder, fileName);
+
+                    await using (var stream = new FileStream(fullPath, FileMode.Create))
+                    {
+                        await model.ImageFile.CopyToAsync(stream);
+                    }
+
+                    student.ProfileImage = $"/images/students/{fileName}";
+                    HttpContext.Session.SetString("StudentProfileImage", student.ProfileImage);
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.ProfileImage = student.ProfileImage;
+                model.StudentIdNumber = student.StudentIdNumber;
+                return View(model);
+            }
+
+            // Update all student properties
+            student.FullName = model.FullName.Trim();
+            student.Email = model.Email.Trim();
+            student.Phone = model.Phone.Trim();
+            student.DateOfBirth = model.DateOfBirth;
+            student.Gender = model.Gender;
+            student.Department = model.Department;
+            student.AdmissionYear = model.AdmissionYear;
+            student.Semester = model.Semester;
+            student.Height = model.Height;
+            student.Weight = model.Weight;
+            student.FinancialCondition = model.FinancialCondition;
+
+            // Guardian details
+            student.GuardianName = model.GuardianName?.Trim();
+            student.Relationship = model.Relationship?.Trim();
+            student.GuardianPhone = model.GuardianPhone?.Trim();
+            student.GuardianEmail = model.GuardianEmail?.Trim();
+
+            // Apply new password if changed
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                student.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            }
+
+            // Update Session details
+            HttpContext.Session.SetString("StudentName", student.FullName);
+            HttpContext.Session.SetString("StudentDepartment", student.Department ?? "CSE");
+            HttpContext.Session.SetString("StudentSemester", student.ActiveSemester);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Your profile information and settings have been updated successfully!";
+            return RedirectToAction("Profile");
         }
 
         // =====================================================

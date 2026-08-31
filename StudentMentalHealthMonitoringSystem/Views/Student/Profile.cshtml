@@ -1,14 +1,14 @@
-@model StudentMentalHealthMonitoringSystem.Models.Student
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentProfileViewModel
 
 @{
-    ViewData["Title"] = "Student Profile";
+    ViewData["Title"] = "My Profile - Student";
 }
 
 <style>
     .student-app-bg {
         background: #F8FAFC;
         min-height: 100vh;
-        padding-bottom: 2rem;
+        padding-bottom: 2.5rem;
     }
 
     .glass-card {
@@ -19,56 +19,99 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .student-sidebar .list-group-item {
-        border: none;
-        border-radius: 0.75rem;
-        margin-bottom: 0.35rem;
-        padding: 0.8rem 1.1rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #1E293B;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
-    }
-
-    .student-sidebar .list-group-item i {
-        font-size: 1.25rem;
-        color: #2563EB;
-        width: 26px;
-        text-align: center;
-    }
-
-    .student-sidebar .list-group-item:hover {
-        background: #EFF6FF;
-        color: #1E3A8A;
-        transform: translateX(4px);
-    }
-
-    .student-sidebar .list-group-item.active {
+    .profile-hero {
         background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+        border-radius: 1.25rem;
+        padding: 2.25rem 2rem;
         color: #ffffff;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        position: relative;
+        overflow: hidden;
     }
 
-    .student-sidebar .list-group-item.active i {
-        color: #ffffff;
+    .profile-hero::after {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
     }
 
     .profile-avatar-lg {
-        width: 130px;
-        height: 130px;
+        width: 120px;
+        height: 120px;
         object-fit: cover;
         border-radius: 50%;
-        box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+        border: 4px solid #ffffff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
     }
 
-    .info-table th {
-        background-color: #F1F5F9;
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        background: #2563EB;
+        color: #ffffff;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .avatar-upload-btn:hover {
+        background: #1D4ED8;
+        transform: scale(1.1);
+        color: #ffffff;
+    }
+
+    .form-section-title {
         color: #0F172A;
         font-weight: 700;
-        width: 38%;
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #F1F5F9;
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        color: #2563EB;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #3B82F6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .nav-pills .nav-link {
+        color: #64748B;
+        font-weight: 600;
+        border-radius: 0.75rem;
+        padding: 0.65rem 1.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #2563EB;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
 </style>
 
@@ -85,95 +128,286 @@
             <div class="col-lg-9">
 
                 <!-- Header Banner -->
-                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); color: #ffffff;">
+                <div class="profile-hero shadow-sm mb-4">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div>
-                            <h2 class="fw-bold mb-1 text-white">
-                                <i class="bi bi-person-badge-fill me-2"></i>My Student Profile
-                            </h2>
-                            <p class="text-white-50 fs-6 mb-0">View and verify your registered academic and personal profile information.</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-wrapper">
+                                <img id="previewAvatar"
+                                     src="@(string.IsNullOrEmpty(Model.ProfileImage) ? "/images/default-avatar.png" : Model.ProfileImage)"
+                                     alt="Profile Avatar"
+                                     class="profile-avatar-lg" />
+                            </div>
+                            <div>
+                                <h2 class="fw-bold mb-1 text-white">@Model.FullName</h2>
+                                <p class="text-white-50 fs-6 mb-1">
+                                    <i class="bi bi-person-vcard me-1"></i> ID: <strong>@Model.StudentIdNumber</strong>
+                                    <span class="mx-2">•</span>
+                                    <i class="bi bi-mortarboard me-1"></i> @(string.IsNullOrEmpty(Model.Department) ? "Department" : Model.Department)
+                                </p>
+                                <span class="badge bg-white text-primary fw-bold px-3 py-1.5 rounded-pill shadow-sm">
+                                    <i class="bi bi-calendar3 me-1"></i> @(string.IsNullOrEmpty(Model.Semester) ? "Active Semester" : Model.Semester)
+                                </span>
+                            </div>
                         </div>
+
                         <a href="/Student/Dashboard" class="btn btn-light text-primary btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm">
                             <i class="bi bi-arrow-left me-1"></i> Dashboard
                         </a>
                     </div>
                 </div>
 
-                <div class="row g-4">
-                    <!-- Academic & Personal Info -->
-                    <div class="col-lg-7">
-                        <div class="glass-card p-4 h-100">
-                            <h4 class="fw-bold mb-4" style="color:#0F172A;">
-                                <i class="bi bi-info-circle-fill text-primary me-2"></i>Personal & Academic Details
-                            </h4>
-                            <div class="table-responsive">
-                                <table class="table table-bordered align-middle info-table fs-6">
-                                    <tbody>
-                                        <tr>
-                                            <th>Full Name</th>
-                                            <td class="fw-semibold text-dark">@Model.FullName</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Student ID Number</th>
-                                            <td class="fw-semibold text-dark">@Model.StudentIdNumber</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Academic Department</th>
-                                            <td><span class="badge bg-primary-subtle text-primary border border-primary px-3 py-1 fw-bold fs-6">@Model.Department</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Current Semester</th>
-                                            <td><span class="badge bg-info-subtle text-info border border-info px-3 py-1 fw-bold fs-6">@Model.ActiveSemester</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th>Email Address</th>
-                                            <td class="text-dark">@Model.Email</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Phone Number</th>
-                                            <td class="text-dark">@(string.IsNullOrEmpty(Model.Phone) ? "N/A" : Model.Phone)</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Gender</th>
-                                            <td class="text-dark">@(Model.Gender ?? "N/A")</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Date of Birth</th>
-                                            <td class="text-dark">@(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "N/A")</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                <!-- Notifications -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success border-0 rounded-3 shadow-sm mb-4 d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-2 text-success"></i>
+                        <span class="fw-semibold">@TempData["Success"]</span>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="alert alert-danger border-0 rounded-3 shadow-sm mb-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+                            <strong class="text-danger">Please correct the following errors:</strong>
+                        </div>
+                        <div asp-validation-summary="All" class="text-danger small ps-3 mb-0"></div>
+                    </div>
+                }
+
+                <!-- Edit Profile Form -->
+                <form asp-controller="Student" asp-action="Profile" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="StudentId" />
+                    <input type="hidden" asp-for="StudentIdNumber" />
+                    <input type="hidden" asp-for="ProfileImage" />
+
+                    <div class="row g-4">
+                        
+                        <!-- Left Column: Personal & Academic Info -->
+                        <div class="col-lg-7">
+                            <div class="glass-card p-4 mb-4">
+                                <div class="form-section-title">
+                                    <i class="bi bi-person-lines-fill text-primary"></i> Personal & Academic Details
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label asp-for="FullName" class="form-label fw-bold small text-secondary">Full Name *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-person text-primary"></i></span>
+                                            <input asp-for="FullName" class="form-control" placeholder="Your full legal name" required />
+                                        </div>
+                                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Email" class="form-label fw-bold small text-secondary">Email Address *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-envelope text-primary"></i></span>
+                                            <input asp-for="Email" type="email" class="form-control" placeholder="student@university.edu" required />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Phone" class="form-label fw-bold small text-secondary">Phone Number *</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="bi bi-telephone text-primary"></i></span>
+                                            <input asp-for="Phone" class="form-control" placeholder="01XXXXXXXXX" required />
+                                        </div>
+                                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Department" class="form-label fw-bold small text-secondary">Academic Department</label>
+                                        <select asp-for="Department" class="form-select">
+                                            <option value="">-- Select Department --</option>
+                                            <option value="Computer Science and Engineering">Computer Science & Engineering (CSE)</option>
+                                            <option value="Electrical and Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
+                                            <option value="Business Administration">Business Administration (BBA)</option>
+                                            <option value="Pharmacy">Pharmacy</option>
+                                            <option value="English">English</option>
+                                            <option value="Law">Law</option>
+                                            <option value="Economics">Economics</option>
+                                            <option value="Civil Engineering">Civil Engineering</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="AdmissionYear" class="form-label fw-bold small text-secondary">Admission / Batch Year</label>
+                                        <input asp-for="AdmissionYear" type="number" class="form-control" placeholder="e.g. 2023" min="2000" max="2035" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Semester" class="form-label fw-bold small text-secondary">Current Semester</label>
+                                        <input asp-for="Semester" class="form-control" placeholder="e.g. Spring 2026" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="DateOfBirth" class="form-label fw-bold small text-secondary">Date of Birth</label>
+                                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Gender" class="form-label fw-bold small text-secondary">Gender</label>
+                                        <select asp-for="Gender" class="form-select">
+                                            <option value="">-- Select Gender --</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="FinancialCondition" class="form-label fw-bold small text-secondary">Financial Condition</label>
+                                        <select asp-for="FinancialCondition" class="form-select">
+                                            <option value="">-- Select Status --</option>
+                                            <option value="Good">Good / Stable</option>
+                                            <option value="Average">Moderate / Average</option>
+                                            <option value="Challenging">Challenging / Stressed</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Height" class="form-label fw-bold small text-secondary">Height (cm / ft)</label>
+                                        <input asp-for="Height" type="number" step="0.01" class="form-control" placeholder="e.g. 175 or 5.9" />
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label asp-for="Weight" class="form-label fw-bold small text-secondary">Weight (kg)</label>
+                                        <input asp-for="Weight" type="number" step="0.1" class="form-control" placeholder="e.g. 68" />
+                                    </div>
+
+                                    <!-- Upload Profile Picture -->
+                                    <div class="col-12 mt-3 pt-3 border-top">
+                                        <label asp-for="ImageFile" class="form-label fw-bold small text-secondary">
+                                            <i class="bi bi-image me-1 text-primary"></i> Change Profile Picture
+                                        </label>
+                                        <input asp-for="ImageFile" type="file" class="form-control" id="avatarInput" accept=".jpg,.jpeg,.png,.webp" />
+                                        <small class="text-muted">Supported formats: JPG, JPEG, PNG, WEBP (Max 5MB).</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Guardian & Contact Info -->
-                    <div class="col-lg-5">
-                        <div class="glass-card p-4 h-100">
-                            <h4 class="fw-bold mb-4" style="color:#0F172A;">
-                                <i class="bi bi-people-fill text-success me-2"></i>Guardian & Safety Contact
-                            </h4>
+                        <!-- Right Column: Guardian Details & Password Security -->
+                        <div class="col-lg-5">
+                            
+                            <!-- Guardian & Safety Contact Card -->
+                            <div class="glass-card p-4 mb-4">
+                                <div class="form-section-title">
+                                    <i class="bi bi-shield-lock-fill text-success"></i> Guardian & Safety Contact
+                                </div>
 
-                            <div class="p-3 bg-light rounded-3 mb-4 border">
-                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Name</small>
-                                <h5 class="fw-bold text-dark mb-0">@(string.IsNullOrEmpty(Model.GuardianName) ? "Not Provided" : Model.GuardianName)</h5>
+                                <div class="alert alert-light border border-success-subtle rounded-3 p-2.5 mb-3 small text-muted">
+                                    <i class="bi bi-info-circle-fill text-success me-1"></i>
+                                    Guardian will use their registered email to receive OTP login codes for viewing safety progress.
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="GuardianName" class="form-label fw-bold small text-secondary">Guardian Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-person text-success"></i></span>
+                                        <input asp-for="GuardianName" class="form-control" placeholder="Father / Mother / Guardian" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Relationship" class="form-label fw-bold small text-secondary">Relationship</label>
+                                    <select asp-for="Relationship" class="form-select">
+                                        <option value="">-- Select Relationship --</option>
+                                        <option value="Father">Father</option>
+                                        <option value="Mother">Mother</option>
+                                        <option value="Brother">Brother</option>
+                                        <option value="Sister">Sister</option>
+                                        <option value="Uncle">Uncle</option>
+                                        <option value="Aunt">Aunt</option>
+                                        <option value="Legal Guardian">Legal Guardian</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="GuardianPhone" class="form-label fw-bold small text-secondary">Guardian Phone Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-telephone text-success"></i></span>
+                                        <input asp-for="GuardianPhone" class="form-control" placeholder="01XXXXXXXXX" />
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="GuardianEmail" class="form-label fw-bold small text-secondary">Guardian Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-envelope text-success"></i></span>
+                                        <input asp-for="GuardianEmail" type="email" class="form-control" placeholder="guardian@example.com" />
+                                    </div>
+                                    <span asp-validation-for="GuardianEmail" class="text-danger small"></span>
+                                </div>
                             </div>
 
-                            <div class="p-3 bg-light rounded-3 mb-4 border">
-                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Phone Number</small>
-                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-telephone-fill me-2 text-success"></i>@(string.IsNullOrEmpty(Model.GuardianPhone) ? "Not Provided" : Model.GuardianPhone)</h5>
+                            <!-- Password & Security Card -->
+                            <div class="glass-card p-4 mb-4">
+                                <div class="form-section-title">
+                                    <i class="bi bi-key-fill text-warning"></i> Change Password
+                                </div>
+
+                                <small class="text-muted d-block mb-3">
+                                    Leave password fields blank if you do not wish to change your current password.
+                                </small>
+
+                                <div class="mb-3">
+                                    <label asp-for="CurrentPassword" class="form-label fw-bold small text-secondary">Current Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-lock text-warning"></i></span>
+                                        <input asp-for="CurrentPassword" type="password" class="form-control" placeholder="••••••••" />
+                                    </div>
+                                    <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="NewPassword" class="form-label fw-bold small text-secondary">New Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-shield-check text-warning"></i></span>
+                                        <input asp-for="NewPassword" type="password" class="form-control" placeholder="••••••••" minlength="8" />
+                                    </div>
+                                    <small class="text-muted">Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 symbol.</small>
+                                    <span asp-validation-for="NewPassword" class="text-danger small d-block"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="ConfirmNewPassword" class="form-label fw-bold small text-secondary">Confirm New Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="bi bi-check2-circle text-warning"></i></span>
+                                        <input asp-for="ConfirmNewPassword" type="password" class="form-control" placeholder="••••••••" />
+                                    </div>
+                                    <span asp-validation-for="ConfirmNewPassword" class="text-danger small"></span>
+                                </div>
                             </div>
 
-                            <div class="p-3 bg-light rounded-3 border">
-                                <small class="text-secondary fw-bold d-block text-uppercase mb-1">Guardian Email Address</small>
-                                <h5 class="fw-bold text-dark mb-0"><i class="bi bi-envelope-fill me-2 text-primary"></i>@(string.IsNullOrEmpty(Model.GuardianEmail) ? "Not Provided" : Model.GuardianEmail)</h5>
-                            </div>
+                            <!-- Save Button -->
+                            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-3 py-3 fw-bold shadow">
+                                <i class="bi bi-save2 me-1.5"></i> Save Profile Changes
+                            </button>
                         </div>
                     </div>
-                </div>
+                </form>
 
             </div>
-
         </div>
     </div>
 </div>
+
+<script>
+    // Live image preview
+    document.getElementById('avatarInput').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                document.getElementById('previewAvatar').src = event.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+</script>

@@ -92,11 +92,28 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
-            // Check Password
+            // Check Password (support BCrypt and plain-text fallback)
             // =====================================================
 
-            if (department == null ||
-                department.Password != password)
+            bool isPasswordValid = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(department.Password))
+                {
+                    isPasswordValid = BCrypt.Net.BCrypt.Verify(password, department.Password);
+                }
+            }
+            catch
+            {
+                isPasswordValid = (department.Password == password);
+            }
+
+            if (!isPasswordValid && department.Password == password)
+            {
+                isPasswordValid = true;
+            }
+
+            if (!isPasswordValid)
             {
                 ModelState.AddModelError(
                     "",
@@ -139,6 +156,195 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             return RedirectToAction(
                 "Dashboard");
+        }
+
+
+        // =========================================================
+        // DEPARTMENT FORGOT PASSWORD
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            if (HttpContext.Session.GetInt32("DepartmentId") != null)
+            {
+                return RedirectToAction("Dashboard");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Please enter your registered department email address.";
+                return View();
+            }
+
+            email = email.Trim().ToLowerInvariant();
+
+            var department = await _context.Departments
+                .FirstOrDefaultAsync(d => d.Email.ToLower() == email);
+
+            if (department == null)
+            {
+                ViewBag.Error = "No department account was found with this email address.";
+                return View();
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Department_Reset_Email", department.Email);
+            HttpContext.Session.SetString("Department_Reset_Otp", otp);
+            HttpContext.Session.SetString("Department_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                var recipientName = string.IsNullOrWhiteSpace(department.HeadOfDepartment)
+                    ? $"{department.DepartmentName} Department"
+                    : $"{department.HeadOfDepartment} ({department.DepartmentName} Department)";
+
+                await _emailService.SendPasswordResetOtpAsync(department.Email, recipientName, otp, "Department");
+                TempData["SuccessMessage"] = "A 6-digit verification code (OTP) has been sent to your email. Please check your inbox.";
+                return RedirectToAction("ResetPassword");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = $"Failed to send email OTP: {ex.Message}";
+                return View();
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            var resetEmail = HttpContext.Session.GetString("Department_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string otp, string newPassword, string confirmPassword)
+        {
+            var resetEmail = HttpContext.Session.GetString("Department_Reset_Email");
+            var sessionOtp = HttpContext.Session.GetString("Department_Reset_Otp");
+            var expiryStr = HttpContext.Session.GetString("Department_Reset_Expiry");
+
+            if (string.IsNullOrWhiteSpace(resetEmail) || string.IsNullOrWhiteSpace(sessionOtp))
+            {
+                TempData["ErrorMessage"] = "Password reset session has expired. Please request a new code.";
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Email = resetEmail;
+
+            if (string.IsNullOrWhiteSpace(otp))
+            {
+                ViewBag.Error = "Please enter the 6-digit OTP code.";
+                return View();
+            }
+
+            if (DateTime.TryParse(expiryStr, null, System.Globalization.DateTimeStyles.RoundtripKind, out var expiryTime))
+            {
+                if (DateTime.UtcNow > expiryTime)
+                {
+                    ViewBag.Error = "The verification code has expired. Please request a new code.";
+                    return View();
+                }
+            }
+
+            if (otp.Trim() != sessionOtp.Trim())
+            {
+                ViewBag.Error = "Invalid verification code. Please check and try again.";
+                return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                ViewBag.Error = "Password must be at least 8 characters long.";
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Passwords do not match.";
+                return View();
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            {
+                ViewBag.Error = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
+                return View();
+            }
+
+            var department = await _context.Departments
+                .FirstOrDefaultAsync(d => d.Email.ToLower() == resetEmail.ToLower());
+
+            if (department == null)
+            {
+                ViewBag.Error = "Department account not found.";
+                return View();
+            }
+
+            department.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            // Clear reset session
+            HttpContext.Session.Remove("Department_Reset_Email");
+            HttpContext.Session.Remove("Department_Reset_Otp");
+            HttpContext.Session.Remove("Department_Reset_Expiry");
+
+            TempData["SuccessMessage"] = "Your password has been successfully reset! Please log in with your new password.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendResetOtp()
+        {
+            var resetEmail = HttpContext.Session.GetString("Department_Reset_Email");
+            if (string.IsNullOrWhiteSpace(resetEmail))
+            {
+                return Json(new { success = false, message = "Session expired. Please start over." });
+            }
+
+            var department = await _context.Departments
+                .FirstOrDefaultAsync(d => d.Email.ToLower() == resetEmail.ToLower());
+
+            if (department == null)
+            {
+                return Json(new { success = false, message = "Department account not found." });
+            }
+
+            var otp = Random.Shared.Next(100000, 999999).ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(10);
+
+            HttpContext.Session.SetString("Department_Reset_Otp", otp);
+            HttpContext.Session.SetString("Department_Reset_Expiry", expiry.ToString("o"));
+
+            try
+            {
+                var recipientName = string.IsNullOrWhiteSpace(department.HeadOfDepartment)
+                    ? $"{department.DepartmentName} Department"
+                    : $"{department.HeadOfDepartment} ({department.DepartmentName} Department)";
+
+                await _emailService.SendPasswordResetOtpAsync(department.Email, recipientName, otp, "Department");
+                return Json(new { success = true, message = "A new verification code has been sent to your email." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Failed to send email: {ex.Message}" });
+            }
         }
 
 

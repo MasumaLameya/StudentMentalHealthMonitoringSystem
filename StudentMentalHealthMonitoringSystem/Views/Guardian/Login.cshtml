@@ -1,9 +1,8 @@
-﻿@{
+@{
     ViewData["Title"] = "Guardian Login";
 }
 
 <style>
-
     .guardian-login-page {
         min-height: 80vh;
         display: flex;
@@ -14,7 +13,7 @@
 
     .guardian-login-card {
         width: 100%;
-        max-width: 430px;
+        max-width: 440px;
         background: #FFFFFF;
         border: 1px solid #E1EAEE;
         border-radius: 24px;
@@ -22,17 +21,11 @@
         box-shadow: 0 10px 30px rgba(70,100,120,0.10);
     }
 
-
-    /* =====================================================
-           HEADER
-           ===================================================== */
-
     .guardian-login-header {
-        background: linear-gradient( 135deg, #A9D5E8, #C7DDE8, #DCD1E7 );
+        background: linear-gradient(135deg, #A9D5E8, #C7DDE8, #DCD1E7);
         padding: 30px;
         text-align: center;
     }
-
 
     .guardian-login-icon {
         width: 65px;
@@ -47,13 +40,11 @@
         font-size: 28px;
     }
 
-
     .guardian-login-header h3 {
         color: #405F70;
         font-weight: 700;
         margin-bottom: 7px;
     }
-
 
     .guardian-login-header p {
         color: #718894;
@@ -61,15 +52,9 @@
         margin: 0;
     }
 
-
-    /* =====================================================
-           BODY
-           ===================================================== */
-
     .guardian-login-body {
         padding: 30px;
     }
-
 
     .guardian-label {
         color: #526A79;
@@ -78,7 +63,6 @@
         margin-bottom: 7px;
     }
 
-
     .guardian-input {
         width: 100%;
         border: 1px solid #D9E4E9;
@@ -86,18 +70,13 @@
         padding: 12px 14px;
         color: #526A79;
         outline: none;
+        font-size: 15px;
     }
 
-
-        .guardian-input:focus {
-            border-color: #9FCFE5;
-            box-shadow: 0 0 0 3px rgba(159,207,229,0.18);
-        }
-
-
-    /* =====================================================
-           LOGIN BUTTON
-           ===================================================== */
+    .guardian-input:focus {
+        border-color: #9FCFE5;
+        box-shadow: 0 0 0 3px rgba(159,207,229,0.18);
+    }
 
     .guardian-login-btn {
         width: 100%;
@@ -108,18 +87,13 @@
         color: #FFFFFF;
         font-weight: 600;
         font-size: 14px;
+        transition: all 0.2s ease;
     }
 
-
-        .guardian-login-btn:hover {
-            background: #5E8D9F;
-            color: #FFFFFF;
-        }
-
-
-    /* =====================================================
-           ERROR
-           ===================================================== */
+    .guardian-login-btn:hover {
+        background: #5E8D9F;
+        color: #FFFFFF;
+    }
 
     .guardian-error {
         background: #F9ECEF;
@@ -127,143 +101,74 @@
         color: #966477;
         border-radius: 12px;
         padding: 11px 13px;
-        font-size: 12px;
+        font-size: 13px;
         margin-bottom: 20px;
     }
 
-
-    /* =====================================================
-           FOOTER NOTE
-           ===================================================== */
-
     .guardian-note {
         color: #98A5AC;
-        font-size: 11px;
+        font-size: 12px;
         text-align: center;
         margin-top: 20px;
     }
-
 </style>
 
-
 <div class="guardian-login-page">
-
-
     <div class="guardian-login-card">
-
-
-        <!-- =================================================
-             HEADER
-             ================================================= -->
-
+        
+        <!-- Header -->
         <div class="guardian-login-header">
-
-
             <div class="guardian-login-icon">
-
                 <i class="bi bi-person-heart"></i>
-
             </div>
-
-
-            <h3>
-
-                Guardian Login
-
-            </h3>
-
-
-            <p>
-
-                Access your student's mental health reports
-
-            </p>
-
+            <h3>Guardian Portal</h3>
+            <p>Access your student's mental health & wellness monitoring</p>
         </div>
 
-
-
-        <!-- =================================================
-             BODY
-             ================================================= -->
-
+        <!-- Body -->
         <div class="guardian-login-body">
-
-
-            <!-- Error Message -->
-            @if (ViewBag.Error != null)
+            @if (TempData["ErrorMessage"] != null)
             {
-
                 <div class="guardian-error">
-
                     <i class="bi bi-exclamation-circle me-2"></i>
-
-                    @ViewBag.Error
-
+                    @TempData["ErrorMessage"]
                 </div>
-
             }
 
-
+            @if (ViewBag.Error != null)
+            {
+                <div class="guardian-error">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    @ViewBag.Error
+                </div>
+            }
 
             <!-- Login Form -->
-
-            <form asp-controller="Guardian"
-                  asp-action="Login"
-                  method="post">
-
+            <form asp-controller="Guardian" asp-action="Login" method="post">
                 @Html.AntiForgeryToken()
 
-
-                <!-- Student ID -->
-
                 <div class="mb-4">
-
-                    <label class="guardian-label">
-
-                        Student ID
-
-                    </label>
-
-
+                    <label class="guardian-label">Student ID Number</label>
                     <input type="text"
                            name="studentId"
                            class="guardian-input"
-                           placeholder="Enter Student ID"
+                           placeholder="e.g. 2021-1-60-001"
                            autocomplete="off"
-                           required />
-
+                           required
+                           autofocus />
+                    <small class="text-muted d-block mt-1.5" style="font-size: 11.5px; line-height: 1.4;">
+                        <i class="bi bi-info-circle me-1"></i> A secure 6-digit login OTP will be sent to the registered guardian email address on file.
+                    </small>
                 </div>
 
-
-
-                <!-- Login Button -->
-
-                <button type="submit"
-                        class="guardian-login-btn">
-
-                    <i class="bi bi-box-arrow-in-right me-2"></i>
-
-                    Login
-
+                <button type="submit" class="guardian-login-btn shadow-sm">
+                    <i class="bi bi-send me-1.5"></i> Send Login OTP Code
                 </button>
-
             </form>
 
-
-
-            <!-- Note -->
-
             <div class="guardian-note">
-
-                <i class="bi bi-shield-check me-1"></i>
-
-                Guardian access is read-only.
-
+                <i class="bi bi-shield-check me-1"></i> Guardian access is secure & read-only.
             </div>
-
         </div>
-
     </div>
-
 </div>
