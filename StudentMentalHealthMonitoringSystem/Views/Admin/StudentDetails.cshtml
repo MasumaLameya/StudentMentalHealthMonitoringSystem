@@ -1,11 +1,11 @@
-﻿@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel
+@model StudentMentalHealthMonitoringSystem.ViewModels.PsychologistStudentViewModel
 
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Student Details";
 }
 
-<div class="container-fluid">
+<div class="container-fluid" id="adminStudentDetailsContent">
 
     <!-- ================= Header ================= -->
 
@@ -21,29 +21,28 @@
                     <h2 class="fw-bold mb-1"
                         style="color:#5F5146;">
 
-                        👨‍🎓 Student Details
+                        👨‍🎓 Student Clinical & Assessment Profile
 
                     </h2>
 
                     <p class="text-muted mb-0">
-
-                        View complete student information and assessment history.
-
+                        Complete student health metrics, assessment history & screening records.
                     </p>
 
                 </div>
 
-                <a asp-controller="Admin"
-                   asp-action="Students"
-                   class="btn rounded-3 px-4"
-                   style="background:#8A7563;
-                    color:white;">
-
-                    <i class="bi bi-arrow-left me-1"></i>
-
-                    Back to Students
-
-                </a>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-danger rounded-3 px-4 shadow-sm fw-bold" onclick="downloadReportPdf('#adminStudentDetailsContent', { title: 'Student_Report_@(Model.Student?.StudentIdNumber ?? "Profile")', filename: 'Student_Report_@(Model.Student?.StudentIdNumber ?? "Profile")' })">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                    </button>
+                    <a asp-controller="Admin"
+                       asp-action="Students"
+                       class="btn rounded-3 px-4"
+                       style="background:#8A7563;
+                        color:white;">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Students
+                    </a>
+                </div>
 
             </div>
 

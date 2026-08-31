@@ -5,7 +5,7 @@
     ViewData["Title"] = "Semester Screening Compliance Report";
 }
 
-<div class="container-fluid py-4" style="background:#F4F8F5; min-height: 90vh;">
+<div class="container-fluid py-4" id="deptScreeningComplianceContent" style="background:#F4F8F5; min-height: 90vh;">
 
     <!-- ================= Header Banner ================= -->
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: white;">
@@ -17,9 +17,11 @@
                     </h2>
                     <p class="text-white-50 mb-0">Track student completion of mandatory PHQ-9 and C-SSRS semester mental health screening.</p>
                 </div>
-                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm">
-                    <i class="bi bi-building me-1"></i>@Model.SelectedDepartment
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold fs-6 shadow-sm">
+                        <i class="bi bi-building me-1"></i>@Model.SelectedDepartment
+                    </span>
+                </div>
             </div>
         </div>
     </div>

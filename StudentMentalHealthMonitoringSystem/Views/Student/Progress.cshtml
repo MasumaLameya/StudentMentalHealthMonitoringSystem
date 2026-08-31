@@ -25,7 +25,7 @@
         @foreach (var report in Model)
         {
             <!-- Report Card Container -->
-            <div class="card border-0 shadow-sm rounded-4 mb-5 bg-white overflow-hidden">
+            <div class="card border-0 shadow-sm rounded-4 mb-5 bg-white overflow-hidden" id="studentIndividualProgressReport_@report.ObservationReportId">
                 
                 <!-- Report Header Bar -->
                 <div class="card-header bg-light border-0 p-4">
@@ -39,7 +39,10 @@
                                 Active Period: <strong>@report.FirstSessionDate.ToString("MMM dd, yyyy")</strong> to <strong>@report.LatestSessionDate.ToString("MMM dd, yyyy")</strong>
                             </small>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-danger rounded-pill px-3 py-2 fw-semibold shadow-sm" onclick="downloadReportPdf('#studentIndividualProgressReport_@report.ObservationReportId', { title: 'My_Counseling_Progress_Report', filename: 'My_Counseling_Progress_Report' })">
+                                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                            </button>
                             @if (report.IsFinal)
                             {
                                 <span class="badge bg-success-subtle text-success border border-success fs-6 px-4 py-2 rounded-pill">

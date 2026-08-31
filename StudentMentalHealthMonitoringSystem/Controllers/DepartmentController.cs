@@ -1202,6 +1202,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     AppointmentSource =
                         "DepartmentRequest",
 
+                    AppointmentRoom =
+                        "Mental Health & Counseling Center, Room 402",
+
                     CreatedAt =
                         DateTime.Now
                 };
@@ -1215,6 +1218,35 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 counseling);
 
             await _context.SaveChangesAsync();
+
+
+            // =====================================================
+            // SEND CONFIRMATION EMAIL TO STUDENT
+            // =====================================================
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(student.Email))
+                {
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        recipientEmail: student.Email,
+                        studentName: student.FullName,
+                        studentIdNumber: student.StudentIdNumber,
+                        psychologistName: selectedPsychologist.FullName,
+                        psychologistSpecialization: selectedPsychologist.Specialization,
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        appointmentSource: "DepartmentRequest",
+                        severityOrReason: $"Department Referral ({department.DepartmentName})"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DepartmentController] Failed to send counseling email: {ex.Message}");
+            }
 
 
             // =====================================================

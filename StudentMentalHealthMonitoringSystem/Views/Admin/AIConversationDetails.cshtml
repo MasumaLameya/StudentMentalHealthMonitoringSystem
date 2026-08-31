@@ -58,7 +58,7 @@
     }
 </style>
 
-<div class="container-fluid py-2">
+<div class="container-fluid py-2" id="adminAiDetailsContent">
 
     <!-- ================= Top Header Banner ================= -->
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);">
@@ -77,9 +77,6 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
-                        <i class="bi bi-printer me-1"></i> Print Transcript
-                    </button>
                     <a asp-controller="Admin" asp-action="AIConversationReports" class="btn btn-light text-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
                         <i class="bi bi-arrow-left me-1"></i> Back to AI Reports
                     </a>

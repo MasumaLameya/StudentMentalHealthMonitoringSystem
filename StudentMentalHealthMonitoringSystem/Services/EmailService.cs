@@ -318,5 +318,160 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             await SendEmailAsync(recipientEmail, subject, htmlBody);
         }
+
+
+        // =========================================================
+        // SEND APPOINTMENT CONFIRMATION EMAIL
+        // =========================================================
+
+        public async Task SendAppointmentConfirmationEmailAsync(
+            string recipientEmail,
+            string studentName,
+            string studentIdNumber,
+            string psychologistName,
+            string? psychologistSpecialization,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string? appointmentSource = "AutoAssignment",
+            string? severityOrReason = null)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                return;
+            }
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var formattedStartTime = DateTime.Today.Add(startTime).ToString("h:mm tt");
+            var formattedEndTime = DateTime.Today.Add(endTime).ToString("h:mm tt");
+            var formattedSlot = $"{formattedStartTime} - {formattedEndTime}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom)
+                ? "Mental Health & Counseling Center, Room 402"
+                : appointmentRoom;
+
+            var specText = string.IsNullOrWhiteSpace(psychologistSpecialization)
+                ? string.Empty
+                : $" ({psychologistSpecialization})";
+
+            var friendlyType = appointmentSource switch
+            {
+                "AutoAssignment" => "Automatic Priority Assignment (Mental Health Screening Support)",
+                "StudentRequest" => "Self-Requested Counseling Session",
+                "DepartmentRequest" => "Department Referral Counseling Session",
+                "FollowUp" => "Follow-Up Counseling Session",
+                "PsychologistDirect" => "Direct Psychologist Scheduled Session",
+                _ => string.IsNullOrWhiteSpace(appointmentSource) ? "Counseling Session" : appointmentSource
+            };
+
+            var subject = $"Counseling Appointment Confirmed: {formattedDate} ({formattedStartTime}) - SMHMS";
+
+            var reasonRow = string.IsNullOrWhiteSpace(severityOrReason)
+                ? string.Empty
+                : $@"
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9; width: 35%;'>📌 Reference / Reason:</td>
+                                        <td style='padding: 10px 14px; color: #1F3A2B; font-size: 13px; border-bottom: 1px solid #E8ECE9;'>{severityOrReason}</td>
+                                    </tr>";
+
+            var htmlBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Counseling Appointment Confirmed</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #F0F4F2; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #F0F4F2; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #D9E5DF;'>
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #004D25 0%, #006837 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #FFC20E;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; color: #FFFFFF; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                Appointment Scheduled
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.88); margin: 6px 0 0 0; font-size: 13px;'>University Counseling & Wellness Support</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1F3A2B; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>Hello {studentName},</h3>
+                            <p style='color: #4A6354; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;'>
+                                Your mental health counseling appointment has been successfully scheduled. Here are the full details of your upcoming session:
+                            </p>
+
+                            <!-- Highlight Card -->
+                            <div style='background-color: #E8F3ED; border: 1px solid #B8D8C7; border-radius: 12px; padding: 20px; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9; width: 35%;'>📅 Date:</td>
+                                        <td style='padding: 10px 14px; color: #004D25; font-size: 14px; font-weight: 700; border-bottom: 1px solid #E8ECE9;'>{formattedDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>⏰ Time Slot:</td>
+                                        <td style='padding: 10px 14px; color: #004D25; font-size: 14px; font-weight: 700; border-bottom: 1px solid #E8ECE9;'>{formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>👨‍⚕️ Psychologist:</td>
+                                        <td style='padding: 10px 14px; color: #1F3A2B; font-size: 14px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>{psychologistName}<span style='color: #6C7A72; font-size: 12px;'>{specText}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>🚪 Room / Location:</td>
+                                        <td style='padding: 10px 14px; color: #1F3A2B; font-size: 14px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>{room}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E8ECE9;'>📋 Type:</td>
+                                        <td style='padding: 10px 14px; color: #1F3A2B; font-size: 13px; border-bottom: 1px solid #E8ECE9;'>{friendlyType}</td>
+                                    </tr>
+                                    {reasonRow}
+                                    <tr>
+                                        <td style='padding: 10px 14px; color: #556B5D; font-size: 13px; font-weight: 600;'>🟢 Status:</td>
+                                        <td style='padding: 10px 14px; color: #006837; font-size: 13px; font-weight: 700;'>Confirmed</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Instructions Section -->
+                            <div style='background-color: #F8FAF9; border-left: 4px solid #006837; border-radius: 6px; padding: 14px 16px; margin: 0 0 22px 0;'>
+                                <h4 style='color: #1F3A2B; margin: 0 0 8px 0; font-size: 14px; font-weight: 600;'>📌 Important Instructions:</h4>
+                                <ul style='margin: 0; padding-left: 18px; color: #4A6354; font-size: 13px; line-height: 1.6;'>
+                                    <li><strong>Confidentiality:</strong> Your session is 100% private and confidential.</li>
+                                    <li><strong>Arrival:</strong> Please report to <strong>{room}</strong> at least <strong>5 to 10 minutes</strong> before your scheduled time.</li>
+                                    <li><strong>Student ID:</strong> Please carry your University Student ID card (<strong>{studentIdNumber}</strong>).</li>
+                                    <li><strong>Support:</strong> This counseling session is here to support you in a safe, compassionate, and non-judgmental space.</li>
+                                </ul>
+                            </div>
+
+                            <p style='color: #8C9991; font-size: 12px; line-height: 1.5; margin: 24px 0 0 0; border-top: 1px solid #E8ECE9; padding-top: 16px;'>
+                                If you have any urgent concerns or cannot attend your scheduled appointment, please contact the Counseling & Wellness Center as soon as possible.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F8FAF9; padding: 18px 24px; text-align: center; border-top: 1px solid #E8ECE9;'>
+                            <p style='color: #8C9991; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
     }
 }

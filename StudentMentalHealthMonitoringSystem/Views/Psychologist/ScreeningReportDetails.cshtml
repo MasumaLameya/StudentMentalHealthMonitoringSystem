@@ -104,7 +104,7 @@
     }
 </style>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" id="psychologistScreeningReportContent">
 
     <!-- ================= Top Header Banner ================= -->
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5F5146 0%, #8A7563 100%);">
@@ -123,8 +123,8 @@
                 </div>
 
                 <div class="d-flex align-items-center flex-wrap gap-2">
-                    <button type="button" onclick="window.print()" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
-                        <i class="bi bi-printer me-1"></i> Print
+                    <button type="button" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="downloadReportPdf('#psychologistScreeningReportContent', { title: 'Screening_Assessment_@(Model.Student?.StudentIdNumber ?? "Record")', filename: 'Screening_Assessment_@(Model.Student?.StudentIdNumber ?? "Record")' })">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
                     </button>
 
                     @if (Model.Counseling != null)

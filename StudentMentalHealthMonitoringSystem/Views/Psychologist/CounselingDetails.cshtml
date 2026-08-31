@@ -30,7 +30,7 @@
             : "-";
 }
 
-<div class="container-fluid py-3">
+<div class="container-fluid py-3" id="psychologistCounselingDetailsContent">
 
     <!-- ================= Header ================= -->
 
@@ -51,21 +51,24 @@
 
                         <i class="bi bi-clipboard2-heart me-2"></i>
 
-                        Counseling Details
+                        Counseling Consultation & Clinical Notes
 
                     </h2>
 
                     <p class="text-muted mb-0">
 
-                        Review the appointment and complete
-                        the counseling information.
+                        Review the appointment and complete the counseling assessment.
 
                     </p>
 
                 </div>
 
 
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <button type="button" class="btn btn-danger rounded-3 px-3 shadow-sm fw-bold" onclick="downloadReportPdf('#psychologistCounselingDetailsContent', { title: 'Counseling_Session_@(counseling?.CounselingId)', filename: 'Counseling_Session_@(counseling?.CounselingId)' })">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                    </button>
+
                     <a asp-controller="Psychologist"
                        asp-action="StudentProgressDetails"
                        asp-route-id="@(counseling?.StudentId ?? 0)"

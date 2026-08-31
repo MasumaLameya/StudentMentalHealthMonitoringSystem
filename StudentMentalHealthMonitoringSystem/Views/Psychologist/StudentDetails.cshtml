@@ -4,15 +4,19 @@
     ViewData["Title"] = "Student Details";
 }
 
-<div class="container mt-4">
+<div class="container mt-4" id="psychologistStudentDetailsContent">
 
     <div class="card shadow">
 
         <!-- ================= Header ================= -->
 
-        <div class="card-header bg-info text-white">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
 
-            <h3>Student Details</h3>
+            <h3 class="mb-0">👨‍⚕️ Student Clinical Details</h3>
+
+            <button type="button" class="btn btn-danger rounded-3 px-3 py-1.5 fw-bold shadow-sm" onclick="downloadReportPdf('#psychologistStudentDetailsContent', { title: 'Psychologist_Student_Report_@(Model.Student.StudentIdNumber)', filename: 'Student_Report_@(Model.Student.StudentIdNumber)' })">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+            </button>
 
         </div>
 

@@ -1,4 +1,4 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Student
+@model StudentMentalHealthMonitoringSystem.Models.Student
 
 @{
     Layout = "_DepartmentLayout";
@@ -393,7 +393,7 @@
 
 
 
-<div class="container-fluid">
+<div class="container-fluid" id="deptStudentDetailsContent">
 
 
     <!-- =====================================================
@@ -426,15 +426,14 @@
 
                     <h2 class="details-title mb-1">
 
-                        Student Details
+                        Student Profile & Assessment Record
 
                     </h2>
 
 
                     <p class="details-subtitle mb-0">
 
-                        View complete student information
-                        and counseling history.
+                        View complete student profile, screening results, and counseling history.
 
                     </p>
 
@@ -442,18 +441,20 @@
 
 
                 <!-- =========================================
-                     BACK TO STUDENTS
+                     ACTIONS & BACK TO STUDENTS
                      ========================================= -->
 
-                <a asp-controller="Department"
-                   asp-action="Students"
-                   class="back-btn">
-
-                    <i class="bi bi-arrow-left me-1"></i>
-
-                    Back to Students
-
-                </a>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-danger rounded-3 px-3 shadow-sm fw-bold" onclick="downloadReportPdf('#deptStudentDetailsContent', { title: 'Department_Student_Report_@(Model.StudentIdNumber)', filename: 'Student_Report_@(Model.StudentIdNumber)' })">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                    </button>
+                    <a asp-controller="Department"
+                       asp-action="Students"
+                       class="back-btn">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Back to Students
+                    </a>
+                </div>
 
             </div>
 

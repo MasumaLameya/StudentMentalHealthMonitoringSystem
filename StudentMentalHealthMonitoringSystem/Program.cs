@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 // ADD MVC SERVICES
 // =========================================================
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 builder.Services.AddHttpContextAccessor();
 
 

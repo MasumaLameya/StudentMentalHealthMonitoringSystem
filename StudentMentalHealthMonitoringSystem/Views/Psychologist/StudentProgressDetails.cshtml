@@ -5,13 +5,16 @@
     ViewData["Title"] = $"{Model.StudentName} - Patient Progress";
 }
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" id="psychologistStudentProgressContent">
 
-    <!-- Back Button -->
-    <div class="mb-3">
+    <!-- Header Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <a asp-controller="Psychologist" asp-action="StudentProgressReports" class="btn btn-sm btn-outline-secondary rounded-3">
             <i class="bi bi-arrow-left me-1"></i> Back to Patient Progress Reports
         </a>
+        <button type="button" class="btn btn-danger btn-sm rounded-3 px-3 shadow-sm fw-bold" onclick="downloadReportPdf('#psychologistStudentProgressContent', { title: 'Patient_Progress_Report_@(Model.StudentIdNumber)', filename: 'Patient_Progress_@(Model.StudentIdNumber)' })">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+        </button>
     </div>
 
     <!-- Student Header -->

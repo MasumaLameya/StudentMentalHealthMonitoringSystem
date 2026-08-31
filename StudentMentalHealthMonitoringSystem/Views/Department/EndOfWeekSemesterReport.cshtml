@@ -5,7 +5,7 @@
     ViewData["Title"] = "End-of-Semester Overall Mental Health Report";
 }
 
-<div class="container-fluid py-4" style="background:#F4F8F5; min-height: 90vh;">
+<div class="container-fluid py-4" id="deptSemesterReportContent" style="background:#F4F8F5; min-height: 90vh;">
 
     <!-- Print & Header Banner -->
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: white;">
@@ -17,9 +17,7 @@
                     </h2>
                     <p class="text-white-50 mb-0">Official 4-month semester evaluation & mental health compliance summary for @Model.DepartmentName Department.</p>
                 </div>
-                <button type="button" class="btn btn-warning rounded-3 text-dark fw-bold shadow-sm" onclick="window.print();">
-                    <i class="bi bi-printer me-1"></i> Print / Export Report
-                </button>
+            </div>
             </div>
         </div>
     </div>

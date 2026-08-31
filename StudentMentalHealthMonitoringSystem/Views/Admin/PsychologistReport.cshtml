@@ -1,11 +1,11 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Psychologist>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Psychologist>
 
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Psychologist Report";
 }
 
-<div class="container-fluid">
+<div class="container-fluid" id="adminPsychologistReportContent">
 
     <!-- ================= Header ================= -->
 
@@ -33,17 +33,15 @@
 
                 </div>
 
-                <a asp-controller="Admin"
-                   asp-action="Reports"
-                   class="btn rounded-3 px-4"
-                   style="background:#806C5D;
-                    color:white;">
-
-                    <i class="bi bi-arrow-left me-1"></i>
-
-                    Back to Reports
-
-                </a>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Admin"
+                       asp-action="Reports"
+                       class="btn rounded-3 px-4"
+                       style="background:#806C5D;
+                        color:white;">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Reports
+                    </a>
+                </div>
 
             </div>
 

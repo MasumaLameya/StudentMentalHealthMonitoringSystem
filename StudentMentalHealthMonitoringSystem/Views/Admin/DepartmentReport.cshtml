@@ -1,11 +1,11 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel>
 
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Department Report";
 }
 
-<div class="card border-0 shadow rounded-4">
+<div class="card border-0 shadow rounded-4" id="adminDeptReportContainer">
 
     <div class="card-header text-white py-3"
          style="background:#C2956D;">
@@ -17,15 +17,7 @@
                 🏢 Department Report
 
             </h3>
-
-            <button onclick="window.print()"
-                    class="btn btn-light">
-
-                <i class="bi bi-printer"></i>
-
-                Print
-
-            </button>
+        </div>
 
         </div>
 

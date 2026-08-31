@@ -5,7 +5,7 @@
     ViewData["Title"] = "Semester Screening Analytics";
 }
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" id="adminScreeningAnalyticsContent">
 
     <!-- ================= Header ================= -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -18,7 +18,7 @@
                 Detailed screening report, severity percentages, and department-wise visual analytics for <strong>@Model.SelectedSemester</strong>.
             </p>
         </div>
-        <div>
+        <div class="d-flex align-items-center gap-2">
             <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
                 <i class="bi bi-calendar-event me-1"></i> @Model.SelectedSemester
             </span>

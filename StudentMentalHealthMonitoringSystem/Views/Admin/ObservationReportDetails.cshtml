@@ -56,7 +56,7 @@
     }
 </style>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" id="adminObservationReportContent">
 
     <!-- ================= Header ================= -->
     <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5E503F 0%, #A67C52 100%);">
@@ -75,6 +75,9 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="downloadReportPdf('#adminObservationReportContent', { title: 'Observation_Report_@(Model.Student?.StudentIdNumber ?? "Record")', filename: 'Observation_Report_@(Model.Student?.StudentIdNumber ?? "Record")' })">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                    </button>
                     <a asp-controller="Admin" asp-action="ObservationReports" class="btn btn-light rounded-pill px-4 py-2 fw-semibold shadow-sm">
                         <i class="bi bi-arrow-left me-1"></i> Back to Reports
                     </a>

@@ -2971,6 +2971,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     AppointmentSource =
                         "StudentRequest",
 
+                    AppointmentRoom =
+                        "Mental Health & Counseling Center, Room 402",
+
                     CreatedAt =
                         DateTime.Now
                 };
@@ -2984,6 +2987,36 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             await _context.SaveChangesAsync();
+
+
+            // ================= Send Confirmation Email =================
+
+            try
+            {
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+
+                if (student != null && !string.IsNullOrWhiteSpace(student.Email))
+                {
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        recipientEmail: student.Email,
+                        studentName: student.FullName,
+                        studentIdNumber: student.StudentIdNumber,
+                        psychologistName: selectedPsychologist.FullName,
+                        psychologistSpecialization: selectedPsychologist.Specialization,
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        appointmentSource: "StudentRequest",
+                        severityOrReason: "Self-Requested Counseling Session"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[StudentController] Failed to send appointment email: {ex.Message}");
+            }
 
 
             // ================= Success =================

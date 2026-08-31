@@ -997,8 +997,23 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 psychologistId.Value;
 
 
-            counseling.CounselingDate =
-                DateTime.Now;
+            if (counseling.CounselingDate == default)
+            {
+                counseling.CounselingDate =
+                    DateTime.Now;
+            }
+
+            if (string.IsNullOrWhiteSpace(counseling.AppointmentRoom))
+            {
+                counseling.AppointmentRoom =
+                    "Mental Health & Counseling Center, Room 402";
+            }
+
+            if (counseling.AppointmentEndTime == default && counseling.AppointmentTime != default)
+            {
+                counseling.AppointmentEndTime =
+                    counseling.AppointmentTime.Add(TimeSpan.FromHours(1));
+            }
 
 
             // ================= Save =================
@@ -1009,6 +1024,42 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             await _context.SaveChangesAsync();
+
+
+            // ================= Send Confirmation Email =================
+
+            try
+            {
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == counseling.StudentId);
+                var psychologist = await _context.Psychologists
+                    .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
+
+                if (student != null && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
+                {
+                    var targetDate = counseling.NextFollowUpDate ?? counseling.CounselingDate;
+                    var startTime = counseling.AppointmentTime != default ? counseling.AppointmentTime : new TimeSpan(10, 0, 0);
+                    var endTime = counseling.AppointmentEndTime != default ? counseling.AppointmentEndTime : startTime.Add(TimeSpan.FromHours(1));
+
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        recipientEmail: student.Email,
+                        studentName: student.FullName,
+                        studentIdNumber: student.StudentIdNumber,
+                        psychologistName: psychologist.FullName,
+                        psychologistSpecialization: psychologist.Specialization,
+                        appointmentDate: targetDate,
+                        startTime: startTime,
+                        endTime: endTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        appointmentSource: "PsychologistDirect",
+                        severityOrReason: string.IsNullOrWhiteSpace(counseling.RiskLevel) ? "Psychologist Session Consultation" : $"Clinical Risk Assessment ({counseling.RiskLevel})"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PsychologistController] Failed to send counseling email: {ex.Message}");
+            }
 
 
             TempData["Success"] =

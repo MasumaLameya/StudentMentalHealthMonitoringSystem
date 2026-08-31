@@ -1,4 +1,4 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
 
 @{
     Layout = "_AdminLayout";
@@ -27,7 +27,7 @@
 }
 
 
-<div class="container-fluid">
+<div class="container-fluid" id="adminStudentReportContent">
 
     <!-- ===================================================== -->
     <!-- HEADER -->
@@ -62,18 +62,16 @@
                 </div>
 
 
-                <a asp-controller="Admin"
-                   asp-action="Reports"
-                   class="btn rounded-3 px-4"
-                   style="
-                    background:#8A7563;
-                    color:white;">
-
-                    <i class="bi bi-arrow-left me-1"></i>
-
-                    Back to Reports
-
-                </a>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Admin"
+                       asp-action="Reports"
+                       class="btn rounded-3 px-4"
+                       style="
+                        background:#8A7563;
+                        color:white;">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Reports
+                    </a>
+                </div>
 
             </div>
 

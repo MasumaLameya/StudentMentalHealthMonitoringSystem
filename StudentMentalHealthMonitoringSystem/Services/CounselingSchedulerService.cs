@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using StudentMentalHealthMonitoringSystem.Data;
 using StudentMentalHealthMonitoringSystem.Models;
 using System;
@@ -31,6 +31,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
     public class CounselingSchedulerService
     {
         private readonly ApplicationDbContext _context;
+        private readonly EmailService _emailService;
 
 
         // =====================================================
@@ -38,9 +39,11 @@ namespace StudentMentalHealthMonitoringSystem.Services
         // =====================================================
 
         public CounselingSchedulerService(
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            EmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
 
@@ -112,24 +115,24 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
 
             // =================================================
-            // Duplicate Auto Appointment Protection
+            // Existing Active Appointment Protection
             // =================================================
             //
-            // Repeated Severe / Extremely Severe results
-            // must not create multiple active automatic
-            // appointments for the same student.
+            // If the student already has an active upcoming
+            // counseling appointment (Follow-up, Auto-assignment,
+            // Student-booked, or Department-assigned), do NOT
+            // change the appointment or assign another psychologist.
+            // Instead, update the Combined Screening Report for the
+            // existing session so the assigned psychologist has full context.
             // =================================================
 
-            var existingAutoAppointment =
+            var existingActiveAppointment =
                 await _context.Counselings
                     .Include(c =>
                         c.Psychologist)
                     .Where(c =>
                         c.StudentId ==
                             studentId &&
-
-                        c.AppointmentSource ==
-                            "AutoAssignment" &&
 
                         c.Status !=
                             "Cancelled" &&
@@ -146,14 +149,14 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     .FirstOrDefaultAsync();
 
 
-            if (existingAutoAppointment != null)
+            if (existingActiveAppointment != null)
             {
                 // =================================================
                 // Update Existing Combined Screening Report
                 // =================================================
 
                 await CreateOrUpdateCombinedScreeningReportAsync(
-                    existingAutoAppointment,
+                    existingActiveAppointment,
                     triggerSource,
                     severityLevel
                 );
@@ -164,9 +167,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     Success = true,
                     Created = false,
                     Message =
-                        "The student already has an active automatically assigned counseling appointment.",
+                        "The student already has an active counseling appointment scheduled. Existing appointment and psychologist retained.",
                     Counseling =
-                        existingAutoAppointment
+                        existingActiveAppointment
                 };
             }
 
@@ -469,6 +472,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
                             TriggerSeverity =
                                 severityLevel,
 
+                            AppointmentRoom =
+                                "Mental Health & Counseling Center, Room 402",
+
                             ParentCounselingId =
                                 null,
 
@@ -495,6 +501,35 @@ namespace StudentMentalHealthMonitoringSystem.Services
                         triggerSource,
                         severityLevel
                     );
+
+
+                    // =================================================
+                    // Send Appointment Confirmation Email To Student
+                    // =================================================
+
+                    try
+                    {
+                        if (!string.IsNullOrWhiteSpace(student.Email))
+                        {
+                            await _emailService.SendAppointmentConfirmationEmailAsync(
+                                recipientEmail: student.Email,
+                                studentName: student.FullName,
+                                studentIdNumber: student.StudentIdNumber,
+                                psychologistName: selectedPsychologist.FullName,
+                                psychologistSpecialization: selectedPsychologist.Specialization,
+                                appointmentDate: counseling.CounselingDate,
+                                startTime: counseling.AppointmentTime,
+                                endTime: counseling.AppointmentEndTime,
+                                appointmentRoom: counseling.AppointmentRoom,
+                                appointmentSource: "AutoAssignment",
+                                severityOrReason: $"{triggerSource} Assessment ({severityLevel})"
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[CounselingSchedulerService] Failed to send auto appointment email: {ex.Message}");
+                    }
 
 
                     return new CounselingSchedulerResult
@@ -1397,6 +1432,10 @@ namespace StudentMentalHealthMonitoringSystem.Services
                         currentCounseling
                             .RiskLevel,
 
+                    AppointmentRoom =
+                        currentCounseling.AppointmentRoom ??
+                        "Mental Health & Counseling Center, Room 402",
+
                     CreatedAt =
                         DateTime.Now
                 };
@@ -1414,6 +1453,40 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             await _context
                 .SaveChangesAsync();
+
+
+            // =================================================
+            // Send Follow-Up Appointment Email To Student
+            // =================================================
+
+            try
+            {
+                var student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.StudentId == currentCounseling.StudentId);
+                var psychologist = await _context.Psychologists
+                    .FirstOrDefaultAsync(p => p.PsychologistId == currentCounseling.PsychologistId);
+
+                if (student != null && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
+                {
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        recipientEmail: student.Email,
+                        studentName: student.FullName,
+                        studentIdNumber: student.StudentIdNumber,
+                        psychologistName: psychologist.FullName,
+                        psychologistSpecialization: psychologist.Specialization,
+                        appointmentDate: followUpCounseling.CounselingDate,
+                        startTime: followUpCounseling.AppointmentTime,
+                        endTime: followUpCounseling.AppointmentEndTime,
+                        appointmentRoom: followUpCounseling.AppointmentRoom,
+                        appointmentSource: "FollowUp",
+                        severityOrReason: "Follow-up Counseling Session"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CounselingSchedulerService] Failed to send follow-up appointment email: {ex.Message}");
+            }
 
 
             return new CounselingSchedulerResult

@@ -1,11 +1,11 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
 
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Counseling Report";
 }
 
-<div class="container-fluid">
+<div class="container-fluid" id="adminCounselingReportContent">
 
     <!-- ================= Header ================= -->
 
@@ -33,22 +33,17 @@
 
                 </div>
 
-                <div class="text-end">
-
-                    <div class="fw-bold"
-                         style="font-size:25px;
-                        color:#A67C52;">
-
-                        @Model.Count()
-
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end">
+                        <div class="fw-bold"
+                             style="font-size:25px;
+                            color:#A67C52;">
+                            @Model.Count()
+                        </div>
+                        <small class="text-muted">
+                            Total Appointments
+                        </small>
                     </div>
-
-                    <small class="text-muted">
-
-                        Total Appointments
-
-                    </small>
-
                 </div>
 
             </div>
