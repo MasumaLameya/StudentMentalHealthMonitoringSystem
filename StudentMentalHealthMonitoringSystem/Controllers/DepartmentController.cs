@@ -125,8 +125,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
+            // Check Account Suspension
+            // =====================================================
+
+            if (department.IsSuspended)
+            {
+                ViewBag.SuspendedError = true;
+                return View();
+            }
+
+
+            // =====================================================
             // Clear Old Session
             // =====================================================
+
 
             HttpContext.Session.Remove(
                 "DepartmentId");
@@ -907,24 +919,29 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var allowedDays =
                 new[]
                 {
-            DayOfWeek.Monday,
-            DayOfWeek.Tuesday,
-            DayOfWeek.Wednesday,
-            DayOfWeek.Thursday,
-            DayOfWeek.Friday
+                    DayOfWeek.Saturday,
+                    DayOfWeek.Sunday,
+                    DayOfWeek.Monday,
+                    DayOfWeek.Tuesday,
+                    DayOfWeek.Wednesday
                 };
 
 
             // =====================================================
-            // FIXED COUNSELING SLOTS
+            // FIXED COUNSELING SLOTS (Matching Student System)
             // =====================================================
 
             var allowedStartTimes =
                 new[]
                 {
-            new TimeSpan(9, 0, 0),
-            new TimeSpan(10, 0, 0),
-            new TimeSpan(11, 0, 0)
+                    new TimeSpan(8, 30, 0),
+                    new TimeSpan(9, 35, 0),
+                    new TimeSpan(10, 40, 0),
+                    new TimeSpan(11, 45, 0),
+                    new TimeSpan(13, 10, 0),
+                    new TimeSpan(14, 15, 0),
+                    new TimeSpan(15, 20, 0),
+                    new TimeSpan(16, 25, 0)
                 };
 
 
@@ -951,7 +968,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 counselingDate.DayOfWeek))
             {
                 TempData["Error"] =
-                    "Counseling is available only from Monday to Friday.";
+                    "Counseling is available only from Saturday to Wednesday.";
 
                 return RedirectToAction(
                     "Counseling");
@@ -1003,35 +1020,33 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
-            // PREVENT STUDENT DOUBLE BOOKING
+            // PREVENT STUDENT DOUBLE BOOKING (overlapping)
             // =====================================================
 
             var studentAlreadyBooked =
                 await _context.Counselings
                     .AnyAsync(c =>
-                        c.StudentId ==
-                            student.StudentId &&
+                        c.StudentId == student.StudentId &&
+                        c.CounselingDate.Date == counselingDate.Date &&
+                        c.Status != "Cancelled" &&
+                        startTime < c.AppointmentEndTime &&
+                        endTime > c.AppointmentTime);
 
-                        c.CounselingDate.Date ==
-                            counselingDate.Date &&
+            // PREVENT ANY FUTURE ACTIVE APPOINTMENT FOR THIS STUDENT
+            // =====================================================
+            var studentHasFuture = await _context.Counselings
+                .AnyAsync(c => c.StudentId == student.StudentId &&
+                               c.CounselingDate.Date >= DateTime.Today &&
+                               c.Status != "Cancelled" &&
+                               c.Status != "Completed");
 
-                        c.Status !=
-                            "Cancelled" &&
-
-                        startTime <
-                            c.AppointmentEndTime &&
-
-                        endTime >
-                            c.AppointmentTime);
-
-
-            if (studentAlreadyBooked)
+            if (studentAlreadyBooked || studentHasFuture)
             {
-                TempData["Error"] =
-                    "This student already has a counseling appointment during the selected time.";
+                TempData["Error"] = studentAlreadyBooked
+                    ? $"Student {student.FullName} already has a counseling appointment during the selected time."
+                    : $"Student {student.FullName} already has an active scheduled counseling appointment and cannot book another session until it is completed.";
 
-                return RedirectToAction(
-                    "Counseling");
+                return RedirectToAction("Counseling");
             }
 
 
@@ -1093,16 +1108,95 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
-            // NO PSYCHOLOGIST AVAILABLE
+            // NO PSYCHOLOGIST AVAILABLE AT SELECTED TIME
+            // FIND OTHER FREE TIMES FOR THIS DATE
             // =====================================================
 
             if (!availablePsychologists.Any())
             {
-                TempData["Error"] =
-                    "All psychologists are booked for the selected time. Please choose another counseling slot.";
+                var suggestedTimes = new List<TimeSpan>();
 
-                return RedirectToAction(
-                    "Counseling");
+                foreach (var suggestedStartTime in allowedStartTimes)
+                {
+                    if (suggestedStartTime == startTime)
+                    {
+                        continue;
+                    }
+
+                    var suggestedEndTime = suggestedStartTime.Add(TimeSpan.FromHours(1));
+
+                    if (counselingDate.Date.Add(suggestedStartTime) <= DateTime.Now)
+                    {
+                        continue;
+                    }
+
+                    var studentBookedAtSuggestedTime = await _context.Counselings
+                        .AnyAsync(c => c.StudentId == student.StudentId &&
+                                       c.CounselingDate.Date == counselingDate.Date &&
+                                       c.Status != "Cancelled" &&
+                                       suggestedStartTime < c.AppointmentEndTime &&
+                                       suggestedEndTime > c.AppointmentTime);
+
+                    if (studentBookedAtSuggestedTime)
+                    {
+                        continue;
+                    }
+
+                    bool psychologistFound = false;
+                    foreach (var psychologist in psychologists)
+                    {
+                        var psychologistBookedAtSuggestedTime = await _context.Counselings
+                            .AnyAsync(c => c.PsychologistId == psychologist.PsychologistId &&
+                                           c.CounselingDate.Date == counselingDate.Date &&
+                                           c.Status != "Cancelled" &&
+                                           suggestedStartTime < c.AppointmentEndTime &&
+                                           suggestedEndTime > c.AppointmentTime);
+
+                        if (!psychologistBookedAtSuggestedTime)
+                        {
+                            psychologistFound = true;
+                            break;
+                        }
+                    }
+
+                    if (psychologistFound)
+                    {
+                        suggestedTimes.Add(suggestedStartTime);
+                    }
+                }
+
+                // Load view data to re-render view with suggestions
+                ViewBag.DepartmentName = department.DepartmentName;
+                ViewBag.SuggestedTimes = suggestedTimes;
+                ViewBag.SelectedStudentId = studentId;
+                ViewBag.SelectedDate = counselingDate.ToString("yyyy-MM-dd");
+                ViewBag.SelectedStartTime = startTime.ToString(@"hh\:mm\:ss");
+
+                var students = await _context.Students
+                    .Where(s => s.Department == department.DepartmentName)
+                    .OrderBy(s => s.FullName)
+                    .ToListAsync();
+
+                var studentIds = students.Select(s => s.StudentId).ToList();
+
+                ViewBag.Counselings = await _context.Counselings
+                    .Include(c => c.Student)
+                    .Include(c => c.Psychologist)
+                    .Where(c => studentIds.Contains(c.StudentId))
+                    .OrderByDescending(c => c.CounselingDate)
+                    .ThenBy(c => c.AppointmentTime)
+                    .ToListAsync();
+
+                if (suggestedTimes.Any())
+                {
+                    TempData["Error"] = "All psychologists are busy at your selected time. Please choose one of the suggested free time slots below.";
+                }
+                else
+                {
+                    TempData["Error"] = "All psychologists are fully booked for this date. Please select another date.";
+                }
+
+                return View("Counseling", students);
             }
 
 
@@ -1113,38 +1207,25 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // 2. Same count = alphabetical name
             // =====================================================
 
-            Psychologist? selectedPsychologist =
-                null;
+            Psychologist? selectedPsychologist = null;
+            int lowestAppointmentCount = int.MaxValue;
 
-
-            int lowestAppointmentCount =
-                int.MaxValue;
-
-
-            foreach (var psychologist
-                in availablePsychologists)
+            foreach (var psychologist in availablePsychologists)
             {
                 var appointmentCount =
                     await _context.Counselings
                         .CountAsync(c =>
                             c.PsychologistId ==
                                 psychologist.PsychologistId &&
-
                             c.Status !=
                                 "Cancelled");
 
-
-                if (appointmentCount <
-                    lowestAppointmentCount)
+                if (appointmentCount < lowestAppointmentCount)
                 {
-                    lowestAppointmentCount =
-                        appointmentCount;
-
-                    selectedPsychologist =
-                        psychologist;
+                    lowestAppointmentCount = appointmentCount;
+                    selectedPsychologist = psychologist;
                 }
-                else if (appointmentCount ==
-                         lowestAppointmentCount)
+                else if (appointmentCount == lowestAppointmentCount)
                 {
                     if (selectedPsychologist == null ||
                         string.Compare(
@@ -1153,8 +1234,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                             StringComparison.OrdinalIgnoreCase
                         ) < 0)
                     {
-                        selectedPsychologist =
-                            psychologist;
+                        selectedPsychologist = psychologist;
                     }
                 }
             }
@@ -1166,11 +1246,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             if (selectedPsychologist == null)
             {
-                TempData["Error"] =
-                    "No psychologist could be assigned.";
-
-                return RedirectToAction(
-                    "Counseling");
+                TempData["Error"] = "No psychologist could be assigned.";
+                return RedirectToAction("Counseling");
             }
 
 
@@ -1181,32 +1258,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var counseling =
                 new Counseling
                 {
-                    StudentId =
-                        student.StudentId,
-
-                    PsychologistId =
-                        selectedPsychologist.PsychologistId,
-
-                    CounselingDate =
-                        counselingDate.Date,
-
-                    AppointmentTime =
-                        startTime,
-
-                    AppointmentEndTime =
-                        endTime,
-
-                    Status =
-                        "Confirmed",
-
-                    AppointmentSource =
-                        "DepartmentRequest",
-
-                    AppointmentRoom =
-                        "Mental Health & Counseling Center, Room 402",
-
-                    CreatedAt =
-                        DateTime.Now
+                    StudentId = student.StudentId,
+                    PsychologistId = selectedPsychologist.PsychologistId,
+                    CounselingDate = counselingDate.Date,
+                    AppointmentTime = startTime,
+                    AppointmentEndTime = endTime,
+                    Status = "Confirmed",
+                    AppointmentSource = "DepartmentRequest",
+                    AppointmentRoom = "Mental Health & Counseling Center, Room 402",
+                    CreatedAt = DateTime.Now
                 };
 
 
@@ -1214,9 +1274,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // SAVE COUNSELING RECORD
             // =====================================================
 
-            _context.Counselings.Add(
-                counseling);
-
+            _context.Counselings.Add(counseling);
             await _context.SaveChangesAsync();
 
 
@@ -1254,11 +1312,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // =====================================================
 
             TempData["Success"] =
-                $"Counseling successfully assigned to {selectedPsychologist.FullName}.";
+                $"Counseling appointment successfully scheduled for {student.FullName} with {selectedPsychologist.FullName} on {counselingDate:dd MMM yyyy} at {DateTime.Today.Add(startTime):h:mm tt}.";
 
-
-            return RedirectToAction(
-                "Counseling");
+            return RedirectToAction("Counseling");
         }
 
 

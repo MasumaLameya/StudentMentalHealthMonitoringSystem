@@ -261,7 +261,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
 
+            // ================= Check Account Suspension =================
+            if (psychologist.IsSuspended)
+            {
+                ViewBag.SuspendedError = true;
+                return View();
+            }
+
+
             // ================= Create Session =================
+
 
             HttpContext.Session.SetInt32(
                 "PsychologistId",

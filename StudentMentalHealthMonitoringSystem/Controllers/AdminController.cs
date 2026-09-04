@@ -1059,17 +1059,21 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            var departments = _context.Students
-                .GroupBy(s => s.Department)
-                .Select(g => new DepartmentViewModel
+            // Get departments from the Departments table with student count per department
+            var departmentList = _context.Departments
+                .ToList()
+                .Select(d => new DepartmentViewModel
                 {
-                    DepartmentName = g.Key,
-                    TotalStudents = g.Count()
+                    DepartmentId   = d.DepartmentId,
+                    DepartmentName = d.DepartmentName,
+                    IsSuspended    = d.IsSuspended,
+                    TotalStudents  = _context.Students
+                        .Count(s => s.Department == d.DepartmentName)
                 })
                 .OrderBy(d => d.DepartmentName)
                 .ToList();
 
-            return View(departments);
+            return View(departmentList);
         }
 
 
@@ -3305,5 +3309,122 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             return View(model);
         }
+
+
+        // =====================================================
+        // SUSPEND / UNSUSPEND — STUDENT
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SuspendStudent(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var student = _context.Students.Find(id);
+            if (student == null) return NotFound();
+
+            student.IsSuspended = true;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" has been suspended.";
+            return RedirectToAction("Students");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UnsuspendStudent(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var student = _context.Students.Find(id);
+            if (student == null) return NotFound();
+
+            student.IsSuspended = false;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" has been reactivated.";
+            return RedirectToAction("Students");
+        }
+
+
+        // =====================================================
+        // SUSPEND / UNSUSPEND — PSYCHOLOGIST
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SuspendPsychologist(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var psychologist = _context.Psychologists.Find(id);
+            if (psychologist == null) return NotFound();
+
+            psychologist.IsSuspended = true;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Psychologist \"{psychologist.FullName}\" has been suspended.";
+            return RedirectToAction("Psychologists");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UnsuspendPsychologist(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var psychologist = _context.Psychologists.Find(id);
+            if (psychologist == null) return NotFound();
+
+            psychologist.IsSuspended = false;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Psychologist \"{psychologist.FullName}\" has been reactivated.";
+            return RedirectToAction("Psychologists");
+        }
+
+
+        // =====================================================
+        // SUSPEND / UNSUSPEND — DEPARTMENT
+        // =====================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SuspendDepartment(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var department = _context.Departments.Find(id);
+            if (department == null) return NotFound();
+
+            department.IsSuspended = true;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Department \"{department.DepartmentName}\" has been suspended.";
+            return RedirectToAction("Departments");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UnsuspendDepartment(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            var department = _context.Departments.Find(id);
+            if (department == null) return NotFound();
+
+            department.IsSuspended = false;
+            _context.SaveChanges();
+
+            TempData["SuccessMessage"] = $"Department \"{department.DepartmentName}\" has been reactivated.";
+            return RedirectToAction("Departments");
+        }
     }
-}
+}

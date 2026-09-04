@@ -374,7 +374,7 @@
 
         // Ultra-compact html2pdf configuration - Zero empty space
         const opt = {
-            margin: [4, 6, 4, 6],
+            margin: [0, 0, 0, 0],
             filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {

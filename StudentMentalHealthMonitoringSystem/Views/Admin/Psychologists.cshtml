@@ -1,4 +1,4 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Psychologist>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Psychologist>
 
 @{
     Layout = "_AdminLayout";
@@ -6,6 +6,14 @@
 }
 
 <div class="container-fluid">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert border-0 rounded-3 mb-4 d-flex align-items-center gap-2 p-3" style="background:#E6F4EA; border-left:4px solid #2E7D32; border-left-style:solid;">
+            <i class="bi bi-check-circle-fill" style="color:#2E7D32; font-size:18px;"></i>
+            <span style="color:#1B5E20; font-weight:600;">@TempData["SuccessMessage"]</span>
+        </div>
+    }
 
     <!-- ================= Header ================= -->
 
@@ -151,7 +159,7 @@
                         {
                             foreach (var psychologist in Model)
                             {
-                                <tr>
+                                <tr class="@(psychologist.IsSuspended ? "table-warning" : "")">
 
                                     <!-- ================= Photo ================= -->
 
@@ -164,14 +172,15 @@
                                                  width="55"
                                                  height="55"
                                                  class="rounded-circle border"
-                                                 style="object-fit:cover;">
+                                                 style="object-fit:cover; @(psychologist.IsSuspended ? "opacity:0.6;" : "")">
                                         }
                                         else
                                         {
-                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(psychologist.FullName)&background=B89B7A&color=fff&size=55"
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(psychologist.FullName)&background=@(psychologist.IsSuspended ? "999" : "B89B7A")&color=fff&size=55"
                                                  width="55"
                                                  height="55"
-                                                 class="rounded-circle">
+                                                 class="rounded-circle"
+                                                 style="@(psychologist.IsSuspended ? "opacity:0.6;" : "")">
                                         }
 
                                     </td>
@@ -182,10 +191,12 @@
                                     <td>
 
                                         <strong style="color:#5F5146;">
-
                                             @psychologist.FullName
-
                                         </strong>
+                                        @if (psychologist.IsSuspended)
+                                        {
+                                            <span class="badge ms-2 px-2 py-1 rounded-pill" style="background:#E65C00; color:#fff; font-size:10px;">Suspended</span>
+                                        }
 
                                     </td>
 
@@ -244,12 +255,9 @@
                                                asp-action="PsychologistDetails"
                                                asp-route-id="@psychologist.PsychologistId"
                                                class="btn btn-sm rounded-3"
-                                               style="background:#D8C7B8;
-                                                color:#55483D;"
+                                               style="background:#D8C7B8; color:#55483D;"
                                                title="View">
-
                                                 <i class="bi bi-eye"></i>
-
                                             </a>
 
 
@@ -259,28 +267,40 @@
                                                asp-action="EditPsychologist"
                                                asp-route-id="@psychologist.PsychologistId"
                                                class="btn btn-sm rounded-3"
-                                               style="background:#E5D3B3;
-                                                color:#665438;"
+                                               style="background:#E5D3B3; color:#665438;"
                                                title="Edit">
-
                                                 <i class="bi bi-pencil"></i>
-
                                             </a>
 
 
-                                            <!-- Delete -->
+                                            <!-- Suspend / Unsuspend -->
 
-                                            <a asp-controller="Admin"
-                                               asp-action="DeletePsychologist"
-                                               asp-route-id="@psychologist.PsychologistId"
-                                               class="btn btn-sm rounded-3"
-                                               style="background:#E7C4BD;
-                                                color:#7A4038;"
-                                               title="Delete">
-
-                                                <i class="bi bi-trash"></i>
-
-                                            </a>
+                                            @if (psychologist.IsSuspended)
+                                            {
+                                                <form asp-controller="Admin" asp-action="UnsuspendPsychologist" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@psychologist.PsychologistId" />
+                                                    <button type="submit" class="btn btn-sm rounded-3"
+                                                            style="background:#D4EDDA; color:#155724;"
+                                                            title="Reactivate Psychologist"
+                                                            onclick="return confirm('Reactivate this psychologist account?')">
+                                                        <i class="bi bi-person-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-controller="Admin" asp-action="SuspendPsychologist" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@psychologist.PsychologistId" />
+                                                    <button type="submit" class="btn btn-sm rounded-3"
+                                                            style="background:#FFE0B2; color:#7A3A00;"
+                                                            title="Suspend Psychologist"
+                                                            onclick="return confirm('Suspend this psychologist account? They will not be able to log in.')">
+                                                        <i class="bi bi-person-slash"></i>
+                                                    </button>
+                                                </form>
+                                            }
 
                                         </div>
 

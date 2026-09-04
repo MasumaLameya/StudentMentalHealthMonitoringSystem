@@ -62,5 +62,15 @@ namespace StudentMentalHealthMonitoringSystem.Models
         [StringLength(150)]
         [Display(Name = "Head of Department")]
         public string? HeadOfDepartment { get; set; }
+
+
+        // =====================================================
+        // ACCOUNT STATUS
+        // =====================================================
+
+        // When true, the department account cannot login.
+        // Admin can suspend / unsuspend from the Admin panel.
+
+        public bool IsSuspended { get; set; } = false;
     }
-}
+}

@@ -84,7 +84,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View();
             }
 
-            // ================= Update / Normalize Semester =================
+            // ================= Check Account Suspension =================
+            if (student.IsSuspended)
+            {
+                ViewBag.SuspendedError = true;
+                return View();
+            }
+
             if (string.IsNullOrWhiteSpace(student.Semester) || student.Semester != student.ActiveSemester)
             {
                 student.Semester = student.ActiveSemester;

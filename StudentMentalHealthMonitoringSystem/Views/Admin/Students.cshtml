@@ -7,6 +7,14 @@
 
 <div class="container-fluid">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert border-0 rounded-3 mb-4 d-flex align-items-center gap-2 p-3" style="background:#E6F4EA; border-left:4px solid #2E7D32; border-left-style:solid;">
+            <i class="bi bi-check-circle-fill" style="color:#2E7D32; font-size:18px;"></i>
+            <span style="color:#1B5E20; font-weight:600;">@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
     <!-- ================= Header ================= -->
 
     <div class="card border-0 shadow-sm rounded-4 mb-4"
@@ -182,7 +190,7 @@
                         {
                             foreach (var student in Model)
                             {
-                                <tr class="student-row">
+                                <tr class="student-row @(student.IsSuspended ? "table-warning" : "")">
 
                                     <!-- Photo -->
 
@@ -194,14 +202,15 @@
                                                  width="55"
                                                  height="55"
                                                  class="rounded-circle border shadow-sm"
-                                                 style="object-fit:cover;">
+                                                 style="object-fit:cover; @(student.IsSuspended ? "opacity:0.6;" : "")">
                                         }
                                         else
                                         {
-                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(student.FullName)&background=A67C52&color=fff&size=55"
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(student.FullName)&background=@(student.IsSuspended ? "999" : "A67C52")&color=fff&size=55"
                                                  width="55"
                                                  height="55"
-                                                 class="rounded-circle">
+                                                 class="rounded-circle"
+                                                 style="@(student.IsSuspended ? "opacity:0.6;" : "")">
                                         }
 
                                     </td>
@@ -226,10 +235,12 @@
                                     <td>
 
                                         <strong style="color:#5F5146;">
-
                                             @student.FullName
-
                                         </strong>
+                                        @if (student.IsSuspended)
+                                        {
+                                            <span class="badge ms-2 px-2 py-1 rounded-pill" style="background:#E65C00; color:#fff; font-size:10px;">Suspended</span>
+                                        }
 
                                     </td>
 
@@ -277,39 +288,46 @@
                                                asp-action="StudentDetails"
                                                asp-route-id="@student.StudentId"
                                                class="btn btn-sm rounded-3"
-                                               style="background:#D8C7B8;
-                                                color:#55483D;"
+                                               style="background:#D8C7B8; color:#55483D;"
                                                title="View Student">
-
                                                 <i class="bi bi-eye"></i>
-
                                             </a>
-
 
                                             <a asp-controller="Admin"
                                                asp-action="EditStudent"
                                                asp-route-id="@student.StudentId"
                                                class="btn btn-sm rounded-3"
-                                               style="background:#E5D3B3;
-                                                color:#665438;"
+                                               style="background:#E5D3B3; color:#665438;"
                                                title="Edit Student">
-
                                                 <i class="bi bi-pencil"></i>
-
                                             </a>
 
-
-                                            <a asp-controller="Admin"
-                                               asp-action="DeleteStudent"
-                                               asp-route-id="@student.StudentId"
-                                               class="btn btn-sm rounded-3"
-                                               style="background:#E7C4BD;
-                                                color:#7A4038;"
-                                               title="Delete Student">
-
-                                                <i class="bi bi-trash"></i>
-
-                                            </a>
+                                            @if (student.IsSuspended)
+                                            {
+                                                <form asp-controller="Admin" asp-action="UnsuspendStudent" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@student.StudentId" />
+                                                    <button type="submit" class="btn btn-sm rounded-3"
+                                                            style="background:#D4EDDA; color:#155724;"
+                                                            title="Reactivate Student"
+                                                            onclick="return confirm('Reactivate this student account?')">
+                                                        <i class="bi bi-person-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-controller="Admin" asp-action="SuspendStudent" method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@student.StudentId" />
+                                                    <button type="submit" class="btn btn-sm rounded-3"
+                                                            style="background:#FFE0B2; color:#7A3A00;"
+                                                            title="Suspend Student"
+                                                            onclick="return confirm('Suspend this student account? They will not be able to log in.')">
+                                                        <i class="bi bi-person-slash"></i>
+                                                    </button>
+                                                </form>
+                                            }
 
                                         </div>
 

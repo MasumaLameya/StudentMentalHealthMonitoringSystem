@@ -473,6 +473,30 @@
                     </div>
 
 
+                    @if (ViewBag.SuggestedTimes != null && ((IEnumerable<TimeSpan>)ViewBag.SuggestedTimes).Any())
+                    {
+                        var suggestedTimesList = (IEnumerable<TimeSpan>)ViewBag.SuggestedTimes;
+                        <div class="card border-0 rounded-4 mb-4" style="background:#F7F2ED; border:1px solid #E8DDD2;">
+                            <div class="card-body p-3">
+                                <h6 class="fw-bold mb-2 text-dark">
+                                    <i class="bi bi-lightbulb-fill text-warning me-1"></i> Suggested Available Time Slots:
+                                </h6>
+                                <p class="text-secondary small mb-3">All psychologists are busy at your requested time. Click an alternative free slot below:</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var time in suggestedTimesList)
+                                    {
+                                        var suggestedEndTime = time.Add(TimeSpan.FromHours(1));
+                                        var startTimeText = DateTime.Today.Add(time).ToString("h:mm tt");
+                                        var endTimeText = DateTime.Today.Add(suggestedEndTime).ToString("h:mm tt");
+                                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold" onclick="selectSuggestedSlot('@time.ToString(@"hh\:mm\:ss")')">
+                                            <i class="bi bi-clock me-1"></i> @startTimeText - @endTimeText
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
                     <!-- =================================================
                          BOOKING FORM
                          ================================================= -->
@@ -485,42 +509,74 @@
                         @Html.AntiForgeryToken()
 
 
-                        <!-- ================= Student ================= -->
+                        <!-- ================= Student Selection with Live Search ================= -->
 
                         <div class="mb-4">
 
-                            <label class="form-label">
-
-                                <i class="bi bi-person me-1"></i>
-
-                                Student
-
+                            <label class="form-label d-flex justify-content-between align-items-center mb-2">
+                                <span><i class="bi bi-person me-1"></i> Student</span>
+                                <small class="text-muted fw-normal">Search by Name, Email, or Student ID</small>
                             </label>
 
+                            <div class="input-group mb-2">
+                                <span class="input-group-text bg-white border-end-0" style="border-radius: 13px 0 0 13px; border-color: #E5DCD5;">
+                                    <i class="bi bi-search text-secondary"></i>
+                                </span>
+                                <input type="text"
+                                       id="studentSearchInput"
+                                       class="form-control border-start-0"
+                                       style="border-radius: 0 13px 13px 0;"
+                                       placeholder="Type student name, email, or student ID to filter..."
+                                       onkeyup="filterDepartmentStudents()"
+                                       onfocus="filterDepartmentStudents()" />
+                            </div>
 
                             <select name="studentId"
+                                    id="studentSelect"
                                     class="form-select"
-                                    required>
+                                    size="5"
+                                    required
+                                    onchange="updateSelectedStudentPreview()">
 
-                                <option value="">
-
-                                    Select Student
-
-                                </option>
-
+                                <option value="" disabled selected>-- Select Student from List --</option>
 
                                 @foreach (var student in Model)
                                 {
-                                    <option value="@student.StudentId">
+                                    var selectedStudentId = ViewBag.SelectedStudentId as int?;
+                                    var isSelected = selectedStudentId.HasValue && selectedStudentId.Value == student.StudentId;
+                                    var searchData = $"{student.FullName} {student.StudentIdNumber} {student.Email} {student.Department}".ToLower();
 
-                                        @student.FullName
-                                        -
-                                        @student.StudentIdNumber
-
+                                    <option value="@student.StudentId"
+                                            selected="@isSelected"
+                                            data-name="@student.FullName"
+                                            data-id="@student.StudentIdNumber"
+                                            data-email="@(student.Email ?? "")"
+                                            data-search="@searchData">
+                                        @student.FullName | ID: @student.StudentIdNumber | Email: @(student.Email ?? "N/A")
                                     </option>
                                 }
 
                             </select>
+
+                            <div id="noStudentMatchMessage" class="text-danger small mt-1 d-none">
+                                <i class="bi bi-exclamation-circle me-1"></i> No matching student found.
+                            </div>
+
+                            <!-- Selected Student Information Card -->
+                            <div id="selectedStudentInfoBox" class="mt-3 p-3 rounded-3 d-none" style="background: #F7F3F8; border: 1px solid #E5DCE8;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div style="width: 40px; height: 40px; border-radius: 12px; background: #9B839F; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem;">
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-0" id="previewStudentName">Selected Student</div>
+                                        <div class="small text-secondary">
+                                            <span id="previewStudentId" class="me-2 fw-semibold"></span>
+                                            <span id="previewStudentEmail"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
 
@@ -546,12 +602,13 @@
                                        name="counselingDate"
                                        class="form-control"
                                        min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                       value="@(ViewBag.SelectedDate ?? DateTime.Today.ToString("yyyy-MM-dd"))"
                                        required />
 
 
                                 <small class="page-subtitle">
 
-                                    Monday – Friday
+                                    Saturday – Wednesday
 
                                 </small>
 
@@ -569,20 +626,23 @@
 
                                 </label>
 
+                                @{
+                                    var selStartTime = ViewBag.SelectedStartTime as string;
+                                }
 
                                 <select name="startTime"
                                         class="form-select"
                                         required>
 
                                     <option value="">Select Time Slot</option>
-                                    <option value="08:30:00">8:30 AM - 9:30 AM</option>
-                                    <option value="09:35:00">9:35 AM - 10:35 AM</option>
-                                    <option value="10:40:00">10:40 AM - 11:40 AM</option>
-                                    <option value="11:45:00">11:45 AM - 12:45 PM</option>
-                                    <option value="13:10:00">1:10 PM - 2:10 PM</option>
-                                    <option value="14:15:00">2:15 PM - 3:15 PM</option>
-                                    <option value="15:20:00">3:20 PM - 4:20 PM</option>
-                                    <option value="16:25:00">4:25 PM - 5:25 PM</option>
+                                    <option value="08:30:00" selected="@(selStartTime == "08:30:00")">8:30 AM - 9:30 AM</option>
+                                    <option value="09:35:00" selected="@(selStartTime == "09:35:00")">9:35 AM - 10:35 AM</option>
+                                    <option value="10:40:00" selected="@(selStartTime == "10:40:00")">10:40 AM - 11:40 AM</option>
+                                    <option value="11:45:00" selected="@(selStartTime == "11:45:00")">11:45 AM - 12:45 PM</option>
+                                    <option value="13:10:00" selected="@(selStartTime == "13:10:00")">1:10 PM - 2:10 PM</option>
+                                    <option value="14:15:00" selected="@(selStartTime == "14:15:00")">2:15 PM - 3:15 PM</option>
+                                    <option value="15:20:00" selected="@(selStartTime == "15:20:00")">3:20 PM - 4:20 PM</option>
+                                    <option value="16:25:00" selected="@(selStartTime == "16:25:00")">4:25 PM - 5:25 PM</option>
 
                                 </select>
 
@@ -694,7 +754,7 @@
 
                                 <div class="page-subtitle mt-1">
 
-                                    Monday – Friday
+                                    Saturday – Wednesday
 
                                 </div>
 
@@ -729,7 +789,7 @@
 
                                 <div class="page-subtitle mt-1">
 
-                                    9–10 AM, 10–11 AM, 11 AM–12 PM
+                                    8:30 AM – 5:25 PM (8 Fixed 1-Hour Slots)
 
                                 </div>
 
@@ -1139,3 +1199,68 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        function filterDepartmentStudents() {
+            var input = document.getElementById("studentSearchInput");
+            var filter = input.value.toLowerCase().trim();
+            var select = document.getElementById("studentSelect");
+            var options = select.options;
+            var visibleCount = 0;
+
+            for (var i = 0; i < options.length; i++) {
+                var opt = options[i];
+                if (!opt.value) continue;
+
+                var searchData = (opt.getAttribute("data-search") || opt.text).toLowerCase();
+                if (filter === "" || searchData.indexOf(filter) > -1) {
+                    opt.hidden = false;
+                    opt.style.display = "";
+                    visibleCount++;
+                } else {
+                    opt.hidden = true;
+                    opt.style.display = "none";
+                }
+            }
+
+            var noMatchMsg = document.getElementById("noStudentMatchMessage");
+            if (visibleCount === 0 && filter !== "") {
+                noMatchMsg.classList.remove("d-none");
+            } else {
+                noMatchMsg.classList.add("d-none");
+            }
+        }
+
+        function updateSelectedStudentPreview() {
+            var select = document.getElementById("studentSelect");
+            var selectedOpt = select.options[select.selectedIndex];
+            var infoBox = document.getElementById("selectedStudentInfoBox");
+
+            if (selectedOpt && selectedOpt.value) {
+                var name = selectedOpt.getAttribute("data-name");
+                var idNum = selectedOpt.getAttribute("data-id");
+                var email = selectedOpt.getAttribute("data-email");
+
+                document.getElementById("previewStudentName").innerText = name;
+                document.getElementById("previewStudentId").innerText = "ID: " + idNum;
+                document.getElementById("previewStudentEmail").innerText = "• " + (email || "No email");
+                infoBox.classList.remove("d-none");
+            } else {
+                infoBox.classList.add("d-none");
+            }
+        }
+
+        function selectSuggestedSlot(timeSlot) {
+            var slotSelect = document.querySelector("select[name='startTime']");
+            if (slotSelect) {
+                slotSelect.value = timeSlot;
+                slotSelect.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            updateSelectedStudentPreview();
+        });
+    </script>
+}

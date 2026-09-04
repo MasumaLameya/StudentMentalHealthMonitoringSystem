@@ -39,7 +39,18 @@ namespace StudentMentalHealthMonitoringSystem.Models
 
         public string? ProfileImage { get; set; }
 
+
+        // =====================================================
+        // ACCOUNT STATUS
+        // =====================================================
+
+        // When true, the psychologist cannot login.
+        // Admin can suspend / unsuspend from the Admin panel.
+
+        public bool IsSuspended { get; set; } = false;
+
+
         [NotMapped]
         public IFormFile? ImageFile { get; set; }
     }
-}
+}

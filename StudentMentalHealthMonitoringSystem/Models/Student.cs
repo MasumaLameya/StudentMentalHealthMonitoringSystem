@@ -159,6 +159,16 @@ namespace StudentMentalHealthMonitoringSystem.Models
         public string? ProfileImage { get; set; }
 
 
+        // =====================================================
+        // ACCOUNT STATUS
+        // =====================================================
+
+        // When true, the student cannot login.
+        // Admin can suspend / unsuspend from the Admin panel.
+
+        public bool IsSuspended { get; set; } = false;
+
+
         // Upload image
         // Not stored in database
 

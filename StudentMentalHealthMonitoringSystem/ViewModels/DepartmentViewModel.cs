@@ -1,10 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using StudentMentalHealthMonitoringSystem.Models;
 
 namespace StudentMentalHealthMonitoringSystem.ViewModels
 {
     public class DepartmentViewModel
     {
+        // =========================================================
+        // DEPARTMENT ID
+        // =========================================================
+
+        public int DepartmentId { get; set; }
+
+
         // =========================================================
         // DEPARTMENT INFORMATION
         // =========================================================
@@ -47,5 +54,12 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
 
         public List<Counseling> UpcomingCounselings { get; set; }
             = new List<Counseling>();
+
+
+        // =========================================================
+        // SUSPENSION STATUS
+        // =========================================================
+
+        public bool IsSuspended { get; set; } = false;
     }
 }

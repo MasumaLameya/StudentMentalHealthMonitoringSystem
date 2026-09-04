@@ -7,6 +7,14 @@
 
 <div class="container-fluid">
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert border-0 rounded-3 mb-4 d-flex align-items-center gap-2 p-3" style="background:#E6F4EA; border-left:4px solid #2E7D32; border-left-style:solid;">
+            <i class="bi bi-check-circle-fill" style="color:#2E7D32; font-size:18px;"></i>
+            <span style="color:#1B5E20; font-weight:600;">@TempData["SuccessMessage"]</span>
+        </div>
+    }
+
     <!-- ================= Header ================= -->
 
     <div class="card border-0 shadow-sm rounded-4 mb-4"
@@ -116,7 +124,15 @@
             {
                 <div class="col-xl-4 col-lg-6 mb-4 department-item">
 
-                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 @(department.IsSuspended ? "border border-warning" : "")">
+
+                        @if (department.IsSuspended)
+                        {
+                            <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-top" style="background:#FFE0B2;">
+                                <i class="bi bi-slash-circle-fill" style="color:#E65C00;"></i>
+                                <span class="fw-semibold small" style="color:#7A3A00;">Account Suspended</span>
+                            </div>
+                        }
 
                         <div class="card-body p-4">
 
@@ -125,11 +141,11 @@
                                 <div class="rounded-4 d-flex align-items-center justify-content-center me-3"
                                      style="width:60px;
                                     height:60px;
-                                    background:#E6D6C8;">
+                                    background:@(department.IsSuspended ? "#EEE" : "#E6D6C8");">
 
                                     <i class="bi bi-building"
                                        style="font-size:27px;
-                                    color:#806C5D;"></i>
+                                    color:@(department.IsSuspended ? "#AAA" : "#806C5D");"></i>
 
                                 </div>
 
@@ -156,7 +172,7 @@
                             <hr class="my-4">
 
 
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
 
                                 <div>
 
@@ -173,20 +189,38 @@
 
                                 </div>
 
-                                <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                     style="width:55px;
-                                    height:55px;
-                                    background:#F1E7DE;">
+                                <div class="d-flex gap-2 flex-wrap">
 
-                                    <i class="bi bi-people"
-                                       style="font-size:24px;
-                                    color:#806C5D;"></i>
+                                    <a asp-controller="Admin" asp-action="Students" asp-route-department="@department.DepartmentName" class="btn rounded-3 fw-bold px-3 py-2 text-white shadow-sm" style="background:#8A7563;">
+                                        <i class="bi bi-people me-1"></i> View Students (@department.TotalStudents)
+                                    </a>
+
+                                    @if (department.IsSuspended)
+                                    {
+                                        <form asp-controller="Admin" asp-action="UnsuspendDepartment" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@department.DepartmentId" />
+                                            <button type="submit" class="btn rounded-3 fw-bold px-3 py-2 shadow-sm"
+                                                    style="background:#D4EDDA; color:#155724;"
+                                                    onclick="return confirm('Reactivate the @department.DepartmentName department account?')">
+                                                <i class="bi bi-unlock me-1"></i> Reactivate
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-controller="Admin" asp-action="SuspendDepartment" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@department.DepartmentId" />
+                                            <button type="submit" class="btn rounded-3 fw-bold px-3 py-2 shadow-sm"
+                                                    style="background:#FFE0B2; color:#7A3A00;"
+                                                    onclick="return confirm('Suspend the @department.DepartmentName department? They will not be able to log in.')">
+                                                <i class="bi bi-lock me-1"></i> Suspend
+                                            </button>
+                                        </form>
+                                    }
 
                                 </div>
-
-                                <a asp-controller="Admin" asp-action="Students" asp-route-department="@department.DepartmentName" class="btn rounded-3 fw-bold px-3 py-2 text-white shadow-sm" style="background:#8A7563;">
-                                    <i class="bi bi-people me-1"></i> View Students (@department.TotalStudents)
-                                </a>
 
                             </div>
 
