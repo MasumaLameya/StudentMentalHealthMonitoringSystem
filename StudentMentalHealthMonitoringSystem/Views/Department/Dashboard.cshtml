@@ -1,4 +1,4 @@
-﻿@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel
+@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentViewModel
 
 @{
     Layout = "_DepartmentLayout";
@@ -87,7 +87,24 @@
 
     </div>
 
+    <!-- =====================================================
+         ALERT MESSAGES
+         ===================================================== -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+            <div class="fw-semibold">@TempData["Success"]</div>
+        </div>
+    }
 
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+            <div class="fw-semibold">@TempData["Error"]</div>
+        </div>
+    }
 
     <!-- =====================================================
          SUMMARY CARDS
@@ -421,6 +438,10 @@
                                             Status
                                         </th>
 
+                                        <th class="text-end">
+                                            Action
+                                        </th>
+
                                     </tr>
 
                                 </thead>
@@ -540,7 +561,28 @@
                                                     @item.Status
 
                                                 </span>
+                                            </td>
 
+                                            <!-- =========================
+                                                 ACTION (CANCEL)
+                                                 ========================= -->
+                                            <td class="text-end">
+                                                @{
+                                                    var nowTime = DateTime.Now;
+                                                    bool isCancellable = (item.Status == "Confirmed" || item.Status == "Pending") &&
+                                                        (item.CounselingDate.Date > DateTime.Today ||
+                                                        (item.CounselingDate.Date == DateTime.Today && item.AppointmentTime > nowTime.TimeOfDay));
+                                                }
+                                                @if (isCancellable)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#deptCancelModal_@item.CounselingId">
+                                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">-</span>
+                                                }
                                             </td>
 
                                         </tr>
@@ -552,6 +594,67 @@
                             </table>
 
                         </div>
+
+                        @foreach (var item in Model.UpcomingCounselings)
+                        {
+                            if ((item.Status == "Confirmed" || item.Status == "Pending") &&
+                                (item.CounselingDate.Date > DateTime.Today ||
+                                (item.CounselingDate.Date == DateTime.Today && item.AppointmentTime > DateTime.Now.TimeOfDay)))
+                            {
+                                <div class="modal fade" id="deptCancelModal_@item.CounselingId" tabindex="-1" aria-labelledby="deptCancelModalLabel_@item.CounselingId" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <div class="modal-header border-0 bg-danger text-white rounded-top-4 p-4">
+                                                <h5 class="modal-title fw-bold" id="deptCancelModalLabel_@item.CounselingId">
+                                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Student Appointment
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form asp-controller="Department" asp-action="CancelAppointment" method="post">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.CounselingId" />
+                                                <input type="hidden" name="returnUrl" value="/Department/Dashboard" />
+                                                <div class="modal-body p-4 text-start">
+                                                    <div class="alert alert-warning border-0 rounded-3 mb-3">
+                                                        <i class="bi bi-info-circle me-1"></i>
+                                                        You are about to cancel the counseling appointment for <strong>@item.Student?.FullName</strong> (ID: @item.Student?.StudentIdNumber).
+                                                    </div>
+                                                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                                                        <div class="d-flex justify-content-between mb-1">
+                                                            <span class="text-muted small">Psychologist:</span>
+                                                            <strong class="text-dark small">@(item.Psychologist?.FullName ?? "University Psychologist")</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between mb-1">
+                                                            <span class="text-muted small">Date:</span>
+                                                            <strong class="text-dark small">@item.CounselingDate.ToString("dd MMM yyyy")</strong>
+                                                        </div>
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="text-muted small">Time:</span>
+                                                            <strong class="text-dark small">@item.AppointmentTime.Hours.ToString("00"):@item.AppointmentTime.Minutes.ToString("00") – @item.AppointmentEndTime.Hours.ToString("00"):@item.AppointmentEndTime.Minutes.ToString("00")</strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="deptCancelReason_@item.CounselingId" class="form-label fw-semibold text-dark small">
+                                                            Reason for Cancellation (Optional)
+                                                        </label>
+                                                        <textarea name="reason" id="deptCancelReason_@item.CounselingId" rows="3" class="form-control rounded-3" placeholder="Provide reason for cancelling..."></textarea>
+                                                    </div>
+                                                    <p class="small text-muted mb-0">
+                                                        Cancelling will free the appointment slot and send email notifications to the student, psychologist, and guardian.
+                                                    </p>
+                                                </div>
+                                                <div class="modal-footer border-0 p-4 pt-0">
+                                                    <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Keep Appointment</button>
+                                                    <button type="submit" class="btn btn-danger rounded-3 px-4 fw-bold">
+                                                        <i class="bi bi-x-circle me-1"></i> Confirm Cancellation
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
 
                     }
                     else

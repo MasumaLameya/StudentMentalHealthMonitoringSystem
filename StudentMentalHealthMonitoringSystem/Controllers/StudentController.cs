@@ -575,6 +575,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // COUNSELING INFORMATION
             // =================================================
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
             var counselings =
                 await _context.Counselings
                     .Include(c =>
@@ -605,6 +607,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     .Where(c =>
                         c.Status !=
                             "Completed" &&
+
+                        c.Status !=
+                            "Cancelled" &&
+
+                        c.Status !=
+                            "Missed" &&
 
                         c.CounselingDate.Date
                             .Add(
@@ -2473,15 +2481,26 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            // Automatically transition any expired unassessed appointments to Missed
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var now = DateTime.Now;
+
             // Check if student already has an active, pending, or scheduled appointment
             var activeAppointment = await _context.Counselings
                 .Include(c => c.Psychologist)
-                .Where(c => c.StudentId == studentId.Value && c.Status != "Completed" && c.Status != "Cancelled")
+                .Where(c => c.StudentId == studentId.Value &&
+                            c.Status != "Completed" &&
+                            c.Status != "Cancelled" &&
+                            c.Status != "Missed" &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                            (c.CounselingDate.Date == DateTime.Today && c.AppointmentEndTime >= now.TimeOfDay)))
                 .OrderByDescending(c => c.CounselingDate)
                 .ThenByDescending(c => c.AppointmentTime)
                 .FirstOrDefaultAsync();
 
             ViewBag.ActiveAppointment = activeAppointment;
+            ViewBag.CanCancel = false;
 
             var model =
                 new AppointmentViewModel
@@ -2516,21 +2535,35 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            // Automatically transition any expired unassessed appointments to Missed
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var now = DateTime.Now;
+
             // Check if student already has an active, pending, or scheduled appointment
             var activeAppointment = await _context.Counselings
                 .Include(c => c.Psychologist)
-                .Where(c => c.StudentId == studentId.Value && c.Status != "Completed" && c.Status != "Cancelled")
+                .Where(c => c.StudentId == studentId.Value &&
+                            c.Status != "Completed" &&
+                            c.Status != "Cancelled" &&
+                            c.Status != "Missed" &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                            (c.CounselingDate.Date == DateTime.Today && c.AppointmentEndTime >= now.TimeOfDay)))
                 .OrderByDescending(c => c.CounselingDate)
                 .ThenByDescending(c => c.AppointmentTime)
                 .FirstOrDefaultAsync();
 
             if (activeAppointment != null)
             {
+                bool canCancel = activeAppointment.CounselingDate.Date > DateTime.Today ||
+                    (activeAppointment.CounselingDate.Date == DateTime.Today && activeAppointment.AppointmentTime > now.TimeOfDay);
+
                 ViewBag.ActiveAppointment = activeAppointment;
+                ViewBag.CanCancel = canCancel;
                 TempData["Error"] = "Appointment already scheduled! You cannot request a new appointment while an active or pending appointment exists.";
                 ModelState.AddModelError(
                     "",
-                    "Appointment already scheduled! You already have an active or pending counseling appointment."
+                    "Appointment already scheduled! You already have an active counseling appointment."
                 );
 
                 return View(model);
@@ -3035,6 +3068,19 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 "Appointment"
             );
         }
+
+        // =========================================================
+        // CANCEL APPOINTMENT (STUDENT)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelAppointment(int id, string? reason)
+        {
+            TempData["Error"] = "Students are not permitted to cancel counseling appointments directly. Appointments can only be cancelled by your registered guardian via the Guardian Portal, or by visiting the Counseling Center.";
+            return RedirectToAction("Appointment");
+        }
+
         // =====================================================
         // PROGRESS (INDIVIDUAL STUDENT PROGRESS REPORT)
         // =====================================================
@@ -3133,12 +3179,120 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
         // =====================================================
-        // HISTORY
+        // HISTORY (SESSION HISTORY & OBSERVATION REPORTS)
         // =====================================================
 
-        public IActionResult History()
+        [HttpGet]
+        public async Task<IActionResult> History()
         {
-            return View();
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+
+            if (student == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Run automated missed appointments check
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var counselings = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId.Value)
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .ToListAsync();
+
+            var observations = await _context.CounselingObservations
+                .Where(o => o.StudentId == studentId.Value)
+                .ToListAsync();
+
+            var observationReports = await _context.ObservationReports
+                .Where(r => r.StudentId == studentId.Value)
+                .ToListAsync();
+
+            var now = DateTime.Now;
+            var sessionItems = new List<StudentSessionHistoryItemViewModel>();
+
+            foreach (var c in counselings)
+            {
+                var obs = observations.FirstOrDefault(o => o.CounselingId == c.CounselingId);
+                var rep = observationReports.FirstOrDefault(r => r.RootCounselingId == c.CounselingId ||
+                    (obs != null && r.RootCounselingId == obs.RootCounselingId));
+
+                sessionItems.Add(new StudentSessionHistoryItemViewModel
+                {
+                    CounselingId = c.CounselingId,
+                    CounselingDate = c.CounselingDate,
+                    AppointmentTime = c.AppointmentTime,
+                    AppointmentEndTime = c.AppointmentEndTime,
+                    Status = c.Status,
+                    AppointmentRoom = c.AppointmentRoom,
+                    AppointmentSource = c.AppointmentSource,
+                    TriggerSource = c.TriggerSource,
+                    TriggerSeverity = c.TriggerSeverity,
+                    ObservationNote = c.Observation,
+                    CanCancel = false,
+                    PsychologistId = c.PsychologistId,
+                    PsychologistName = c.Psychologist?.FullName ?? "University Psychologist",
+                    PsychologistSpecialization = c.Psychologist?.Specialization,
+                    PsychologistEmail = c.Psychologist?.Email,
+                    PsychologistProfileImage = c.Psychologist?.ProfileImage,
+                    Observation = obs,
+                    ObservationReport = rep
+                });
+            }
+
+            var vm = new StudentSessionHistoryViewModel
+            {
+                Student = student,
+                Sessions = sessionItems
+            };
+
+            return View(vm);
+        }
+
+        // =====================================================
+        // OBSERVATION DETAILS (INDIVIDUAL REPORT VIEW FOR STUDENT)
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> ObservationDetails(int id)
+        {
+            var studentId = HttpContext.Session.GetInt32("StudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var counseling = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .FirstOrDefaultAsync(c => c.CounselingId == id && c.StudentId == studentId.Value);
+
+            if (counseling == null)
+            {
+                TempData["Error"] = "Session record not found.";
+                return RedirectToAction("History");
+            }
+
+            var observation = await _context.CounselingObservations
+                .FirstOrDefaultAsync(o => o.CounselingId == counseling.CounselingId);
+
+            var observationReport = await _context.ObservationReports
+                .FirstOrDefaultAsync(r => r.RootCounselingId == counseling.CounselingId ||
+                    (observation != null && r.RootCounselingId == observation.RootCounselingId));
+
+            ViewBag.Counseling = counseling;
+            ViewBag.ObservationReport = observationReport;
+
+            return View(observation);
         }
 
         // =====================================================

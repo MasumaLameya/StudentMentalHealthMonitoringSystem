@@ -1128,6 +1128,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            // Automatically transition any expired unassessed appointments to Missed
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // ================= Assigned Appointments =================
 
@@ -1164,6 +1166,102 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             );
         }
 
+        // =========================================================
+        // CANCEL APPOINTMENT (PSYCHOLOGIST)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAppointment(int id, string? reason)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Run automated missed appointments check first
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var counseling = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .FirstOrDefaultAsync(c => c.CounselingId == id && c.PsychologistId == psychologistId.Value);
+
+            if (counseling == null)
+            {
+                TempData["Error"] = "Appointment not found.";
+                return RedirectToAction("Appointment");
+            }
+
+            if (counseling.Status == "Cancelled")
+            {
+                TempData["Error"] = "This appointment has already been cancelled.";
+                return RedirectToAction("Appointment");
+            }
+
+            if (counseling.Status == "Completed")
+            {
+                TempData["Error"] = "Completed sessions cannot be cancelled.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Psychologist can cancel the appointment strictly before the scheduled date and time
+            var now = DateTime.Now;
+            bool isBeforeAppointment = counseling.CounselingDate.Date > DateTime.Today ||
+                (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentTime > now.TimeOfDay);
+
+            if (!isBeforeAppointment)
+            {
+                // Date has arrived/passed, so it cannot be cancelled
+                if (counseling.Status != "Completed")
+                {
+                    counseling.Status = "Missed";
+                    await _context.SaveChangesAsync();
+                }
+                TempData["Error"] = "Appointments can only be cancelled before the scheduled date and time.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Update status to Cancelled
+            counseling.Status = "Cancelled";
+            string cancellationNote = string.IsNullOrWhiteSpace(reason)
+                ? $"Cancelled by psychologist ({counseling.Psychologist?.FullName}) on {DateTime.Now:MMM dd, yyyy h:mm tt}."
+                : $"Cancelled by psychologist ({counseling.Psychologist?.FullName}) on {DateTime.Now:MMM dd, yyyy h:mm tt}. Reason: {reason.Trim()}";
+
+            counseling.Observation = string.IsNullOrWhiteSpace(counseling.Observation)
+                ? cancellationNote
+                : $"{counseling.Observation} | {cancellationNote}";
+
+            await _context.SaveChangesAsync();
+
+            // Send notification email to student
+            try
+            {
+                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                {
+                    await _emailService.SendAppointmentCancellationEmailAsync(
+                        recipientEmail: counseling.Student.Email,
+                        recipientName: counseling.Student.FullName,
+                        otherPartyName: counseling.Psychologist?.FullName ?? "University Psychologist",
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        cancelledBy: $"psychologist ({counseling.Psychologist?.FullName ?? "Psychologist"})",
+                        cancellationReason: reason
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PsychologistController] Failed to send cancellation email: {ex.Message}");
+            }
+
+            TempData["Success"] = "Appointment cancelled successfully.";
+            return RedirectToAction("Appointment");
+        }
+
 
         /// =========================================================
         // COUNSELING DETAILS
@@ -1190,6 +1288,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            // Automatically transition any expired unassessed appointments to Missed
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // ================= Get Counseling =================
 
@@ -1208,6 +1308,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 return NotFound();
             }
+
+            var now = DateTime.Now;
+            bool canCancel = (counseling.Status == "Confirmed" || counseling.Status == "Pending") &&
+                (counseling.CounselingDate.Date > DateTime.Today ||
+                (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentTime > now.TimeOfDay));
+            ViewBag.CanCancel = canCancel;
 
 
             // ================= Latest PHQ-9 =================

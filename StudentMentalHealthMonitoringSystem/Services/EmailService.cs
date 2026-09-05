@@ -473,5 +473,107 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             await SendEmailAsync(recipientEmail, subject, htmlBody);
         }
+
+        // =========================================================
+        // SEND APPOINTMENT CANCELLATION EMAIL
+        // =========================================================
+        public async Task SendAppointmentCancellationEmailAsync(
+            string recipientEmail,
+            string recipientName,
+            string otherPartyName,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string cancelledBy,
+            string? cancellationReason = null)
+        {
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var startDt = DateTime.Today.Add(startTime);
+            var endDt = DateTime.Today.Add(endTime);
+            var formattedSlot = $"{startDt:h:mm tt} - {endDt:h:mm tt}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom) ? "Counseling Center, Room 402" : appointmentRoom;
+            var reasonText = string.IsNullOrWhiteSpace(cancellationReason) ? "No reason specified." : cancellationReason.Trim();
+
+            var subject = $"[Notice] Counseling Appointment Cancelled - {formattedDate}";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Counseling Appointment Cancelled</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #F8F9FA; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #F8F9FA; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #E2E8F0;'>
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #F87171;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.18); border-radius: 20px; padding: 4px 14px; color: #FFFFFF; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                Appointment Cancelled
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.88); margin: 6px 0 0 0; font-size: 13px;'>University Counseling &amp; Wellness Support</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1E293B; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>Hello {recipientName},</h3>
+                            <p style='color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;'>
+                                This notice confirms that the counseling appointment scheduled with <strong>{otherPartyName}</strong> has been cancelled by the {cancelledBy}.
+                            </p>
+
+                            <!-- Cancelled Session Details -->
+                            <div style='background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 20px; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr>
+                                        <td style='padding: 8px 12px; color: #64748B; font-size: 13px; font-weight: 600; width: 35%;'>📅 Date:</td>
+                                        <td style='padding: 8px 12px; color: #991B1B; font-size: 14px; font-weight: 700;'>{formattedDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 8px 12px; color: #64748B; font-size: 13px; font-weight: 600;'>⏰ Time Slot:</td>
+                                        <td style='padding: 8px 12px; color: #1E293B; font-size: 14px; font-weight: 600;'>{formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 8px 12px; color: #64748B; font-size: 13px; font-weight: 600;'>🚪 Room:</td>
+                                        <td style='padding: 8px 12px; color: #1E293B; font-size: 14px;'>{room}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 8px 12px; color: #64748B; font-size: 13px; font-weight: 600;'>📝 Reason:</td>
+                                        <td style='padding: 8px 12px; color: #475569; font-size: 13px;'>{reasonText}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style='color: #64748B; font-size: 13px; line-height: 1.5; margin: 0;'>
+                                If you need to reschedule or schedule a new counseling appointment, please log in to the Student Mental Health Portal.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F8FAF9; padding: 18px 24px; text-align: center; border-top: 1px solid #E2E8F0;'>
+                            <p style='color: #94A3B8; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Guardian Dashboard";
 
     var student = ViewBag.Student;
@@ -6,6 +6,10 @@
     var phqReports = ViewBag.PHQReports;
 
     var cssrsReports = ViewBag.CSSRSReports;
+
+    var appointments = ViewBag.Appointments as List<StudentMentalHealthMonitoringSystem.Models.Counseling>;
+
+    var upcomingAppointments = ViewBag.UpcomingAppointments as List<StudentMentalHealthMonitoringSystem.Models.Counseling>;
 }
 
 
@@ -244,9 +248,27 @@
 
 
     <!-- =====================================================
+         ALERT MESSAGES
+         ===================================================== -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+            <div class="fw-semibold text-success-emphasis">@TempData["SuccessMessage"]</div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+            <div class="fw-semibold text-danger-emphasis">@TempData["ErrorMessage"]</div>
+        </div>
+    }
+
+    <!-- =====================================================
          HEADER
          ===================================================== -->
-
     <div class="guardian-header mb-4">
 
         <div class="row align-items-center">
@@ -281,18 +303,19 @@
             </div>
 
 
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-
+            <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end gap-2 flex-wrap align-items-center">
+                <a asp-controller="Guardian"
+                   asp-action="Appointments"
+                   class="btn btn-light fw-bold text-dark rounded-3 px-3 py-2 shadow-sm border-0">
+                    <i class="bi bi-calendar2-check text-primary me-1"></i>
+                    Appointments
+                </a>
                 <a asp-controller="Guardian"
                    asp-action="Logout"
                    class="logout-btn">
-
                     <i class="bi bi-box-arrow-right me-1"></i>
-
                     Logout
-
                 </a>
-
             </div>
 
         </div>
@@ -374,6 +397,139 @@
 
         </div>
 
+    </div>
+
+    <!-- =====================================================
+         SCHEDULED COUNSELING APPOINTMENTS
+         ===================================================== -->
+    <div class="report-card mb-4" style="border: 2px solid #BAE6FD;">
+        <div class="report-header" style="background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h5 style="color: #0369A1;">
+                        <i class="bi bi-calendar2-check me-2 text-primary"></i>Scheduled Counseling Appointments
+                    </h5>
+                    <p>Monitor your student's professional counseling schedule and manage upcoming appointments</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a asp-controller="Guardian" asp-action="Appointments" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold bg-white">
+                        <i class="bi bi-clock-history me-1"></i>All Appointments Log
+                    </a>
+                    <div class="report-icon" style="background: #E0F2FE; color: #0284C7;">
+                        <i class="bi bi-calendar-heart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (upcomingAppointments != null && upcomingAppointments.Any())
+        {
+            <div class="p-4">
+                <div class="alert alert-warning border-0 rounded-3 mb-3 d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill fs-4 text-warning me-3"></i>
+                    <div>
+                        <strong class="text-dark">Active Scheduled Appointment:</strong>
+                        <div class="small text-secondary">Your student is scheduled for an upcoming session. If your student is unable to attend, you can cancel this appointment below prior to the session time.</div>
+                    </div>
+                </div>
+
+                @foreach (var appt in upcomingAppointments)
+                {
+                    <div class="card border rounded-4 shadow-sm mb-3" style="background: #FFFFFF; border-color: #E2E8F0 !important;">
+                        <div class="card-body p-4">
+                            <div class="row align-items-center g-3">
+                                <div class="col-lg-3 col-md-6">
+                                    <small class="text-muted text-uppercase fw-bold d-block mb-1">
+                                        <i class="bi bi-person-badge text-primary me-1"></i>Assigned Psychologist
+                                    </small>
+                                    <h6 class="fw-bold mb-0 text-dark">@(appt.Psychologist?.FullName ?? "University Psychologist")</h6>
+                                    <small class="text-secondary">@(appt.Psychologist?.Specialization ?? "Clinical / Counseling Psychologist")</small>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <small class="text-muted text-uppercase fw-bold d-block mb-1">
+                                        <i class="bi bi-calendar-event text-success me-1"></i>Date &amp; Time Slot
+                                    </small>
+                                    <div class="fw-bold text-dark">@appt.CounselingDate.ToString("dddd, MMM dd, yyyy")</div>
+                                    <small class="text-secondary">@DateTime.Today.Add(appt.AppointmentTime).ToString("h:mm tt") - @DateTime.Today.Add(appt.AppointmentEndTime).ToString("h:mm tt")</small>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6">
+                                    <small class="text-muted text-uppercase fw-bold d-block mb-1">
+                                        <i class="bi bi-geo-alt text-danger me-1"></i>Location &amp; Status
+                                    </small>
+                                    <div class="fw-semibold text-dark">@(appt.AppointmentRoom ?? "Room 402, Counseling Center")</div>
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 small mt-1">
+                                        <i class="bi bi-clock-fill me-1"></i>@appt.Status
+                                    </span>
+                                </div>
+
+                                <div class="col-lg-3 col-md-6 text-lg-end">
+                                    <button type="button" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#guardianCancelModal_@appt.CounselingId">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel Appointment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guardian Cancellation Modal for Dashboard -->
+                    <div class="modal fade" id="guardianCancelModal_@appt.CounselingId" tabindex="-1" aria-labelledby="guardianCancelModalLabel_@appt.CounselingId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow">
+                                <div class="modal-header border-0 bg-danger text-white rounded-top-4 p-4">
+                                    <h5 class="modal-title fw-bold" id="guardianCancelModalLabel_@appt.CounselingId">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Scheduled Appointment
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form asp-controller="Guardian" asp-action="CancelAppointment" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@appt.CounselingId" />
+                                    <input type="hidden" name="returnUrl" value="/Guardian/Dashboard" />
+                                    <div class="modal-body p-4">
+                                        <div class="alert alert-warning border-0 rounded-3 mb-3">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            You are cancelling the appointment for <strong>@student.FullName</strong> with <strong>@(appt.Psychologist?.FullName ?? "University Psychologist")</strong> scheduled for <strong>@appt.CounselingDate.ToString("MMM dd, yyyy") (@DateTime.Today.Add(appt.AppointmentTime).ToString("h:mm tt"))</strong>.
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cancelReason_@appt.CounselingId" class="form-label fw-semibold text-dark small">
+                                                Reason for Cancellation (Optional)
+                                            </label>
+                                            <textarea name="reason" id="cancelReason_@appt.CounselingId" rows="3" class="form-control rounded-3" placeholder="Please state why the student cannot attend..."></textarea>
+                                        </div>
+                                        <p class="small text-muted mb-0">
+                                            Upon cancellation, this slot will be freed, and both student and psychologist will be notified via email.
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer border-0 p-4 pt-0">
+                                        <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Keep Appointment</button>
+                                        <button type="submit" class="btn btn-danger rounded-3 px-4 fw-bold">
+                                            <i class="bi bi-x-circle me-1"></i> Confirm Cancellation
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon" style="background: #F0F9FF; color: #0284C7;">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="empty-title">No Active Scheduled Appointments</div>
+                <div class="empty-text">Your student currently has no upcoming counseling appointments.</div>
+                <div class="mt-3">
+                    <a asp-controller="Guardian" asp-action="Appointments" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-clock-history me-1"></i>View Session History &amp; Past Logs
+                    </a>
+                </div>
+            </div>
+        }
     </div>
 
 
@@ -700,38 +856,18 @@
 
 
     <!-- =====================================================
-         READ ONLY NOTICE
+         GUARDIAN ACCESS NOTICE
          ===================================================== -->
-
     <div class="alert guardian-notice mb-0">
-
         <div class="d-flex align-items-start">
-
-            <i class="bi bi-info-circle-fill me-3 fs-5"></i>
-
-
+            <i class="bi bi-info-circle-fill me-3 fs-5 text-primary"></i>
             <div>
-
-                <strong>
-
-                    Guardian Access
-
-                </strong>
-
-
+                <strong>Guardian Access Portal</strong>
                 <div class="small mt-1">
-
-                    This portal is read-only.
-                    Guardians can view the student's
-                    PHQ-9 and C-SSRS reports but cannot
-                    modify assessment information.
-
+                    Guardians have authorized access to view their student's PHQ-9 &amp; C-SSRS wellness assessment indicators and scheduled counseling appointments. If your student is unable to attend a scheduled appointment, you can cancel it via this portal before the appointment date.
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
 </div>

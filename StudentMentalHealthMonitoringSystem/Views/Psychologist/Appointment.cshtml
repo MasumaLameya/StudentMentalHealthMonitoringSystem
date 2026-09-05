@@ -134,143 +134,53 @@
     <div class="row g-4 mb-4">
 
         <!-- Total -->
-
-        <div class="col-md-4">
-
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <p class="text-muted mb-1">
-                                Total Appointments
-                            </p>
-
-                            <h2 class="fw-bold mb-0"
-                                style="color:#5F5146;">
-
-                                @Model.Count()
-
-                            </h2>
-
-                        </div>
-
-
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                             style="
-                            width:52px;
-                            height:52px;
-                            background:#EEE4DA;">
-
-                            <i class="bi bi-calendar3 fs-4"
-                               style="color:#A67C52;">
-                            </i>
-
-                        </div>
-
-                    </div>
-
+                <div class="card-body p-3 text-center">
+                    <p class="text-muted small mb-1">Total</p>
+                    <h3 class="fw-bold mb-0" style="color:#5F5146;">@Model.Count()</h3>
                 </div>
-
             </div>
-
         </div>
-
 
         <!-- Confirmed -->
-
-        <div class="col-md-4">
-
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <p class="text-muted mb-1">
-                                Confirmed
-                            </p>
-
-                            <h2 class="fw-bold mb-0"
-                                style="color:#5F5146;">
-
-                                @Model.Count(c => c.Status == "Confirmed")
-
-                            </h2>
-
-                        </div>
-
-
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                             style="
-                            width:52px;
-                            height:52px;
-                            background:#EEE4DA;">
-
-                            <i class="bi bi-clock fs-4"
-                               style="color:#A67C52;">
-                            </i>
-
-                        </div>
-
-                    </div>
-
+                <div class="card-body p-3 text-center">
+                    <p class="text-muted small mb-1">Confirmed</p>
+                    <h3 class="fw-bold mb-0 text-warning">@Model.Count(c => c.Status == "Confirmed")</h3>
                 </div>
-
             </div>
-
         </div>
 
-
         <!-- Completed -->
-
-        <div class="col-md-4">
-
+        <div class="col-6 col-md">
             <div class="card border-0 shadow-sm rounded-4 h-100">
-
-                <div class="card-body p-4">
-
-                    <div class="d-flex justify-content-between align-items-center">
-
-                        <div>
-
-                            <p class="text-muted mb-1">
-                                Completed
-                            </p>
-
-                            <h2 class="fw-bold mb-0"
-                                style="color:#5F5146;">
-
-                                @Model.Count(c => c.Status == "Completed")
-
-                            </h2>
-
-                        </div>
-
-
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                             style="
-                            width:52px;
-                            height:52px;
-                            background:#EEE4DA;">
-
-                            <i class="bi bi-check-circle fs-4"
-                               style="color:#A67C52;">
-                            </i>
-
-                        </div>
-
-                    </div>
-
+                <div class="card-body p-3 text-center">
+                    <p class="text-muted small mb-1">Completed</p>
+                    <h3 class="fw-bold mb-0 text-success">@Model.Count(c => c.Status == "Completed")</h3>
                 </div>
-
             </div>
+        </div>
 
+        <!-- Missed -->
+        <div class="col-6 col-md">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-3 text-center">
+                    <p class="text-muted small mb-1">Missed</p>
+                    <h3 class="fw-bold mb-0 text-secondary">@Model.Count(c => c.Status == "Missed")</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancelled -->
+        <div class="col-6 col-md">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body p-3 text-center">
+                    <p class="text-muted small mb-1">Cancelled</p>
+                    <h3 class="fw-bold mb-0 text-danger">@Model.Count(c => c.Status == "Cancelled")</h3>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -515,6 +425,16 @@
 
                                             </span>
                                         }
+                                        else if (item.Status == "Missed")
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                <i class="bi bi-calendar-x me-1"></i>
+
+                                                Missed
+
+                                            </span>
+                                        }
                                         else if (item.Status == "Confirmed")
                                         {
                                             <span class="badge rounded-pill px-3 py-2"
@@ -543,21 +463,40 @@
                                     <!-- ================= Action ================= -->
 
                                     <td class="py-3 text-center"
-                                        style="min-width:160px;">
+                                        style="min-width:180px;">
 
-                                        <a asp-controller="Psychologist"
-                                           asp-action="CounselingDetails"
-                                           asp-route-id="@item.CounselingId"
-                                           class="btn btn-sm rounded-3 px-3"
-                                           style="
-                                            background:#A67C52;
-                                            color:white;">
+                                        @{
+                                            bool canCancel = (item.Status == "Confirmed" || item.Status == "Pending") &&
+                                                (item.CounselingDate.Date > DateTime.Today ||
+                                                (item.CounselingDate.Date == DateTime.Today && item.AppointmentTime > DateTime.Now.TimeOfDay));
+                                        }
 
-                                            <i class="bi bi-eye me-1"></i>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a asp-controller="Psychologist"
+                                               asp-action="CounselingDetails"
+                                               asp-route-id="@item.CounselingId"
+                                               class="btn btn-sm rounded-3 px-3"
+                                               style="
+                                                background:#A67C52;
+                                                color:white;">
 
-                                            View Counseling
+                                                <i class="bi bi-eye me-1"></i>
 
-                                        </a>
+                                                View
+
+                                            </a>
+
+                                            @if (canCancel)
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger rounded-3 px-2"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#psychCancelModal_@item.CounselingId"
+                                                        title="Cancel Appointment">
+                                                    <i class="bi bi-x-circle me-1"></i> Cancel
+                                                </button>
+                                            }
+                                        </div>
 
                                     </td>
 
@@ -569,6 +508,55 @@
                     </table>
 
                 </div>
+
+                <!-- Cancellation Modals for Psychologist -->
+                @foreach (var item in Model)
+                {
+                    bool canCancelItem = (item.Status == "Confirmed" || item.Status == "Pending") &&
+                        (item.CounselingDate.Date > DateTime.Today ||
+                        (item.CounselingDate.Date == DateTime.Today && item.AppointmentTime > DateTime.Now.TimeOfDay));
+
+                    if (canCancelItem)
+                    {
+                        <div class="modal fade" id="psychCancelModal_@item.CounselingId" tabindex="-1" aria-labelledby="psychCancelModalLabel_@item.CounselingId" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0 shadow">
+                                    <div class="modal-header border-0 bg-danger text-white rounded-top-4 p-4">
+                                        <h5 class="modal-title fw-bold" id="psychCancelModalLabel_@item.CounselingId">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Appointment
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form asp-controller="Psychologist" asp-action="CancelAppointment" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.CounselingId" />
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-warning border-0 rounded-3 mb-3">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Cancel appointment with <strong>@(item.Student?.FullName ?? "Student")</strong> scheduled for <strong>@item.CounselingDate.ToString("MMM dd, yyyy")</strong> at <strong>@DateTime.Today.Add(item.AppointmentTime).ToString("h:mm tt")</strong>.
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="psychCancelReason_@item.CounselingId" class="form-label fw-semibold text-dark small">
+                                                    Reason for Cancellation (Optional)
+                                                </label>
+                                                <textarea name="reason" id="psychCancelReason_@item.CounselingId" rows="3" class="form-control rounded-3" placeholder="Provide note or reason for cancellation..."></textarea>
+                                            </div>
+                                            <p class="small text-muted mb-0">
+                                                Appointments can only be cancelled before the appointment date. An email notification will be sent to the student.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer border-0 p-4 pt-0">
+                                            <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Keep Appointment</button>
+                                            <button type="submit" class="btn btn-danger rounded-3 px-4 fw-bold">
+                                                <i class="bi bi-x-circle me-1"></i> Confirm Cancellation
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
             }
             else
             {

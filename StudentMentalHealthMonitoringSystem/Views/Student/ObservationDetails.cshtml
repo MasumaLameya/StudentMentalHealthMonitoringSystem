@@ -1,0 +1,242 @@
+@model StudentMentalHealthMonitoringSystem.Models.CounselingObservation
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Official Clinical Observation Report";
+    var counseling = ViewBag.Counseling as StudentMentalHealthMonitoringSystem.Models.Counseling;
+    var report = ViewBag.ObservationReport as StudentMentalHealthMonitoringSystem.Models.ObservationReport;
+}
+
+<style>
+    .report-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 25px rgba(0, 77, 37, 0.06);
+    }
+    .domain-box {
+        background: #F8FCF9;
+        border: 1px solid #D1E2D7;
+        border-radius: 0.75rem;
+        padding: 1rem;
+    }
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+        body {
+            background: white !important;
+        }
+        .report-card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
+
+<div class="container py-4" id="officialObservationReport">
+    
+    <!-- Top Action Bar -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 no-print">
+        <a href="/Student/History" class="btn btn-outline-dark rounded-3 px-3 py-2 fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Back to Session History
+        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-success rounded-3 px-3 py-2 fw-semibold" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> Print Report
+            </button>
+            <a href="/Student/Reports" class="btn btn-success text-white rounded-3 px-3 py-2 fw-semibold" style="background:#006837;">
+                <i class="bi bi-file-earmark-medical me-1"></i> All Official Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Official Report Paper Document -->
+    <div class="report-card p-4 p-md-5">
+
+        <!-- University Letterhead Header -->
+        <div class="text-center pb-4 mb-4 border-bottom" style="border-bottom: 2px solid #004D25 !important;">
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-1">
+                <i class="bi bi-shield-shaded fs-2" style="color: #004D25;"></i>
+                <h3 class="fw-bold text-uppercase mb-0" style="color: #004D25; letter-spacing: 1px;">
+                    Student Mental Health Monitoring System
+                </h3>
+            </div>
+            <p class="text-muted small mb-0">University Mental Health &amp; Psychological Counseling Center</p>
+            <h5 class="fw-bold text-dark mt-3 text-uppercase" style="letter-spacing: 0.5px;">
+                Individual Clinical Counseling Observation Report
+            </h5>
+            <small class="text-secondary">Confidential Student Psychological Evaluation Record</small>
+        </div>
+
+        <!-- Student & Session Info Bar -->
+        <div class="row g-3 mb-4 p-3 bg-light rounded-4 border">
+            <div class="col-md-3 col-6">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Student Name</small>
+                <strong class="text-dark">@(counseling?.Student?.FullName ?? "Student")</strong>
+            </div>
+            <div class="col-md-3 col-6">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Student ID Number</small>
+                <strong class="text-dark">@(counseling?.Student?.StudentIdNumber ?? "N/A")</strong>
+            </div>
+            <div class="col-md-3 col-6">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Department / Semester</small>
+                <strong class="text-dark">@(counseling?.Student?.Department ?? "CSE") / @(counseling?.Student?.Semester ?? "Semester 1")</strong>
+            </div>
+            <div class="col-md-3 col-6">
+                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 0.75rem;">Session Date &amp; Time</small>
+                <strong class="text-dark">@counseling?.CounselingDate.ToString("MMM dd, yyyy")</strong>
+                <small class="text-muted d-block">@DateTime.Today.Add(counseling?.AppointmentTime ?? TimeSpan.Zero).ToString("h:mm tt")</small>
+            </div>
+        </div>
+
+        <!-- Assigned Psychologist & Overview -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 h-100 bg-white">
+                    <small class="text-muted text-uppercase fw-bold d-block mb-1">Evaluating Psychologist</small>
+                    <h5 class="fw-bold text-dark mb-1" style="color: #004D25;">@(counseling?.Psychologist?.FullName ?? "University Psychologist")</h5>
+                    <span class="text-secondary small">@(counseling?.Psychologist?.Specialization ?? "Clinical Psychologist")</span>
+                    <div class="mt-2 text-muted small">
+                        <i class="bi bi-geo-alt me-1 text-danger"></i>@(counseling?.AppointmentRoom ?? "Mental Health & Counseling Center, Room 402")
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 border rounded-3 h-100 bg-white">
+                    <small class="text-muted text-uppercase fw-bold d-block mb-2">Clinical Status Indicators</small>
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        <span class="badge bg-success px-3 py-2 rounded-pill fs-6">
+                            Mental Health: @(Model?.CurrentMentalHealthStatus ?? counseling?.RiskLevel ?? "Stable")
+                        </span>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill fs-6">
+                            Progress: @(Model?.OverallProgressStatus ?? "Evaluated")
+                        </span>
+                    </div>
+                    <small class="text-muted">Safety Risk: <strong>@(Model?.CurrentSafetyRisk ?? "No Current Risk")</strong></small>
+                </div>
+            </div>
+        </div>
+
+        @if (Model != null)
+        {
+            <!-- 5 Functional Domains Evaluation -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom" style="color: #004D25;">
+                    <i class="bi bi-diagram-3-fill me-2" style="color: #006837;"></i>
+                    Assessment of 5 Functional Domains
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-4 col-sm-6">
+                        <div class="domain-box">
+                            <small class="text-muted fw-bold d-block mb-1">🎓 Academic Functioning</small>
+                            <h6 class="fw-bold text-dark mb-0">@Model.AcademicFunctioning</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <div class="domain-box">
+                            <small class="text-muted fw-bold d-block mb-1">🌙 Sleep Condition</small>
+                            <h6 class="fw-bold text-dark mb-0">@Model.SleepCondition</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <div class="domain-box">
+                            <small class="text-muted fw-bold d-block mb-1">👥 Social Interaction</small>
+                            <h6 class="fw-bold text-dark mb-0">@Model.SocialInteraction</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-6">
+                        <div class="domain-box">
+                            <small class="text-muted fw-bold d-block mb-1">⚡ Daily Activities</small>
+                            <h6 class="fw-bold text-dark mb-0">@Model.DailyActivities</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-sm-12">
+                        <div class="domain-box">
+                            <small class="text-muted fw-bold d-block mb-1">🧘 Emotional Regulation</small>
+                            <h6 class="fw-bold text-dark mb-0">@Model.EmotionalRegulation</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Observations Narrative -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-2 pb-2 border-bottom" style="color: #004D25;">
+                    <i class="bi bi-chat-left-text-fill me-2" style="color: #006837;"></i>
+                    Clinical Observation &amp; Session Findings
+                </h5>
+                <div class="p-3 bg-light rounded-3 border" style="border-left: 4px solid #006837 !important;">
+                    <p class="mb-0 text-dark fs-6" style="line-height: 1.7;">
+                        @(string.IsNullOrWhiteSpace(Model.ClinicalObservation) ? "The student participated constructively and presented stable psychological resilience throughout the session." : Model.ClinicalObservation)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Student Reported Improvement & Basis -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted fw-bold d-block mb-1 text-uppercase">Student-Reported Subjective Improvement</small>
+                        <h6 class="fw-bold text-dark mb-0">@Model.StudentReportedImprovement</h6>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-light h-100">
+                        <small class="text-muted fw-bold d-block mb-1 text-uppercase">Assessment Basis</small>
+                        <h6 class="fw-bold text-dark mb-0">@(string.IsNullOrWhiteSpace(Model.AssessmentBasis) ? "Clinical Interview & Screening Records" : Model.AssessmentBasis)</h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommended Actions & Guidance -->
+            <div class="mb-4">
+                <h5 class="fw-bold text-dark mb-2 pb-2 border-bottom" style="color: #004D25;">
+                    <i class="bi bi-lightbulb-fill me-2 text-warning"></i>
+                    Psychologist Recommendations &amp; Coping Guidance
+                </h5>
+                <div class="p-3 bg-light rounded-3 border" style="border-left: 4px solid #FFC20E !important;">
+                    <p class="mb-0 text-dark fs-6" style="line-height: 1.7;">
+                        @(string.IsNullOrWhiteSpace(Model.RecommendedAction) ? "Continue healthy lifestyle habits, regular sleep routine, academic pacing, and stress-reduction exercises." : Model.RecommendedAction)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Follow-up Trajectory Plan -->
+            <div class="alert @(Model.FollowUpRequired ? "alert-warning" : "alert-success") border-0 rounded-4 p-4 d-flex align-items-center">
+                <i class="bi @(Model.FollowUpRequired ? "bi-calendar-check" : "bi-check-circle-fill") display-6 me-3"></i>
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        @(Model.FollowUpRequired ? "Follow-up Counseling Recommended" : "Clinical Stage Complete - No Immediate Follow-up Needed")
+                    </h5>
+                    <p class="mb-0 small">
+                        @(Model.FollowUpRequired ? "The psychologist recommends continued monitoring to reinforce coping skills. Check your appointment dashboard for upcoming follow-up slots." : "Your baseline indicators and coping mechanisms meet normal clearance standards. Maintain regular self-care habits.")
+                    </p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p-4 bg-light rounded-3 border">
+                <h6 class="fw-bold text-dark mb-2">General Observation Notes</h6>
+                <p class="mb-0">@(string.IsNullOrWhiteSpace(counseling?.Observation) ? "Session completed successfully." : counseling.Observation)</p>
+            </div>
+        }
+
+        <!-- Official Sign-off Footer -->
+        <div class="pt-5 mt-5 border-top d-flex justify-content-between align-items-end flex-wrap gap-4">
+            <div>
+                <small class="text-muted d-block">Report Generated: @DateTime.Now.ToString("MMMM dd, yyyy h:mm tt")</small>
+                <small class="text-muted d-block">Verification ID: SMHMS-OBS-@(counseling?.CounselingId.ToString("D5") ?? "00000")</small>
+            </div>
+            <div class="text-center" style="min-width: 200px;">
+                <div class="border-bottom border-dark pb-2 mb-1 fw-bold text-dark">
+                    @(counseling?.Psychologist?.FullName ?? "University Psychologist")
+                </div>
+                <small class="text-muted d-block">Authorized University Psychologist</small>
+            </div>
+        </div>
+
+    </div>
+
+</div>

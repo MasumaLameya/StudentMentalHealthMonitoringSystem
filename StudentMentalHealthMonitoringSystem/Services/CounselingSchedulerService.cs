@@ -1499,5 +1499,46 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     followUpCounseling
             };
         }
+
+
+        // =========================================================
+        // UPDATE MISSED APPOINTMENTS
+        // =========================================================
+        // If an appointment's date/time has passed without the session
+        // being assessed/completed or cancelled, it is automatically marked as Missed.
+        // =========================================================
+        public static async Task<int> UpdateMissedAppointmentsAsync(ApplicationDbContext context)
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var today = DateTime.Today;
+                var currentTime = now.TimeOfDay;
+
+                var missedCounselings = await context.Counselings
+                    .Where(c => c.Status != "Completed" &&
+                                c.Status != "Cancelled" &&
+                                c.Status != "Missed" &&
+                                (c.CounselingDate.Date < today ||
+                                (c.CounselingDate.Date == today && c.AppointmentEndTime < currentTime)))
+                    .ToListAsync();
+
+                if (missedCounselings.Any())
+                {
+                    foreach (var counseling in missedCounselings)
+                    {
+                        counseling.Status = "Missed";
+                    }
+
+                    return await context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CounselingSchedulerService] Error updating missed appointments: {ex.Message}");
+            }
+
+            return 0;
+        }
     }
 }

@@ -681,6 +681,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login");
             }
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
 
             // =====================================================
             // Get Department
@@ -765,6 +767,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction(
                     "Login");
             }
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
 
             // =====================================================
@@ -1315,6 +1319,154 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 $"Counseling appointment successfully scheduled for {student.FullName} with {selectedPsychologist.FullName} on {counselingDate:dd MMM yyyy} at {DateTime.Today.Add(startTime):h:mm tt}.";
 
             return RedirectToAction("Counseling");
+        }
+
+
+        // =========================================================
+        // CANCEL APPOINTMENT - POST (DEPARTMENT CANCELLATION)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAppointment(int id, string? reason, string? returnUrl)
+        {
+            var departmentId = HttpContext.Session.GetInt32("DepartmentId");
+            if (departmentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var department = await _context.Departments
+                .FirstOrDefaultAsync(d => d.DepartmentId == departmentId.Value);
+
+            if (department == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login");
+            }
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var counseling = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .FirstOrDefaultAsync(c => c.CounselingId == id);
+
+            if (counseling == null)
+            {
+                TempData["Error"] = "Appointment record was not found.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            // Ensure appointment belongs to a student in this department
+            if (counseling.Student != null &&
+                !string.Equals(counseling.Student.Department, department.DepartmentName, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "You can only cancel counseling appointments for students belonging to your department.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            if (counseling.Status == "Cancelled")
+            {
+                TempData["Error"] = "This appointment has already been cancelled.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            if (counseling.Status == "Completed")
+            {
+                TempData["Error"] = "Completed counseling sessions cannot be cancelled.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            var now = DateTime.Now;
+            bool isBeforeAppointment = counseling.CounselingDate.Date > DateTime.Today ||
+                (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentTime > now.TimeOfDay);
+
+            if (!isBeforeAppointment)
+            {
+                if (counseling.Status != "Completed")
+                {
+                    counseling.Status = "Missed";
+                    await _context.SaveChangesAsync();
+                }
+                TempData["Error"] = "Appointments can only be cancelled prior to the scheduled date and time.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            // Mark Cancelled
+            counseling.Status = "Cancelled";
+            var deptName = department.DepartmentName;
+            string cancellationNote = string.IsNullOrWhiteSpace(reason)
+                ? $"Cancelled by {deptName} Department on {DateTime.Now:MMM dd, yyyy h:mm tt}."
+                : $"Cancelled by {deptName} Department on {DateTime.Now:MMM dd, yyyy h:mm tt}. Reason: {reason.Trim()}";
+
+            counseling.Observation = string.IsNullOrWhiteSpace(counseling.Observation)
+                ? cancellationNote
+                : $"{counseling.Observation} | {cancellationNote}";
+
+            await _context.SaveChangesAsync();
+
+            // Send notification emails
+            try
+            {
+                var studentName = counseling.Student?.FullName ?? "Student";
+                var psychologistName = counseling.Psychologist?.FullName ?? "University Psychologist";
+
+                // 1. Notify Student
+                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                {
+                    await _emailService.SendAppointmentCancellationEmailAsync(
+                        recipientEmail: counseling.Student.Email,
+                        recipientName: studentName,
+                        otherPartyName: psychologistName,
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        cancelledBy: $"the {deptName} Department",
+                        cancellationReason: reason
+                    );
+                }
+
+                // 2. Notify Psychologist
+                if (counseling.Psychologist != null && !string.IsNullOrWhiteSpace(counseling.Psychologist.Email))
+                {
+                    await _emailService.SendAppointmentCancellationEmailAsync(
+                        recipientEmail: counseling.Psychologist.Email,
+                        recipientName: psychologistName,
+                        otherPartyName: $"{studentName} (ID: {counseling.Student?.StudentIdNumber})",
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        cancelledBy: $"the {deptName} Department",
+                        cancellationReason: reason
+                    );
+                }
+
+                // 3. Notify Guardian
+                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.GuardianEmail))
+                {
+                    await _emailService.SendAppointmentCancellationEmailAsync(
+                        recipientEmail: counseling.Student.GuardianEmail,
+                        recipientName: counseling.Student.GuardianName ?? "Guardian",
+                        otherPartyName: $"{psychologistName} (for student {studentName})",
+                        appointmentDate: counseling.CounselingDate,
+                        startTime: counseling.AppointmentTime,
+                        endTime: counseling.AppointmentEndTime,
+                        appointmentRoom: counseling.AppointmentRoom,
+                        cancelledBy: $"the {deptName} Department",
+                        cancellationReason: reason
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DepartmentController] Failed to dispatch cancellation emails: {ex.Message}");
+            }
+
+            TempData["Success"] = $"The counseling appointment for {counseling.Student?.FullName ?? "student"} has been successfully cancelled.";
+            return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
         }
 
 

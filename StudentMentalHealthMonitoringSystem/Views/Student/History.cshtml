@@ -1,56 +1,72 @@
+@model StudentMentalHealthMonitoringSystem.ViewModels.StudentSessionHistoryViewModel
+
 @{
-    ViewData["Title"] = "Mental Health History";
+    Layout = "_Layout";
+    ViewData["Title"] = "Counseling Session History & Observation Reports";
 }
 
 <style>
     .student-app-bg {
-        background: #F8FAFC;
+        background: #F4F8F5;
         min-height: 100vh;
-        padding-bottom: 2rem;
+        padding-bottom: 2.5rem;
     }
 
     .glass-card {
         background: #ffffff;
-        border: 1px solid #E2E8F0;
+        border: 1px solid #D1E2D7;
         border-radius: 1.25rem;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+        box-shadow: 0 4px 20px rgba(0, 77, 37, 0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .student-sidebar .list-group-item {
-        border: none;
-        border-radius: 0.75rem;
-        margin-bottom: 0.35rem;
-        padding: 0.8rem 1.1rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: #1E293B;
+    .stat-metric-card {
+        background: #ffffff;
+        border: 1px solid #D1E2D7;
+        border-radius: 1rem;
+        padding: 1.25rem;
         transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
     }
 
-    .student-sidebar .list-group-item i {
-        font-size: 1.25rem;
-        color: #2563EB;
-        width: 26px;
-        text-align: center;
+    .stat-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 77, 37, 0.08);
     }
 
-    .student-sidebar .list-group-item:hover {
-        background: #EFF6FF;
-        color: #1E3A8A;
-        transform: translateX(4px);
+    .table-custom thead th {
+        background-color: #EBF4EE;
+        color: #004D25;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #D1E2D7;
+        padding: 1rem 0.75rem;
     }
 
-    .student-sidebar .list-group-item.active {
-        background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-        color: #ffffff;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    .table-custom tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #EAEFEA;
     }
 
-    .student-sidebar .list-group-item.active i {
-        color: #ffffff;
+    .table-custom tbody tr:hover {
+        background-color: #F8FCF9;
+    }
+
+    .filter-btn.active {
+        background-color: #004D25 !important;
+        color: #ffffff !important;
+        border-color: #004D25 !important;
+    }
+
+    .domain-badge {
+        background-color: #F0F7F2;
+        border: 1px solid #D1E2D7;
+        color: #004D25;
+        border-radius: 0.5rem;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.8rem;
     }
 </style>
 
@@ -67,61 +83,260 @@
             <div class="col-lg-9">
 
                 <!-- Header Banner -->
-                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); color: #ffffff;">
+                <div class="glass-card p-4 mb-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%); color: #ffffff; border-bottom: 3px solid #FFC20E;">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
+                            <div class="badge bg-white text-dark rounded-pill px-3 py-1.5 mb-2 fw-semibold">
+                                <i class="bi bi-clock-history text-success me-1"></i> Patient Session History
+                            </div>
                             <h2 class="fw-bold mb-1 text-white">
-                                <i class="bi bi-clock-history me-2"></i>Mental Health Assessment History
+                                Counseling Sessions &amp; Observation Reports
                             </h2>
-                            <p class="text-white-50 fs-6 mb-0">Historical records of past semester screening assessments and counseling sessions.</p>
+                            <p class="text-white-50 fs-6 mb-0">
+                                Complete records of your university psychologist sessions, clinical evaluations, and individual observation reports.
+                            </p>
                         </div>
-                        <a href="/Student/Dashboard" class="btn btn-light text-primary btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-arrow-left me-1"></i> Dashboard
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="/Student/Appointment" class="btn btn-warning text-dark btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                                <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+                            </a>
+                            <a href="/Student/Dashboard" class="btn bg-white text-dark btn-lg rounded-3 px-4 py-2 fw-bold shadow-sm border-0">
+                                <i class="bi bi-arrow-left me-1" style="color: #006837;"></i> Dashboard
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="glass-card p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Academic Semester</th>
-                                    <th class="text-center">PHQ-9 Score</th>
-                                    <th class="text-center">C-SSRS Risk</th>
-                                    <th class="text-center">Assessed Risk Status</th>
-                                    <th class="text-center">Counseling Session</th>
-                                    <th class="text-center">Overall Record Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="fw-bold text-dark"><i class="bi bi-mortarboard me-2 text-secondary"></i>Semester 1</td>
-                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">6 Pts</span></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">Low Risk</span></td>
-                                    <td class="text-center">
-                                        <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-1">
-                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>Moderate
-                                        </span>
-                                    </td>
-                                    <td class="text-center"><span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">Completed</span></td>
-                                    <td class="text-center"><span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3 py-1">Verified</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-dark"><i class="bi bi-mortarboard me-2 text-secondary"></i>Semester 2</td>
-                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">3 Pts</span></td>
-                                    <td class="text-center"><span class="badge bg-light text-dark border px-3">No Risk</span></td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1">
-                                            <i class="bi bi-check-circle-fill me-1"></i>Normal
-                                        </span>
-                                    </td>
-                                    <td class="text-center"><span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1">Not Needed</span></td>
-                                    <td class="text-center"><span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3 py-1">Verified</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Alert Messages -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-2 text-success"></i>
+                        <div class="fw-semibold">@TempData["Success"]</div>
                     </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill fs-4 me-2 text-danger"></i>
+                        <div class="fw-semibold">@TempData["Error"]</div>
+                    </div>
+                }
+
+                <!-- Summary Metrics Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md">
+                        <div class="stat-metric-card text-center h-100">
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1">Total Sessions</small>
+                            <h3 class="fw-bold text-dark mb-0">@Model.TotalSessions</h3>
+                            <small class="text-muted">All scheduled</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="stat-metric-card text-center h-100 border-success-subtle" style="background: #F2FAF5;">
+                            <small class="text-success text-uppercase fw-bold d-block mb-1">Completed</small>
+                            <h3 class="fw-bold text-success mb-0">@Model.CompletedSessions</h3>
+                            <small class="text-muted">With Observation</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="stat-metric-card text-center h-100 border-warning-subtle" style="background: #FFFDF5;">
+                            <small class="text-warning text-uppercase fw-bold d-block mb-1">Upcoming</small>
+                            <h3 class="fw-bold text-dark mb-0">@Model.UpcomingSessions</h3>
+                            <small class="text-muted">Confirmed</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="stat-metric-card text-center h-100 border-secondary-subtle" style="background: #F8F9FA;">
+                            <small class="text-secondary text-uppercase fw-bold d-block mb-1">Missed</small>
+                            <h3 class="fw-bold text-secondary mb-0">@Model.MissedSessions</h3>
+                            <small class="text-muted">Unassessed</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md">
+                        <div class="stat-metric-card text-center h-100 border-danger-subtle" style="background: #FFF5F5;">
+                            <small class="text-danger text-uppercase fw-bold d-block mb-1">Cancelled</small>
+                            <h3 class="fw-bold text-danger mb-0">@Model.CancelledSessions</h3>
+                            <small class="text-muted">Prior to date</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Card -->
+                <div class="glass-card p-4">
+
+                    <!-- Filter Bar -->
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 pb-3 border-bottom">
+                        <div>
+                            <h4 class="fw-bold mb-0" style="color: #004D25;">
+                                <i class="bi bi-journal-text me-2"></i>All Session Records
+                            </h4>
+                            <small class="text-muted">Review psychologist assessments, observations, and recommendations</small>
+                        </div>
+                        <div class="btn-group rounded-3 shadow-sm" role="group">
+                            <button type="button" class="btn btn-outline-success filter-btn active" onclick="filterSessions('all', this)">All (@Model.TotalSessions)</button>
+                            <button type="button" class="btn btn-outline-success filter-btn" onclick="filterSessions('Completed', this)">Completed (@Model.CompletedSessions)</button>
+                            <button type="button" class="btn btn-outline-success filter-btn" onclick="filterSessions('Confirmed', this)">Upcoming (@Model.UpcomingSessions)</button>
+                            <button type="button" class="btn btn-outline-success filter-btn" onclick="filterSessions('Missed', this)">Missed (@Model.MissedSessions)</button>
+                            <button type="button" class="btn btn-outline-success filter-btn" onclick="filterSessions('Cancelled', this)">Cancelled (@Model.CancelledSessions)</button>
+                        </div>
+                    </div>
+
+                    @if (!Model.Sessions.Any())
+                    {
+                        <!-- Empty State -->
+                        <div class="text-center py-5">
+                            <div class="p-4 bg-light rounded-circle d-inline-block mb-3">
+                                <i class="bi bi-calendar2-heart fs-1 text-muted"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">No Counseling Sessions Found</h4>
+                            <p class="text-muted fs-6 mb-4">You have not scheduled any counseling sessions yet. Our university psychologists are here to support your mental health.</p>
+                            <a href="/Student/Appointment" class="btn btn-success btn-lg rounded-3 px-4 py-2.5 fw-bold" style="background:#006837;">
+                                <i class="bi bi-calendar-plus me-1"></i> Request a Counseling Session
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Sessions Table -->
+                        <div class="table-responsive">
+                            <table class="table table-custom align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date &amp; Time</th>
+                                        <th>Psychologist</th>
+                                        <th>Venue / Room</th>
+                                        <th>Source / Type</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center" style="min-width: 170px;">Observation &amp; Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in Model.Sessions)
+                                    {
+                                        <tr class="session-row" data-status="@s.Status">
+                                            <!-- Date & Time -->
+                                            <td>
+                                                <div class="fw-bold text-dark">@s.CounselingDate.ToString("MMM dd, yyyy")</div>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1 text-secondary"></i>@s.FormattedTimeSlot
+                                                </small>
+                                            </td>
+
+                                            <!-- Psychologist -->
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                                        <i class="bi bi-person-badge"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold text-dark">@s.PsychologistName</div>
+                                                        <small class="text-muted">@(s.PsychologistSpecialization ?? "Clinical Psychologist")</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Venue -->
+                                            <td>
+                                                <span class="small text-secondary">
+                                                    <i class="bi bi-geo-alt me-1 text-danger"></i>@(s.AppointmentRoom ?? "Room 402")
+                                                </span>
+                                            </td>
+
+                                            <!-- Source -->
+                                            <td>
+                                                @if (s.AppointmentSource == "AutoAssignment")
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-lightning-fill me-1"></i>Auto Triggered
+                                                    </span>
+                                                }
+                                                else if (s.AppointmentSource == "FollowUp")
+                                                {
+                                                    <span class="badge bg-info-subtle text-info-emphasis border border-info rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>Follow-Up
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-person-check me-1 text-success"></i>Student Request
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <!-- Status -->
+                                            <td class="text-center">
+                                                @if (s.Status == "Completed")
+                                                {
+                                                    <span class="badge bg-success rounded-pill px-3 py-1.5 fw-bold">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                                    </span>
+                                                }
+                                                else if (s.Status == "Cancelled")
+                                                {
+                                                    <span class="badge bg-danger rounded-pill px-3 py-1.5 fw-bold" title="@s.ObservationNote">
+                                                        <i class="bi bi-x-circle-fill me-1"></i>Cancelled
+                                                    </span>
+                                                }
+                                                else if (s.Status == "Missed")
+                                                {
+                                                    <span class="badge bg-secondary rounded-pill px-3 py-1.5 fw-bold" title="Appointment date passed without psychologist assessment">
+                                                        <i class="bi bi-calendar-x-fill me-1"></i>Missed
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-bold">
+                                                        <i class="bi bi-clock-fill me-1"></i>Confirmed
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <!-- Actions & Observation Report -->
+                                            <td class="text-center">
+                                                @if (s.Status == "Completed")
+                                                {
+                                                    <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#obsModal_@s.CounselingId">
+                                                            <i class="bi bi-file-earmark-medical me-1"></i>View Observation
+                                                        </button>
+                                                        <a href="/Student/ObservationDetails/@s.CounselingId" class="btn btn-sm btn-outline-success rounded-pill px-2" title="Official Report Page">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                        </a>
+                                                    </div>
+                                                }
+                                                else if (s.Status == "Confirmed" || s.Status == "Pending")
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill px-3 py-1.5 fw-semibold" title="Scheduled session. Cancellation managed by Guardian.">
+                                                        <i class="bi bi-calendar-check me-1"></i>Scheduled
+                                                    </span>
+                                                }
+                                                else if (s.Status == "Missed")
+                                                {
+                                                    <a href="/Student/Appointment" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>Re-book
+                                                    </a>
+                                                }
+                                                else if (s.Status == "Cancelled")
+                                                {
+                                                    <a href="/Student/Appointment" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                                                        <i class="bi bi-calendar-plus me-1"></i>New Session
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">In Session</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
                 </div>
 
             </div>
@@ -129,3 +344,211 @@
         </div>
     </div>
 </div>
+
+<!-- ================= MODALS SECTION ================= -->
+@if (Model.Sessions.Any())
+{
+    @foreach (var s in Model.Sessions)
+    {
+        <!-- 1. OBSERVATION REPORT MODAL FOR COMPLETED SESSIONS -->
+        @if (s.Status == "Completed")
+        {
+            var obs = s.Observation;
+            <div class="modal fade" id="obsModal_@s.CounselingId" tabindex="-1" aria-labelledby="obsModalLabel_@s.CounselingId" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                        
+                        <!-- Modal Header -->
+                        <div class="modal-header border-0 text-white rounded-top-4 p-4" style="background: linear-gradient(135deg, #004D25 0%, #006837 100%);">
+                            <div>
+                                <div class="badge bg-white text-dark rounded-pill px-3 py-1 mb-2 fw-semibold">
+                                    <i class="bi bi-journal-check text-success me-1"></i> Clinical Observation Report
+                                </div>
+                                <h5 class="modal-title fw-bold text-white mb-0" id="obsModalLabel_@s.CounselingId">
+                                    Session Observation: @s.CounselingDate.ToString("MMMM dd, yyyy")
+                                </h5>
+                                <small class="text-white-50">Evaluated by: @s.PsychologistName (@(s.PsychologistSpecialization ?? "Clinical Psychologist"))</small>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="modal-body p-4">
+                            
+                            <!-- Session Quick Info -->
+                            <div class="p-3 bg-light rounded-3 mb-4 border d-flex justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <small class="text-muted d-block">Session Time Slot</small>
+                                    <strong class="text-dark">@s.FormattedTimeSlot</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Room / Location</small>
+                                    <strong class="text-dark">@(s.AppointmentRoom ?? "Room 402")</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Overall Progress</small>
+                                    <span class="badge bg-primary text-white rounded-pill px-3">
+                                        @(obs?.OverallProgressStatus ?? "Evaluated")
+                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Mental Health Status</small>
+                                    <span class="badge bg-success text-white rounded-pill px-3">
+                                        @(obs?.CurrentMentalHealthStatus ?? "Stable")
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if (obs != null)
+                            {
+                                <!-- 5 Functional Domains -->
+                                <h6 class="fw-bold text-dark mb-3">
+                                    <i class="bi bi-diagram-3-fill text-success me-1"></i> 5 Functional Domains Evaluation
+                                </h6>
+                                <div class="row g-2 mb-4">
+                                    <div class="col-md-4 col-6">
+                                        <div class="domain-badge p-2.5 h-100">
+                                            <small class="text-muted d-block">🎓 Academic Functioning</small>
+                                            <strong class="text-dark">@obs.AcademicFunctioning</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="domain-badge p-2.5 h-100">
+                                            <small class="text-muted d-block">🌙 Sleep Condition</small>
+                                            <strong class="text-dark">@obs.SleepCondition</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="domain-badge p-2.5 h-100">
+                                            <small class="text-muted d-block">👥 Social Interaction</small>
+                                            <strong class="text-dark">@obs.SocialInteraction</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-6">
+                                        <div class="domain-badge p-2.5 h-100">
+                                            <small class="text-muted d-block">⚡ Daily Activities</small>
+                                            <strong class="text-dark">@obs.DailyActivities</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="domain-badge p-2.5 h-100">
+                                            <small class="text-muted d-block">🧘 Emotional Regulation</small>
+                                            <strong class="text-dark">@obs.EmotionalRegulation</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Clinical Observation Narrative -->
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="bi bi-chat-left-text-fill text-primary me-1"></i> Clinical Observation Notes
+                                    </h6>
+                                    <div class="p-3 rounded-3 bg-white border" style="border-left: 4px solid #006837 !important;">
+                                        <p class="mb-0 text-dark fs-6" style="line-height: 1.6;">
+                                            @(string.IsNullOrWhiteSpace(obs.ClinicalObservation) ? "The student participated actively in the session and demonstrated constructive engagement." : obs.ClinicalObservation)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Student-Reported Improvement & Assessment Summary -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border h-100 bg-light">
+                                            <small class="text-muted fw-bold d-block mb-1">Student-Reported Improvement</small>
+                                            <span class="badge bg-info-subtle text-info-emphasis border border-info px-3 py-1.5 rounded-pill fs-6">
+                                                @obs.StudentReportedImprovement
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border h-100 bg-light">
+                                            <small class="text-muted fw-bold d-block mb-1">Current Safety Risk Level</small>
+                                            <span class="badge bg-success-subtle text-success border border-success px-3 py-1.5 rounded-pill fs-6">
+                                                @obs.CurrentSafetyRisk
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(obs.AssessmentSummary))
+                                {
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-dark mb-2">
+                                            <i class="bi bi-file-text text-secondary me-1"></i> Assessment Summary
+                                        </h6>
+                                        <div class="p-3 bg-light rounded-3 border text-secondary small">
+                                            @obs.AssessmentSummary
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Recommended Actions & Follow-up -->
+                                <div class="mb-3">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="bi bi-lightbulb-fill text-warning me-1"></i> Recommended Actions &amp; Coping Strategies
+                                    </h6>
+                                    <div class="p-3 rounded-3 bg-white border" style="border-left: 4px solid #FFC20E !important;">
+                                        <p class="mb-0 text-dark small" style="line-height: 1.6;">
+                                            @(string.IsNullOrWhiteSpace(obs.RecommendedAction) ? "Continue healthy lifestyle habits, regular sleep routine, and seek support whenever needed." : obs.RecommendedAction)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Follow-up Status -->
+                                <div class="alert @(obs.FollowUpRequired ? "alert-warning" : "alert-success") border-0 rounded-3 d-flex align-items-center mb-0">
+                                    <i class="bi @(obs.FollowUpRequired ? "bi-calendar-check" : "bi-check-circle-fill") fs-4 me-3"></i>
+                                    <div>
+                                        <strong>@(obs.FollowUpRequired ? "Follow-up Recommended" : "No Immediate Follow-up Needed")</strong>
+                                        <p class="mb-0 small">
+                                            @(obs.FollowUpRequired ? "Your psychologist has advised continued follow-up monitoring. Please check with the counseling center or schedule your next session." : "You have achieved stable baseline indicators. Keep maintaining your coping practices.")
+                                        </p>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Observation from Counseling Model directly -->
+                                <div class="p-3 bg-light rounded-3 border mb-3">
+                                    <h6 class="fw-bold text-dark mb-2">Observation Summary</h6>
+                                    <p class="mb-2">@(string.IsNullOrWhiteSpace(s.ObservationNote) ? "Session completed successfully." : s.ObservationNote)</p>
+                                </div>
+                            }
+
+                        </div>
+
+                        <!-- Modal Footer -->
+                        <div class="modal-footer border-0 p-4 pt-0 d-flex justify-content-between">
+                            <a href="/Student/ObservationDetails/@s.CounselingId" class="btn btn-outline-success rounded-3 fw-semibold">
+                                <i class="bi bi-printer me-1"></i> Open Full Official Report
+                            </a>
+                            <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Close</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+
+
+    }
+}
+
+@section Scripts {
+    <script>
+        function filterSessions(status, btn) {
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            var rows = document.querySelectorAll('.session-row');
+            rows.forEach(row => {
+                var rowStatus = row.getAttribute('data-status');
+                if (status === 'all' || rowStatus === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+}
