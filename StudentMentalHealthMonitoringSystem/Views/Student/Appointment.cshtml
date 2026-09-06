@@ -221,7 +221,7 @@
                                         <label asp-for="PreferredDate" class="form-label fw-bold text-dark">
                                             <i class="bi bi-calendar3 text-success me-1"></i> Preferred Date
                                         </label>
-                                        <input asp-for="PreferredDate" type="date" class="form-control rounded-3 p-3 fs-6" required />
+                                        <input asp-for="PreferredDate" id="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control rounded-3 p-3 fs-6" required onchange="validateTimeSlots()" />
                                         <span asp-validation-for="PreferredDate" class="text-danger small"></span>
                                         <small class="text-muted d-block mt-1">Available counseling days: Saturday to Wednesday.</small>
                                     </div>
@@ -231,7 +231,7 @@
                                         <label asp-for="StartTime" class="form-label fw-bold text-dark">
                                             <i class="bi bi-clock text-success me-1"></i> Preferred Time Slot
                                         </label>
-                                        <select asp-for="StartTime" id="StartTime" class="form-select rounded-3 p-3 fs-6" required>
+                                        <select asp-for="StartTime" id="StartTime" class="form-select rounded-3 p-3 fs-6" required onchange="validateTimeSlots()">
                                             <option value="">-- Select Counseling Time Slot --</option>
                                             <option value="08:30:00">8:30 AM - 9:30 AM</option>
                                             <option value="09:35:00">9:35 AM - 10:35 AM</option>
@@ -243,6 +243,9 @@
                                             <option value="16:25:00">4:25 PM - 5:25 PM</option>
                                         </select>
                                         <span asp-validation-for="StartTime" class="text-danger small"></span>
+                                        <div id="pastTimeErrorMsg" class="alert alert-danger p-2 mt-2 rounded-3 small d-none">
+                                            <i class="bi bi-exclamation-octagon-fill me-1"></i> You cannot select a past time slot for today's date. Please choose a future time slot.
+                                        </div>
                                         <small class="text-muted d-block mt-1">Sessions are fixed 1-hour confidential appointments.</small>
                                     </div>
 
@@ -334,7 +337,57 @@
             if (startInput) {
                 startInput.value = time;
                 startInput.scrollIntoView({ behavior: "smooth", block: "center" });
+                validateTimeSlots();
             }
         }
+
+        function validateTimeSlots() {
+            var dateInput = document.getElementById("PreferredDate");
+            var timeSelect = document.getElementById("StartTime");
+            var errorMsg = document.getElementById("pastTimeErrorMsg");
+            if (!dateInput || !timeSelect || !errorMsg) return;
+
+            var selectedDateVal = dateInput.value;
+            if (!selectedDateVal) return;
+
+            var now = new Date();
+            var todayStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+
+            var isToday = (selectedDateVal === todayStr);
+            var nowMinutes = (now.getHours() * 60) + now.getMinutes();
+
+            var hasInvalidSelection = false;
+
+            for (var i = 0; i < timeSelect.options.length; i++) {
+                var opt = timeSelect.options[i];
+                if (!opt.value) continue;
+
+                var parts = opt.value.split(':');
+                var optMinutes = (parseInt(parts[0], 10) * 60) + parseInt(parts[1], 10);
+
+                if (isToday && optMinutes < nowMinutes) {
+                    opt.disabled = true;
+                    opt.text = opt.text.replace(' (Past Slot)', '') + ' (Past Slot)';
+                    if (opt.selected) {
+                        hasInvalidSelection = true;
+                    }
+                } else {
+                    opt.disabled = false;
+                    opt.text = opt.text.replace(' (Past Slot)', '');
+                }
+            }
+
+            if (hasInvalidSelection) {
+                errorMsg.classList.remove("d-none");
+            } else {
+                errorMsg.classList.add("d-none");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            validateTimeSlots();
+        });
     </script>
 }

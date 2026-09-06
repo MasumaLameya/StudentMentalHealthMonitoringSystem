@@ -29,20 +29,8 @@ namespace StudentMentalHealthMonitoringSystem.Data
                     Experience = 8
                 };
                 context.Psychologists.Add(psychologist);
+                context.SaveChanges();
             }
-            else
-            {
-                // Force reset password to 123456 hash so login works seamlessly
-                psychologist.Email = "psychologist@smhms.com";
-                psychologist.Password = defaultPasswordHash;
-            }
-
-            // Also reset password for all existing psychologists if any
-            foreach (var p in context.Psychologists.ToList())
-            {
-                p.Password = defaultPasswordHash;
-            }
-            context.SaveChanges();
 
             // Define the 10 Dummy Students:
             // 7 Completed (Finished follow-up), 3 Continuous (In Progress)
@@ -87,7 +75,6 @@ namespace StudentMentalHealthMonitoringSystem.Data
                 }
                 else
                 {
-                    student.Password = defaultPasswordHash;
                     student.Department = cfg.Dept;
                     student.StudentIdNumber = cfg.IdNum;
                     if (student.AdmissionYear == null || student.AdmissionYear == 0)

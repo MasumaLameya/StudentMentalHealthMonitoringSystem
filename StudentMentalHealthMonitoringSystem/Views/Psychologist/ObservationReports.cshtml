@@ -229,19 +229,24 @@
 
                                     <td class="py-3 text-center">
 
-                                        <a asp-controller="Psychologist"
-                                           asp-action="ObservationReportDetails"
-                                           asp-route-id="@item.ObservationReportId"
-                                           class="btn btn-sm rounded-3 px-3"
-                                           style="
-                                            background:#A67C52;
-                                            color:white;">
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <a asp-controller="Psychologist"
+                                               asp-action="ObservationReportDetails"
+                                               asp-route-id="@item.ObservationReportId"
+                                               class="btn btn-sm rounded-3 px-2.5"
+                                               style="background:#A67C52; color:white;"
+                                               title="View Full Report">
+                                                <i class="bi bi-eye me-1"></i> View
+                                            </a>
 
-                                            <i class="bi bi-eye me-1"></i>
-
-                                            View Report
-
-                                        </a>
+                                            <a asp-controller="Psychologist"
+                                               asp-action="EditObservationReport"
+                                               asp-route-id="@item.ObservationReportId"
+                                               class="btn btn-sm btn-outline-primary rounded-3 px-2.5"
+                                               title="Edit / Update Observation Report Notes">
+                                                <i class="bi bi-pencil-square me-1"></i> Edit
+                                            </a>
+                                        </div>
 
                                     </td>
 

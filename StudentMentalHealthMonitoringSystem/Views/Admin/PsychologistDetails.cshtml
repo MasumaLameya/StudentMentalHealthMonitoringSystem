@@ -1,4 +1,4 @@
-﻿@model StudentMentalHealthMonitoringSystem.Models.Psychologist
+@model StudentMentalHealthMonitoringSystem.Models.Psychologist
 
 @{
     Layout = "_AdminLayout";
@@ -249,35 +249,45 @@
     <div class="card border-0 shadow-sm rounded-4">
 
         <div class="card-body text-end">
+            <button type="button" class="btn rounded-3 px-4 me-2" style="background:#C7D3E3; color:#2C425E;" data-bs-toggle="modal" data-bs-target="#changePassModal">
+                <i class="bi bi-key-fill me-1"></i> Change Password
+            </button>
 
             <a asp-controller="Admin"
                asp-action="EditPsychologist"
                asp-route-id="@Model.PsychologistId"
-               class="btn rounded-3 px-4 me-2"
-               style="background:#E5D3B3;
-                color:#665438;">
-
-                <i class="bi bi-pencil me-1"></i>
-
-                Edit Psychologist
-
-            </a>
-
-            <a asp-controller="Admin"
-               asp-action="DeletePsychologist"
-               asp-route-id="@Model.PsychologistId"
                class="btn rounded-3 px-4"
-               style="background:#E7C4BD;
-                color:#7A4038;">
-
-                <i class="bi bi-trash me-1"></i>
-
-                Delete Psychologist
-
+               style="background:#E5D3B3; color:#665438;">
+                <i class="bi bi-pencil me-1"></i> Edit Psychologist
             </a>
-
         </div>
-
     </div>
+</div>
 
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePassModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#5F5146;">
+                    <i class="bi bi-key-fill me-1 text-primary"></i> Change Password - Dr. @Model.FullName
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-controller="Admin" asp-action="ChangePsychologistPassword" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="psychologistId" value="@Model.PsychologistId" />
+                <div class="modal-body py-3">
+                    <div class="mb-3 text-start">
+                        <label class="form-label fw-semibold">New Password</label>
+                        <input type="password" name="newPassword" class="form-control rounded-3" placeholder="••••••••" minlength="6" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn text-white rounded-3 px-4" style="background:#B89B7A;">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

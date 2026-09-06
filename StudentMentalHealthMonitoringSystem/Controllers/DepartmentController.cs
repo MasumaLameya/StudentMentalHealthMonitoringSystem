@@ -2716,10 +2716,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (!_context.CounselingObservations.Any())
-            {
-                StudentMentalHealthMonitoringSystem.Data.DummyDataSeeder.SeedDummyData(_context);
-            }
 
             var filter = string.IsNullOrWhiteSpace(followUpFilter) ? "All" : followUpFilter.Trim();
 

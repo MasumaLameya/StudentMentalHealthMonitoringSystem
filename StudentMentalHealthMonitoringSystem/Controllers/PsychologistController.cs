@@ -37,162 +37,27 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // REGISTER
         // =========================================================
 
-        // ================= Register GET =================
+        // ================= Register GET (Disabled - Admin Only) =================
 
         [HttpGet]
         public IActionResult Register()
         {
-            return View();
+            TempData["Error"] = "Psychologist registration is managed by System Administrators only.";
+            return RedirectToAction("Login");
         }
 
 
-        // ================= Register POST =================
+        // ================= Register POST (Disabled - Admin Only) =================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(
+        public IActionResult Register(
             Psychologist psychologist)
         {
-            // ================= Model Validation =================
-
-            if (!ModelState.IsValid)
-            {
-                var errors =
-                    ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-
-                ViewBag.Errors =
-                    string.Join(" | ", errors);
-
-                return View(psychologist);
-            }
-
-
-            // ================= Duplicate Email =================
-
-            if (_context.Psychologists.Any(
-                p => p.Email == psychologist.Email))
-            {
-                ModelState.AddModelError(
-                    "Email",
-                    "Email already exists."
-                );
-
-                return View(psychologist);
-            }
-
-
-            try
-            {
-                // ================= Password Hash =================
-
-                psychologist.Password =
-                    BCrypt.Net.BCrypt.HashPassword(
-                        psychologist.Password
-                    );
-
-
-                // ================= Upload Profile Image =================
-
-                if (psychologist.ImageFile != null &&
-                    psychologist.ImageFile.Length > 0)
-                {
-                    var allowedExtensions =
-                        new[]
-                        {
-                            ".jpg",
-                            ".jpeg",
-                            ".png"
-                        };
-
-
-                    var extension =
-                        Path.GetExtension(
-                            psychologist.ImageFile.FileName
-                        )
-                        .ToLower();
-
-
-                    if (!allowedExtensions.Contains(extension))
-                    {
-                        ModelState.AddModelError(
-                            "ImageFile",
-                            "Only JPG, JPEG and PNG images are allowed."
-                        );
-
-                        return View(psychologist);
-                    }
-
-
-                    var uploadFolder =
-                        Path.Combine(
-                            _environment.WebRootPath,
-                            "images",
-                            "psychologists"
-                        );
-
-
-                    if (!Directory.Exists(uploadFolder))
-                    {
-                        Directory.CreateDirectory(
-                            uploadFolder
-                        );
-                    }
-
-
-                    var fileName =
-                        $"{Guid.NewGuid()}{extension}";
-
-
-                    var fullPath =
-                        Path.Combine(
-                            uploadFolder,
-                            fileName
-                        );
-
-
-                    await using var stream =
-                        new FileStream(
-                            fullPath,
-                            FileMode.Create
-                        );
-
-
-                    await psychologist.ImageFile
-                        .CopyToAsync(stream);
-
-
-                    psychologist.ProfileImage =
-                        $"/images/psychologists/{fileName}";
-                }
-
-
-                // ================= Save Psychologist =================
-
-                _context.Psychologists.Add(
-                    psychologist
-                );
-
-                await _context.SaveChangesAsync();
-
-
-                TempData["Success"] =
-                    "Registration Successful.";
-
-
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-            catch (Exception ex)
-            {
-                return Content(
-                    ex.ToString()
-                );
-            }
+            TempData["Error"] = "Psychologist registration is managed by System Administrators only.";
+            return RedirectToAction("Login");
         }
+
 
 
         // =========================================================
@@ -2280,6 +2145,37 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
         // =========================================================
+        // EDIT OBSERVATION REPORT
+        // =========================================================
+
+        [HttpGet]
+        public async Task<IActionResult> EditObservationReport(int id)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var report = await _context.ObservationReports
+                .FirstOrDefaultAsync(r => r.ObservationReportId == id && r.PsychologistId == psychologistId.Value);
+
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            var latestObs = await _context.CounselingObservations
+                .Where(o => o.StudentId == report.StudentId)
+                .OrderByDescending(o => o.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            int targetCounselingId = latestObs?.CounselingId ?? report.RootCounselingId;
+            return RedirectToAction("CounselingDetails", new { id = targetCounselingId });
+        }
+
+
+        // =========================================================
         // OBSERVATION ROOT COUNSELING
         // =========================================================
 
@@ -2553,10 +2449,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (!_context.CounselingObservations.Any())
-            {
-                StudentMentalHealthMonitoringSystem.Data.DummyDataSeeder.SeedDummyData(_context);
-            }
 
             // ================= Observation Reports =================
             var allReports = await _context.ObservationReports
@@ -2794,10 +2686,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            if (!_context.CounselingObservations.Any())
-            {
-                StudentMentalHealthMonitoringSystem.Data.DummyDataSeeder.SeedDummyData(_context);
-            }
 
             var filter = string.IsNullOrWhiteSpace(followUpFilter) ? "All" : followUpFilter.Trim();
 

@@ -74,13 +74,27 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View();
             }
 
-            if (!BCrypt.Net.BCrypt.Verify(
-                password,
-                student.Password))
+            bool isPasswordValid = false;
+            try
             {
-                ViewBag.Error =
-                    "Invalid Email or Password";
+                if (!string.IsNullOrEmpty(student.Password))
+                {
+                    isPasswordValid = BCrypt.Net.BCrypt.Verify(password, student.Password);
+                }
+            }
+            catch
+            {
+                isPasswordValid = (student.Password == password);
+            }
 
+            if (!isPasswordValid && student.Password == password)
+            {
+                isPasswordValid = true;
+            }
+
+            if (!isPasswordValid)
+            {
+                ViewBag.Error = "Invalid Email or Password";
                 return View();
             }
 
@@ -317,11 +331,29 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // REGISTER
         // =====================================================
 
+        private void PopulateRegistrationDepartments()
+        {
+            var depts = _context.Departments
+                .Select(d => d.DepartmentName)
+                .Where(d => !string.IsNullOrEmpty(d))
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
+
+            if (!depts.Any())
+            {
+                depts = new List<string> { "CSE", "EEE", "Mechanical", "Civil", "BBA", "BATHM" };
+            }
+
+            ViewBag.Departments = depts;
+        }
+
         // ================= Register GET =================
 
         [HttpGet]
         public IActionResult Register()
         {
+            PopulateRegistrationDepartments();
             return View();
         }
 
@@ -348,6 +380,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                         errors
                     );
 
+                PopulateRegistrationDepartments();
                 return View(student);
             }
 
@@ -361,6 +394,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Email already exists."
                 );
 
+                PopulateRegistrationDepartments();
                 return View(student);
             }
 
@@ -376,6 +410,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Student ID already exists."
                 );
 
+                PopulateRegistrationDepartments();
                 return View(student);
             }
 
@@ -385,6 +420,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 !System.Text.RegularExpressions.Regex.IsMatch(student.Password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
             {
                 ModelState.AddModelError("Password", "Password must contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
+                PopulateRegistrationDepartments();
                 return View(student);
             }
 
@@ -423,6 +459,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                             "Only JPG, JPEG and PNG images are allowed."
                         );
 
+                        PopulateRegistrationDepartments();
                         return View(student);
                     }
 
@@ -2643,6 +2680,19 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                         model.StartTime
                     ),
                     "Please select a valid counseling time."
+                );
+            }
+
+
+            // ================= Past Time Validation For Today =================
+
+            if (model.PreferredDate.Date == DateTime.Today && model.StartTime < DateTime.Now.TimeOfDay)
+            {
+                ModelState.AddModelError(
+                    nameof(
+                        model.StartTime
+                    ),
+                    "Cannot select a past time slot for today. Please select a future time slot."
                 );
             }
 

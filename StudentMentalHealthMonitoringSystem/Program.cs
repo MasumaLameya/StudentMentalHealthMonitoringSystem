@@ -322,13 +322,8 @@ using (var scope = app.Services.CreateScope())
             Phone = "01409015552"
         };
         context.Admins.Add(admin);
+        context.SaveChanges();
     }
-    else
-    {
-        admin.Email = "admin@smhms.com";
-        admin.Password = BCrypt.Net.BCrypt.HashPassword("Admin@123");
-    }
-    context.SaveChanges();
 
     // =====================================================
     // BACKFILL DEFAULT YEAR AND SEMESTER FOR EXISTING STUDENTS
@@ -375,366 +370,39 @@ using (var scope = app.Services.CreateScope())
 
 
     // =====================================================
-    // DEFAULT DEPARTMENT ACCOUNTS
+    // DEFAULT DEPARTMENT ACCOUNTS (ONLY CREATED IF MISSING)
     // =====================================================
-    //
-    // These accounts are used for Department Login.
-    //
-    // CSE
-    // EEE
-    // Mechanical
-    // Civil
-    // BBA
-    // BATHM
-    //
-    // Existing records are UPDATED so that old
-    // migration passwords such as "123456"
-    // do not remain.
-    //
-    // =====================================================
-
-
-    // =====================================================
-    // CSE
-    // =====================================================
-
-    var cse =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "CSE"
-            );
-
-
-    if (cse == null)
+    var defaultDepartments = new[]
     {
-        cse =
-            new Department
+        new { Name = "CSE", Email = "cse@smhms.com", Password = "CSE@123", Phone = "01409015553", Head = "Head of CSE" },
+        new { Name = "EEE", Email = "eee@smhms.com", Password = "EEE@123", Phone = "01409015554", Head = "Head of EEE" },
+        new { Name = "Mechanical", Email = "mechanical@smhms.com", Password = "Mechanical@123", Phone = "01409015555", Head = "Head of Mechanical" },
+        new { Name = "Civil", Email = "civil@smhms.com", Password = "Civil@123", Phone = "01409015556", Head = "Head of Civil" },
+        new { Name = "BBA", Email = "bba@smhms.com", Password = "BBA@123", Phone = "01409015557", Head = "Head of BBA" },
+        new { Name = "BATHM", Email = "bathm@smhms.com", Password = "BATHM@123", Phone = "01409015558", Head = "Head of BATHM" }
+    };
+
+    bool deptAdded = false;
+    foreach (var d in defaultDepartments)
+    {
+        if (!context.Departments.Any(existing => existing.DepartmentName == d.Name))
+        {
+            context.Departments.Add(new Department
             {
-                DepartmentName =
-                    "CSE",
-
-                Email =
-                    "cse@smhms.com",
-
-                Password =
-                    "CSE@123",
-
-                Phone =
-                    "01409015553",
-
-                HeadOfDepartment =
-                    "Head of CSE"
-            };
-
-
-        context.Departments.Add(
-            cse
-        );
+                DepartmentName = d.Name,
+                Email = d.Email,
+                Password = d.Password,
+                Phone = d.Phone,
+                HeadOfDepartment = d.Head
+            });
+            deptAdded = true;
+        }
     }
-    else
+
+    if (deptAdded)
     {
-        cse.Email =
-            "cse@smhms.com";
-
-        cse.Password =
-            "CSE@123";
-
-        cse.Phone =
-            "01409015553";
-
-        cse.HeadOfDepartment =
-            "Head of CSE";
+        context.SaveChanges();
     }
-
-
-    // =====================================================
-    // EEE
-    // =====================================================
-
-    var eee =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "EEE"
-            );
-
-
-    if (eee == null)
-    {
-        eee =
-            new Department
-            {
-                DepartmentName =
-                    "EEE",
-
-                Email =
-                    "eee@smhms.com",
-
-                Password =
-                    "EEE@123",
-
-                Phone =
-                    "01409015554",
-
-                HeadOfDepartment =
-                    "Head of EEE"
-            };
-
-
-        context.Departments.Add(
-            eee
-        );
-    }
-    else
-    {
-        eee.Email =
-            "eee@smhms.com";
-
-        eee.Password =
-            "EEE@123";
-
-        eee.Phone =
-            "01409015554";
-
-        eee.HeadOfDepartment =
-            "Head of EEE";
-    }
-
-
-    // =====================================================
-    // MECHANICAL
-    // =====================================================
-
-    var mechanical =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "Mechanical"
-            );
-
-
-    if (mechanical == null)
-    {
-        mechanical =
-            new Department
-            {
-                DepartmentName =
-                    "Mechanical",
-
-                Email =
-                    "mechanical@smhms.com",
-
-                Password =
-                    "Mechanical@123",
-
-                Phone =
-                    "01409015555",
-
-                HeadOfDepartment =
-                    "Head of Mechanical"
-            };
-
-
-        context.Departments.Add(
-            mechanical
-        );
-    }
-    else
-    {
-        mechanical.Email =
-            "mechanical@smhms.com";
-
-        mechanical.Password =
-            "Mechanical@123";
-
-        mechanical.Phone =
-            "01409015555";
-
-        mechanical.HeadOfDepartment =
-            "Head of Mechanical";
-    }
-
-
-    // =====================================================
-    // CIVIL
-    // =====================================================
-
-    var civil =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "Civil"
-            );
-
-
-    if (civil == null)
-    {
-        civil =
-            new Department
-            {
-                DepartmentName =
-                    "Civil",
-
-                Email =
-                    "civil@smhms.com",
-
-                Password =
-                    "Civil@123",
-
-                Phone =
-                    "01409015556",
-
-                HeadOfDepartment =
-                    "Head of Civil"
-            };
-
-
-        context.Departments.Add(
-            civil
-        );
-    }
-    else
-    {
-        civil.Email =
-            "civil@smhms.com";
-
-        civil.Password =
-            "Civil@123";
-
-        civil.Phone =
-            "01409015556";
-
-        civil.HeadOfDepartment =
-            "Head of Civil";
-    }
-
-
-    // =====================================================
-    // BBA
-    // =====================================================
-
-    var bba =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "BBA"
-            );
-
-
-    if (bba == null)
-    {
-        bba =
-            new Department
-            {
-                DepartmentName =
-                    "BBA",
-
-                Email =
-                    "bba@smhms.com",
-
-                Password =
-                    "BBA@123",
-
-                Phone =
-                    "01409015557",
-
-                HeadOfDepartment =
-                    "Head of BBA"
-            };
-
-
-        context.Departments.Add(
-            bba
-        );
-    }
-    else
-    {
-        bba.Email =
-            "bba@smhms.com";
-
-        bba.Password =
-            "BBA@123";
-
-        bba.Phone =
-            "01409015557";
-
-        bba.HeadOfDepartment =
-            "Head of BBA";
-    }
-
-
-    // =====================================================
-    // BATHM
-    // =====================================================
-
-    var bathm =
-        context.Departments
-            .FirstOrDefault(
-                d =>
-                    d.DepartmentName ==
-                    "BATHM"
-            );
-
-
-    if (bathm == null)
-    {
-        bathm =
-            new Department
-            {
-                DepartmentName =
-                    "BATHM",
-
-                Email =
-                    "bathm@smhms.com",
-
-                Password =
-                    "BATHM@123",
-
-                Phone =
-                    "01409015558",
-
-                HeadOfDepartment =
-                    "Head of BATHM"
-            };
-
-
-        context.Departments.Add(
-            bathm
-        );
-    }
-    else
-    {
-        bathm.Email =
-            "bathm@smhms.com";
-
-        bathm.Password =
-            "BATHM@123";
-
-        bathm.Phone =
-            "01409015558";
-
-        bathm.HeadOfDepartment =
-            "Head of BATHM";
-    }
-
-
-    // =====================================================
-    // SAVE DEPARTMENT CHANGES
-    // =====================================================
-
-    context.SaveChanges();
-
-    // =====================================================
-    // SEED 10 DUMMY STUDENTS & COUNSELING PROGRESS DATA
-    // =====================================================
-
-    DummyDataSeeder.SeedDummyData(context);
     }
     catch (Exception ex)
     {

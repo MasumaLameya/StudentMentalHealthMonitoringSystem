@@ -1,0 +1,98 @@
+@model StudentMentalHealthMonitoringSystem.Models.Psychologist
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Add Psychologist";
+}
+
+<div class="container-fluid" style="max-width: 900px;">
+
+    <!-- ================= Header ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background:#F4EEE8;">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold mb-1" style="color:#5F5146;">
+                        <i class="bi bi-person-plus-fill me-2"></i>Add New Clinical Psychologist
+                    </h2>
+                    <p class="text-muted mb-0">Register a official counselor account into the monitoring system.</p>
+                </div>
+                <a asp-controller="Admin" asp-action="Psychologists" class="btn btn-outline-secondary rounded-3 px-3">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Psychologists
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Form Card ================= -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="card-body p-4 p-md-5">
+
+            <form asp-controller="Admin" asp-action="AddPsychologist" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 mb-4"></div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label fw-semibold" style="color:#5F5146;">Full Name *</label>
+                        <input asp-for="FullName" class="form-control rounded-3 py-2.5" placeholder="e.g. Dr. Farhana Ahmed" required />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-semibold" style="color:#5F5146;">Email Address *</label>
+                        <input asp-for="Email" type="email" class="form-control rounded-3 py-2.5" placeholder="psychologist@smhms.com" required />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-semibold" style="color:#5F5146;">Password *</label>
+                        <input asp-for="Password" type="password" class="form-control rounded-3 py-2.5" placeholder="••••••••" required minlength="6" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Phone" class="form-label fw-semibold" style="color:#5F5146;">Phone Number</label>
+                        <input asp-for="Phone" class="form-control rounded-3 py-2.5" placeholder="01700000000" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Specialization" class="form-label fw-semibold" style="color:#5F5146;">Specialization</label>
+                        <input asp-for="Specialization" class="form-control rounded-3 py-2.5" placeholder="e.g. Clinical Psychology & Counseling" />
+                        <span asp-validation-for="Specialization" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Qualification" class="form-label fw-semibold" style="color:#5F5146;">Qualification</label>
+                        <input asp-for="Qualification" class="form-control rounded-3 py-2.5" placeholder="e.g. Ph.D. in Clinical Psychology" />
+                        <span asp-validation-for="Qualification" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Experience" class="form-label fw-semibold" style="color:#5F5146;">Years of Experience</label>
+                        <input asp-for="Experience" type="number" min="0" max="60" class="form-control rounded-3 py-2.5" placeholder="e.g. 8" />
+                        <span asp-validation-for="Experience" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ImageFile" class="form-label fw-semibold" style="color:#5F5146;">Profile Photo</label>
+                        <input asp-for="ImageFile" type="file" accept="image/*" class="form-control rounded-3 py-2.5" />
+                        <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-controller="Admin" asp-action="Psychologists" class="btn btn-light rounded-3 px-4 fw-semibold">Cancel</a>
+                    <button type="submit" class="btn text-white rounded-3 px-4 py-2 fw-semibold" style="background:#B89B7A;">
+                        <i class="bi bi-check-circle me-1.5"></i> Save Psychologist
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

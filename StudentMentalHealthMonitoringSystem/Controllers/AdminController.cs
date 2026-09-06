@@ -735,25 +735,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
 
-        // ================= Add Psychologist =================
-
-        [HttpGet]
-        public IActionResult AddPsychologist()
-        {
-            // Check Admin Session
-            var adminId = HttpContext.Session.GetInt32("AdminId");
-
-            if (adminId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            // Reuse Psychologist Registration View
-            return RedirectToAction("Register", "Psychologist");
-        }
-
-        
-
         // ================= Edit Psychologist =================
 
         [HttpGet]
@@ -1867,11 +1848,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Auto-seed if database doesn't have student observations yet
-            if (!_context.CounselingObservations.Any())
-            {
-                StudentMentalHealthMonitoringSystem.Data.DummyDataSeeder.SeedDummyData(_context);
-            }
 
             var filter = string.IsNullOrWhiteSpace(followUpFilter) ? "All" : followUpFilter.Trim();
             var dept = string.IsNullOrWhiteSpace(department) ? "All" : department.Trim();
@@ -3425,6 +3401,180 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             TempData["SuccessMessage"] = $"Department \"{department.DepartmentName}\" has been reactivated.";
             return RedirectToAction("Departments");
+        }
+
+        // =========================================================
+        // ADD PSYCHOLOGIST (ADMIN)
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult AddPsychologist()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            return View(new Psychologist());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddPsychologist(Psychologist psychologist)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            if (_context.Psychologists.Any(p => p.Email.ToLower() == psychologist.Email.Trim().ToLower()))
+            {
+                ModelState.AddModelError("Email", "A psychologist with this email address already exists.");
+                return View(psychologist);
+            }
+
+            if (string.IsNullOrWhiteSpace(psychologist.Password))
+            {
+                ModelState.AddModelError("Password", "Password is required.");
+                return View(psychologist);
+            }
+
+            try
+            {
+                psychologist.Password = BCrypt.Net.BCrypt.HashPassword(psychologist.Password);
+
+                if (psychologist.ImageFile != null && psychologist.ImageFile.Length > 0)
+                {
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                    var extension = Path.GetExtension(psychologist.ImageFile.FileName).ToLower();
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        ModelState.AddModelError("ImageFile", "Only JPG, JPEG and PNG images are allowed.");
+                        return View(psychologist);
+                    }
+
+                    var uploadFolder = Path.Combine(_environment.WebRootPath, "images", "psychologists");
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    var fileName = $"{Guid.NewGuid()}{extension}";
+                    var fullPath = Path.Combine(uploadFolder, fileName);
+
+                    await using var stream = new FileStream(fullPath, FileMode.Create);
+                    await psychologist.ImageFile.CopyToAsync(stream);
+
+                    psychologist.ProfileImage = $"/images/psychologists/{fileName}";
+                }
+
+                _context.Psychologists.Add(psychologist);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Psychologist '{psychologist.FullName}' added successfully.";
+                return RedirectToAction("Psychologists");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Failed to create psychologist: {ex.Message}");
+                return View(psychologist);
+            }
+        }
+
+        // =========================================================
+        // CHANGE PSYCHOLOGIST PASSWORD (ADMIN)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePsychologistPassword(int psychologistId, string newPassword)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+            {
+                TempData["ErrorMessage"] = "New password must be at least 6 characters long.";
+                return RedirectToAction("Psychologists");
+            }
+
+            var psychologist = await _context.Psychologists.FindAsync(psychologistId);
+            if (psychologist == null) return NotFound();
+
+            psychologist.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Password for Dr. {psychologist.FullName} has been updated successfully.";
+            return RedirectToAction("Psychologists");
+        }
+
+        // =========================================================
+        // ADMIN CHANGE OWN PASSWORD
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null) return RedirectToAction("Login");
+
+            if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
+            {
+                ViewBag.Error = "All fields are required.";
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "New password and Confirm password do not match.";
+                return View();
+            }
+
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "New password must be at least 6 characters long.";
+                return View();
+            }
+
+            var admin = await _context.Admins.FindAsync(adminId.Value);
+            if (admin == null) return RedirectToAction("Login");
+
+            bool isCurrentValid = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(admin.Password))
+                {
+                    isCurrentValid = BCrypt.Net.BCrypt.Verify(currentPassword, admin.Password);
+                }
+            }
+            catch
+            {
+                isCurrentValid = (admin.Password == currentPassword);
+            }
+
+            if (!isCurrentValid && admin.Password == currentPassword)
+            {
+                isCurrentValid = true;
+            }
+
+            if (!isCurrentValid)
+            {
+                ViewBag.Error = "Current password is incorrect.";
+                return View();
+            }
+
+            admin.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Your password has been changed successfully.";
+            return RedirectToAction("Dashboard");
         }
     }
 }
