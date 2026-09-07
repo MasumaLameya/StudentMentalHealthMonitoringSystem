@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="800" pageHeight="800" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- TITLE -->
+    <mxCell id="title" value="Guardian Activity Diagram — SMHMS" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontStyle=1;fontSize=14;fontColor=#000000;" vertex="1" parent="1">
+      <mxGeometry x="50" y="10" width="700" height="25" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== INITIAL NODE ===== -->
+    <mxCell id="start" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+      <mxGeometry x="384" y="45" width="32" height="32" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== AUTHENTICATION (OTP LOGIN) ===== -->
+    <mxCell id="A1" value="Enter Student ID Number" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="310" y="95" width="180" height="38" as="geometry"/>
+    </mxCell>
+
+    <!-- Error (left of D1) -->
+    <mxCell id="A1_err" value="Show Error Message&#xa;(Invalid Student ID)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=0;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="120" y="157" width="150" height="38" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="D1" value="Student&#xa;Found?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="345" y="152" width="110" height="48" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="A2" value="Receive &amp; Enter&#xa;6-Digit Email OTP" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="310" y="225" width="180" height="38" as="geometry"/>
+    </mxCell>
+
+    <!-- Error (left of D2) -->
+    <mxCell id="A2_err" value="Show Error Message&#xa;(Invalid / Expired OTP)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=0;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="120" y="287" width="150" height="38" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="D2" value="OTP&#xa;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="345" y="282" width="110" height="48" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="A3" value="Access Guardian Dashboard" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="305" y="355" width="190" height="40" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== FORK BAR ===== -->
+    <mxCell id="fork1" value="" style="fillColor=#000000;strokeColor=#000000;html=1;" vertex="1" parent="1">
+      <mxGeometry x="150" y="420" width="500" height="10" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== BRANCH 1: MENTAL HEALTH OVERSIGHT (x=150) ===== -->
+    <mxCell id="B1_A1" value="View PHQ-9 &amp; C-SSRS&#xa;Assessment Scores" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="450" width="220" height="42" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="B1_A2" value="Monitor Student Emotional&#xa;Well-being &amp; Risk Level" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="150" y="515" width="220" height="42" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== BRANCH 2: SESSION HISTORY (x=430) ===== -->
+    <mxCell id="B2_A1" value="Browse Past Counseling&#xa;Session Records" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="430" y="450" width="220" height="42" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="B2_A2" value="Review Attendance Status&#xa;&amp; Psychologist Information" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="430" y="515" width="220" height="42" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== JOIN BAR ===== -->
+    <mxCell id="join1" value="" style="fillColor=#000000;strokeColor=#000000;html=1;" vertex="1" parent="1">
+      <mxGeometry x="150" y="580" width="500" height="10" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== LOGOUT & FINAL STATE ===== -->
+    <mxCell id="A_logout" value="Click Logout &amp; Terminate Session" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="300" y="615" width="200" height="38" as="geometry"/>
+    </mxCell>
+
+    <!-- Bullseye Final Node -->
+    <mxCell id="end_outer" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#000000;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="384" y="675" width="32" height="32" as="geometry"/>
+    </mxCell>
+    <mxCell id="end_inner" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1;" vertex="1" parent="1">
+      <mxGeometry x="392" y="683" width="16" height="16" as="geometry"/>
+    </mxCell>
+
+
+    <!-- ========================================================= -->
+    <!-- EDGES (CLEAN, ORTHOGONAL, NO OVERLAPS)                    -->
+    <!-- ========================================================= -->
+
+    <!-- Initial -> A1 -->
+    <mxCell id="e_start_A1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="start" target="A1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- A1 -> D1 -->
+    <mxCell id="e_A1_D1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A1" target="D1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- D1 [No] -> A1_err -->
+    <mxCell id="e_D1_A1err" value="[No]" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;fontSize=10;" edge="1" parent="1" source="D1" target="A1_err">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- A1_err -> loop back to A1 -->
+    <mxCell id="e_A1err_A1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A1_err" target="A1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="195" y="114"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- D1 [Yes] -> A2 -->
+    <mxCell id="e_D1_A2" value="[Yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;fontSize=10;" edge="1" parent="1" source="D1" target="A2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- A2 -> D2 -->
+    <mxCell id="e_A2_D2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A2" target="D2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- D2 [No] -> A2_err -->
+    <mxCell id="e_D2_A2err" value="[No]" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;fontSize=10;" edge="1" parent="1" source="D2" target="A2_err">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- A2_err -> loop back to A2 -->
+    <mxCell id="e_A2err_A2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A2_err" target="A2">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="195" y="244"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- D2 [Yes] -> A3 -->
+    <mxCell id="e_D2_A3" value="[Yes]" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;fontSize=10;" edge="1" parent="1" source="D2" target="A3">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- A3 -> Fork1 -->
+    <mxCell id="e_A3_fork1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A3" target="fork1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <!-- ===== BRANCH 1 EDGES ===== -->
+    <mxCell id="e_fork_B1A1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="fork1" target="B1_A1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="260" y="430"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="e_B1A1_B1A2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="B1_A1" target="B1_A2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_B1A2_join" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="B1_A2" target="join1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="260" y="580"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ===== BRANCH 2 EDGES ===== -->
+    <mxCell id="e_fork_B2A1" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="fork1" target="B2_A1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="540" y="430"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="e_B2A1_B2A2" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="B2_A1" target="B2_A2">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_B2A2_join" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="B2_A2" target="join1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="540" y="580"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ===== JOIN -> LOGOUT -> FINAL ===== -->
+    <mxCell id="e_join_logout" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="join1" target="A_logout">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+    <mxCell id="e_logout_end" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#000000;fontColor=#000000;" edge="1" parent="1" source="A_logout" target="end_outer">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>
