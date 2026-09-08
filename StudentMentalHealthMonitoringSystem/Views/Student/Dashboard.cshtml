@@ -177,14 +177,14 @@
                     <div class="alert alert-warning border-2 border-warning shadow-sm rounded-4 mb-4 p-3.5 d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-3">
                             <div class="rounded-circle p-2.5 bg-warning text-dark">
-                                <i class="bi bi-shield-exclamation fs-4"></i>
+                                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
                             </div>
                             <div>
                                 <h6 class="fw-bold mb-1 text-dark">
-                                    <i class="bi bi-eye-fill me-1 text-warning"></i>Mandatory @(Model.ActiveSemester) Continuous Observation Screening Pending!
+                                    <i class="bi bi-bell-fill me-1 text-warning"></i>@(ViewBag.ScreeningWarningTitle ?? $"Mandatory {Model.ActiveSemester} Screening Pending!")
                                 </h6>
                                 <p class="mb-0 text-secondary small">
-                                    Under continuous mental health observation (Batch @(Model.AdmissionYear?.ToString() ?? "Registration")), you must complete both <strong>PHQ-9</strong> and <strong>C-SSRS</strong> assessments for @(Model.ActiveSemester) to maintain status compliance.
+                                    @(ViewBag.ScreeningWarningReason ?? $"Please complete your remaining mental health screening assessment for {Model.ActiveSemester} to keep your profile fully updated.")
                                 </p>
                             </div>
                         </div>

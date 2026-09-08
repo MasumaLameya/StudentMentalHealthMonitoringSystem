@@ -268,6 +268,11 @@
 
                                             <!-- Status -->
                                             <td class="text-center">
+                                                @{
+                                                    bool isSessionPast = s.CounselingDate.Date < DateTime.Today ||
+                                                        (s.CounselingDate.Date == DateTime.Today &&
+                                                         (s.AppointmentEndTime != default ? s.AppointmentEndTime < DateTime.Now.TimeOfDay : s.AppointmentTime < DateTime.Now.TimeOfDay));
+                                                }
                                                 @if (s.Status == "Completed")
                                                 {
                                                     <span class="badge bg-success rounded-pill px-3 py-1.5 fw-bold">
@@ -280,7 +285,7 @@
                                                         <i class="bi bi-x-circle-fill me-1"></i>Cancelled
                                                     </span>
                                                 }
-                                                else if (s.Status == "Missed")
+                                                else if (s.Status == "Missed" || isSessionPast)
                                                 {
                                                     <span class="badge bg-secondary rounded-pill px-3 py-1.5 fw-bold" title="Appointment date passed without psychologist assessment">
                                                         <i class="bi bi-calendar-x-fill me-1"></i>Missed
@@ -307,23 +312,23 @@
                                                         </a>
                                                     </div>
                                                 }
-                                                else if (s.Status == "Confirmed" || s.Status == "Pending")
-                                                {
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill px-3 py-1.5 fw-semibold" title="Scheduled session. Contact Counseling Center for modifications.">
-                                                        <i class="bi bi-calendar-check me-1"></i>Scheduled
-                                                    </span>
-                                                }
-                                                else if (s.Status == "Missed")
-                                                {
-                                                    <a href="/Student/Appointment" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                                                        <i class="bi bi-arrow-repeat me-1"></i>Re-book
-                                                    </a>
-                                                }
                                                 else if (s.Status == "Cancelled")
                                                 {
                                                     <a href="/Student/Appointment" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
                                                         <i class="bi bi-calendar-plus me-1"></i>New Session
                                                     </a>
+                                                }
+                                                else if (s.Status == "Missed" || isSessionPast)
+                                                {
+                                                    <a href="/Student/Appointment" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
+                                                        <i class="bi bi-arrow-repeat me-1"></i>Re-book
+                                                    </a>
+                                                }
+                                                else if (s.Status == "Confirmed" || s.Status == "Pending")
+                                                {
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning rounded-pill px-3 py-1.5 fw-semibold" title="Scheduled session. Contact Counseling Center for modifications.">
+                                                        <i class="bi bi-calendar-check me-1"></i>Scheduled
+                                                    </span>
                                                 }
                                                 else
                                                 {

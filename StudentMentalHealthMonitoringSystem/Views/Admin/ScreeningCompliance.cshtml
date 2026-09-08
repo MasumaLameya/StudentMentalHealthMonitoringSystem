@@ -90,12 +90,12 @@
         <div class="col-md-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
                 <div class="d-flex align-items-center">
-                    <div class="rounded-circle p-3 me-3" style="background:#F8D7DA; color:#842029;">
-                        <i class="bi bi-lock-fill fs-3"></i>
+                    <div class="rounded-circle p-3 me-3" style="background:#FFF3CD; color:#664D03;">
+                        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
                     </div>
                     <div>
-                        <div class="text-muted small fw-semibold">Semester Advancement Blocked</div>
-                        <h3 class="fw-bold mb-0 text-danger">@Model.PendingStudents</h3>
+                        <div class="text-muted small fw-semibold">Screening Warning Active</div>
+                        <h3 class="fw-bold mb-0 text-warning">@Model.PendingStudents</h3>
                     </div>
                 </div>
             </div>
@@ -224,13 +224,13 @@
                                     @if (item.IsFullyScreened)
                                     {
                                         <span class="badge bg-success text-white px-3 py-1.5 rounded-pill fw-bold">
-                                            <i class="bi bi-unlock-fill me-1"></i>Eligible for Next Semester
+                                            <i class="bi bi-check-circle-fill me-1"></i>@item.ComplianceStatusDescription
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill fw-bold">
-                                            <i class="bi bi-lock-fill me-1"></i>Blocked (Screening Required)
+                                        <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>@item.ComplianceStatusDescription
                                         </span>
                                     }
                                 </td>

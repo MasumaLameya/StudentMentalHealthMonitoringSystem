@@ -316,6 +316,10 @@
         color: #8A6670;
     }
 
+    .status-missed {
+        background: #E9ECEF;
+        color: #6C757D;
+    }
 
     .status-default {
         background: #EEF2F4;
@@ -445,9 +449,6 @@
                      ========================================= -->
 
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-danger rounded-3 px-3 shadow-sm fw-bold" onclick="downloadReportPdf('#deptStudentDetailsContent', { title: 'Department_Student_Report_@(Model.StudentIdNumber)', filename: 'Student_Report_@(Model.StudentIdNumber)' })">
-                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
-                    </button>
                     <a asp-controller="Department"
                        asp-action="Students"
                        class="back-btn">
@@ -1404,45 +1405,45 @@
                                      ================================= -->
 
                                 <td>
-
-                                    @if (counseling.Status == "Confirmed")
-                                    {
-                                        <span class="status-badge status-confirmed">
-
-                                            Confirmed
-
-                                        </span>
+                                    @{
+                                        bool isPastAppt = counseling.CounselingDate.Date < DateTime.Today ||
+                                            (counseling.CounselingDate.Date == DateTime.Today &&
+                                             (counseling.AppointmentEndTime != default ? counseling.AppointmentEndTime < DateTime.Now.TimeOfDay : counseling.AppointmentTime < DateTime.Now.TimeOfDay));
                                     }
-                                    else if (counseling.Status == "Pending")
-                                    {
-                                        <span class="status-badge status-pending">
-
-                                            Pending
-
-                                        </span>
-                                    }
-                                    else if (counseling.Status == "Completed")
+                                    @if (counseling.Status == "Completed")
                                     {
                                         <span class="status-badge status-completed">
-
                                             Completed
-
                                         </span>
                                     }
                                     else if (counseling.Status == "Cancelled")
                                     {
                                         <span class="status-badge status-cancelled">
-
                                             Cancelled
-
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Missed" || isPastAppt)
+                                    {
+                                        <span class="status-badge status-missed">
+                                            Missed
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Confirmed")
+                                    {
+                                        <span class="status-badge status-confirmed">
+                                            Confirmed
+                                        </span>
+                                    }
+                                    else if (counseling.Status == "Pending")
+                                    {
+                                        <span class="status-badge status-pending">
+                                            Pending
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="status-badge status-default">
-
                                             @counseling.Status
-
                                         </span>
                                     }
 

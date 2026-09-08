@@ -151,7 +151,9 @@
 
                         <input asp-for="StudentIdNumber"
                                class="form-control rounded-3"
-                               placeholder="Enter student ID" />
+                               placeholder="Enter student ID"
+                               pattern="^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$"
+                               title="Student ID cannot start with a minus sign or be negative." />
 
                         <span asp-validation-for="StudentIdNumber"
                               class="text-danger">
@@ -240,7 +242,8 @@
 
                         <input asp-for="DateOfBirth"
                                type="date"
-                               class="form-control rounded-3" />
+                               class="form-control rounded-3"
+                               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
 
                         <span asp-validation-for="DateOfBirth"
                               class="text-danger">
@@ -541,6 +544,35 @@
 
                     </div>
 
+                </div>
+
+
+                <!-- ================= Security & Password ================= -->
+
+                <hr class="my-4">
+
+                <h4 class="mb-3" style="color:#5F5146;">
+                    <i class="bi bi-shield-lock me-1"></i> Account Security & Password
+                </h4>
+
+                <div class="p-3 rounded-4 mb-4" style="background:#FAF6F2; border: 1px dashed #D8C7B8;">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle me-1 text-primary"></i> Leave blank if you do not want to change the student's password. If entered, the student's password will be updated immediately.
+                    </p>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-semibold" style="color:#5F5146;">
+                                New Password (Optional)
+                            </label>
+                            <input name="newPassword" type="password" class="form-control rounded-3" placeholder="Enter new password (min 8 chars)" />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-semibold" style="color:#5F5146;">
+                                Confirm New Password
+                            </label>
+                            <input name="confirmPassword" type="password" class="form-control rounded-3" placeholder="Confirm new password" />
+                        </div>
+                    </div>
                 </div>
 
 

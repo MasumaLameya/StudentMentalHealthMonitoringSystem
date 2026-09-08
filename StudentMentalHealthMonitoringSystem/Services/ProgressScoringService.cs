@@ -158,9 +158,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
                 });
             }
 
-            double initialScore = sessionDetails.Any() ? sessionDetails.First().SessionScore : 50.0;
-            double latestScore = sessionDetails.Any() ? sessionDetails.Last().SessionScore : 50.0;
-            string overallImprovement = DetermineOverallImprovement(latestScore, initialScore);
+            double initialScore = sessionDetails.Any() ? sessionDetails.First().SessionScore : 0.0;
+            double latestScore = sessionDetails.Any() ? sessionDetails.Last().SessionScore : 0.0;
+            string overallImprovement = sessionDetails.Any() ? DetermineOverallImprovement(latestScore, initialScore) : "Pending";
 
             return new StudentProgressReportDetailViewModel
             {

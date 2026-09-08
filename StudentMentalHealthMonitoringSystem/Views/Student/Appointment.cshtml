@@ -223,6 +223,9 @@
                                         </label>
                                         <input asp-for="PreferredDate" id="PreferredDate" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" class="form-control rounded-3 p-3 fs-6" required onchange="validateTimeSlots()" />
                                         <span asp-validation-for="PreferredDate" class="text-danger small"></span>
+                                        <div id="weekendErrorMsg" class="alert alert-danger border-0 p-2 mt-2 small d-none">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Counseling is only available from <strong>Saturday to Wednesday</strong>. Thursday and Friday are weekends.
+                                        </div>
                                         <small class="text-muted d-block mt-1">Available counseling days: Saturday to Wednesday.</small>
                                     </div>
 
@@ -345,10 +348,25 @@
             var dateInput = document.getElementById("PreferredDate");
             var timeSelect = document.getElementById("StartTime");
             var errorMsg = document.getElementById("pastTimeErrorMsg");
+            var weekendMsg = document.getElementById("weekendErrorMsg");
             if (!dateInput || !timeSelect || !errorMsg) return;
 
             var selectedDateVal = dateInput.value;
             if (!selectedDateVal) return;
+
+            // Check if day is Thursday (4) or Friday (5)
+            // Note: date input gives yyyy-mm-dd. Create date using parts to avoid timezone shift
+            var dateParts = selectedDateVal.split('-');
+            var selectedDateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            var dayOfWeek = selectedDateObj.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+
+            if (weekendMsg) {
+                if (dayOfWeek === 4 || dayOfWeek === 5) {
+                    weekendMsg.classList.remove("d-none");
+                } else {
+                    weekendMsg.classList.add("d-none");
+                }
+            }
 
             var now = new Date();
             var todayStr = now.getFullYear() + '-' +

@@ -14,10 +14,6 @@
 
             <h3 class="mb-0">👨‍⚕️ Student Clinical Details</h3>
 
-            <button type="button" class="btn btn-danger rounded-3 px-3 py-1.5 fw-bold shadow-sm" onclick="downloadReportPdf('#psychologistStudentDetailsContent', { title: 'Psychologist_Student_Report_@(Model.Student.StudentIdNumber)', filename: 'Student_Report_@(Model.Student.StudentIdNumber)' })">
-                <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
-            </button>
-
         </div>
 
         <div class="card-body">
@@ -141,26 +137,9 @@
                 <a asp-controller="Psychologist"
                    asp-action="CounselingHistory"
                    asp-route-id="@Model.Student.StudentId"
-                   class="btn btn-info">
+                   class="btn btn-info text-white">
 
                     Counseling History
-
-                </a>
-
-                <a asp-controller="Psychologist"
-                   asp-action="Counseling"
-                   asp-route-id="@Model.Student.StudentId"
-                   class="btn btn-success">
-
-                    Start Counseling
-
-                </a>
-
-                <a asp-controller="Psychologist"
-                   asp-action="Appointment"
-                   class="btn btn-warning text-dark">
-
-                    Appointments
 
                 </a>
 

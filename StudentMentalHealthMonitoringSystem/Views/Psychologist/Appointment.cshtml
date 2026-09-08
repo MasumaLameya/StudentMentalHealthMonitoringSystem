@@ -241,6 +241,10 @@
                                     Status
                                 </th>
 
+                                <th class="py-3">
+                                    Follow-up
+                                </th>
+
                                 <th class="py-3 text-center">
                                     Action
                                 </th>
@@ -460,6 +464,55 @@
                                     </td>
 
 
+                                    <!-- ================= Follow-up ================= -->
+
+                                    <td class="py-3"
+                                        style="min-width:180px;">
+
+                                        @if (item.NextFollowUpDate.HasValue)
+                                        {
+                                            var fuDateText = item.NextFollowUpDate.Value.ToString("dd MMM yyyy");
+                                            var fuTimeText = item.NextFollowUpTime.HasValue 
+                                                ? DateTime.Today.Add(item.NextFollowUpTime.Value).ToString("h:mm tt")
+                                                : "";
+
+                                            <div class="d-flex flex-column gap-1">
+                                                <span class="badge rounded-pill px-3 py-2 text-start"
+                                                      style="background:#E8DDD2; color:#5F5146; font-size:12px;">
+                                                    <i class="bi bi-calendar-event me-1"></i>
+                                                    @fuDateText @(string.IsNullOrEmpty(fuTimeText) ? "" : $"at {fuTimeText}")
+                                                </span>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1 align-self-start"
+                                                        style="font-size: 11px;"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#cancelFollowUpModal_@item.CounselingId"
+                                                        title="Cancel active follow-up to reschedule">
+                                                    <i class="bi bi-x-circle me-1"></i> Cancel Follow-up
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @if (item.Status == "Completed" || item.Status == "Confirmed")
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm rounded-3 px-3 py-1"
+                                                        style="background:#5F5146; color:white; font-size:12px;"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#scheduleFollowUpModal_@item.CounselingId">
+                                                    <i class="bi bi-calendar-plus me-1"></i> + Follow-up
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">-</span>
+                                            }
+                                        }
+
+                                    </td>
+
+
                                     <!-- ================= Action ================= -->
 
                                     <td class="py-3 text-center"
@@ -496,6 +549,16 @@
                                                     <i class="bi bi-x-circle me-1"></i> Cancel
                                                 </button>
                                             }
+                                            else if (item.Status == "Cancelled" || item.Status == "Missed")
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-primary rounded-3 px-2"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#scheduleNextModal_@item.CounselingId"
+                                                        title="Schedule Next Appointment">
+                                                    <i class="bi bi-calendar-plus me-1"></i> Reschedule
+                                                </button>
+                                            }
                                         </div>
 
                                     </td>
@@ -509,7 +572,7 @@
 
                 </div>
 
-                <!-- Cancellation Modals for Psychologist -->
+                <!-- Cancellation Modals for Psychologist Appointment -->
                 @foreach (var item in Model)
                 {
                     bool canCancelItem = (item.Status == "Confirmed" || item.Status == "Pending") &&
@@ -530,6 +593,7 @@
                                     <form asp-controller="Psychologist" asp-action="CancelAppointment" method="post">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@item.CounselingId" />
+                                        <input type="hidden" name="returnUrl" value="/Psychologist/Appointment" />
                                         <div class="modal-body p-4">
                                             <div class="alert alert-warning border-0 rounded-3 mb-3">
                                                 <i class="bi bi-info-circle me-1"></i>
@@ -539,9 +603,35 @@
                                                 <label for="psychCancelReason_@item.CounselingId" class="form-label fw-semibold text-dark small">
                                                     Reason for Cancellation (Optional)
                                                 </label>
-                                                <textarea name="reason" id="psychCancelReason_@item.CounselingId" rows="3" class="form-control rounded-3" placeholder="Provide note or reason for cancellation..."></textarea>
+                                                <textarea name="reason" id="psychCancelReason_@item.CounselingId" rows="2" class="form-control rounded-3" placeholder="Provide note or reason for cancellation..."></textarea>
                                             </div>
-                                            <p class="small text-muted mb-0">
+
+                                            <div class="border-top pt-3 mt-3">
+                                                <h6 class="fw-bold text-dark small mb-2">
+                                                    <i class="bi bi-calendar-plus me-1 text-primary"></i> Reschedule Next Appointment Date (Optional)
+                                                </h6>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label text-dark small fw-semibold mb-1">Next Date (Sat-Wed)</label>
+                                                        <input type="date" name="nextDate" class="form-control rounded-3" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" onchange="validateSaturdayToWednesday(this)" />
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label text-dark small fw-semibold mb-1">Preferred Time Slot</label>
+                                                        <select name="nextTime" class="form-select rounded-3">
+                                                            <option value="">-- Optional Slot --</option>
+                                                            <option value="08:30:00">08:30 AM - 09:30 AM</option>
+                                                            <option value="09:35:00">09:35 AM - 10:35 AM</option>
+                                                            <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                                            <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                                            <option value="13:10:00">01:10 PM - 02:10 PM</option>
+                                                            <option value="14:15:00">02:15 PM - 03:15 PM</option>
+                                                            <option value="15:20:00">03:20 PM - 04:20 PM</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <p class="small text-muted mb-0 mt-3">
                                                 Appointments can only be cancelled before the appointment date. An email notification will be sent to the student.
                                             </p>
                                         </div>
@@ -549,6 +639,185 @@
                                             <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Keep Appointment</button>
                                             <button type="submit" class="btn btn-danger rounded-3 px-4 fw-bold">
                                                 <i class="bi bi-x-circle me-1"></i> Confirm Cancellation
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Follow-up Scheduling and Cancellation Modals -->
+                @foreach (var item in Model)
+                {
+                    <!-- Schedule Follow-Up Modal -->
+                    <div class="modal fade" id="scheduleFollowUpModal_@item.CounselingId" tabindex="-1" aria-labelledby="scheduleFollowUpModalLabel_@item.CounselingId" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content rounded-4 border-0 shadow">
+                                <div class="modal-header border-0 rounded-top-4 p-4" style="background:#5F5146; color:white;">
+                                    <h5 class="modal-title fw-bold" id="scheduleFollowUpModalLabel_@item.CounselingId">
+                                        <i class="bi bi-calendar-plus me-2"></i>Schedule Next Follow-Up
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form asp-controller="Psychologist" asp-action="ScheduleFollowUp" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="counselingId" value="@item.CounselingId" />
+                                    <div class="modal-body p-4">
+                                        <div class="alert alert-info border-0 rounded-3 mb-3" style="background:#F4EEE8; color:#5F5146;">
+                                            <div class="fw-bold mb-1">Student: @(item.Student?.FullName ?? "Student") (@(item.Student?.StudentIdNumber ?? "-"))</div>
+                                            <small class="text-muted">Parent Session Date: @item.CounselingDate.ToString("dd MMM yyyy") | Status: @item.Status</small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold text-dark small">Follow-Up Date <span class="text-danger">*</span></label>
+                                            <input type="date" 
+                                                   name="followUpDate" 
+                                                   id="followUpDate_@item.CounselingId"
+                                                   class="form-control rounded-3" 
+                                                   min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" 
+                                                   required 
+                                                   onchange="validateSaturdayToWednesday(this)" />
+                                            <div class="form-text text-muted small">
+                                                Available strictly <strong>Saturday to Wednesday</strong> (Thursday & Friday are weekend).
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold text-dark small">Follow-Up Time Slot <span class="text-danger">*</span></label>
+                                            <select name="followUpTime" class="form-select rounded-3" required>
+                                                <option value="">-- Select Time Slot --</option>
+                                                <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                                <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                                <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                                <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                                <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                                <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                                <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                                <option value="16:25:00">4:25 PM - 5:25 PM</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="p-3 rounded-3" style="background:#FAFAFA; border:1px dashed #DDD;">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-shield-check text-success me-1"></i>
+                                                Once scheduled, this follow-up cannot be overwritten directly. You can cancel it later if you need to reschedule.
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 p-4 pt-0">
+                                        <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn rounded-3 px-4 fw-bold" style="background:#806C5D; color:white;">
+                                            <i class="bi bi-check2-circle me-1"></i> Schedule Follow-Up
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancel Follow-Up Modal -->
+                    @if (item.NextFollowUpDate.HasValue)
+                    {
+                        <div class="modal fade" id="cancelFollowUpModal_@item.CounselingId" tabindex="-1" aria-labelledby="cancelFollowUpModalLabel_@item.CounselingId" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0 shadow">
+                                    <div class="modal-header border-0 bg-danger text-white rounded-top-4 p-4">
+                                        <h5 class="modal-title fw-bold" id="cancelFollowUpModalLabel_@item.CounselingId">
+                                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Cancel Follow-Up Appointment
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form asp-controller="Psychologist" asp-action="CancelFollowUp" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="counselingId" value="@item.CounselingId" />
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-warning border-0 rounded-3 mb-3">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Cancel the scheduled follow-up for <strong>@(item.Student?.FullName ?? "Student")</strong> on <strong>@item.NextFollowUpDate.Value.ToString("MMM dd, yyyy")</strong>@(item.NextFollowUpTime.HasValue ? $" at {DateTime.Today.Add(item.NextFollowUpTime.Value):h:mm tt}" : "").
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="followUpCancelReason_@item.CounselingId" class="form-label fw-semibold text-dark small">
+                                                    Reason for Cancellation (Optional)
+                                                </label>
+                                                <textarea name="reason" id="followUpCancelReason_@item.CounselingId" rows="3" class="form-control rounded-3" placeholder="Provide note or reason for cancelling follow-up..."></textarea>
+                                            </div>
+                                            <p class="small text-muted mb-0">
+                                                After cancelling, the slot will be freed and you can schedule a new follow-up anytime. An email notification will be sent to the student.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer border-0 p-4 pt-0">
+                                            <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Keep Follow-Up</button>
+                                            <button type="submit" class="btn btn-danger rounded-3 px-4 fw-bold">
+                                                <i class="bi bi-x-circle me-1"></i> Confirm Follow-Up Cancellation
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Schedule Next Appointment Modal for Cancelled and Missed Sessions -->
+                    @if (item.Status == "Cancelled" || item.Status == "Missed")
+                    {
+                        <div class="modal fade" id="scheduleNextModal_@item.CounselingId" tabindex="-1" aria-labelledby="scheduleNextModalLabel_@item.CounselingId" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content rounded-4 border-0 shadow">
+                                    <div class="modal-header border-0 rounded-top-4 p-4" style="background:#806C5D; color:white;">
+                                        <h5 class="modal-title fw-bold" id="scheduleNextModalLabel_@item.CounselingId">
+                                            <i class="bi bi-calendar-plus me-2"></i>Schedule Next Appointment
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form asp-controller="Psychologist" asp-action="ScheduleNextAppointment" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="studentId" value="@item.StudentId" />
+                                        <input type="hidden" name="previousCounselingId" value="@item.CounselingId" />
+                                        <input type="hidden" name="returnUrl" value="/Psychologist/Appointment" />
+                                        <div class="modal-body p-4">
+                                            <div class="alert alert-info border-0 rounded-3 mb-3" style="background:#F4EEE8; color:#5F5146;">
+                                                <div class="fw-bold mb-1">Student: @(item.Student?.FullName ?? "Student") (@(item.Student?.StudentIdNumber ?? "-"))</div>
+                                                <small class="text-muted">Previous session was @(item.Status == "Missed" ? "missed" : "cancelled") on @item.CounselingDate.ToString("dd MMM yyyy").</small>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold text-dark small">Next Appointment Date <span class="text-danger">*</span></label>
+                                                <input type="date" 
+                                                       name="appointmentDate" 
+                                                       class="form-control rounded-3" 
+                                                       min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" 
+                                                       required 
+                                                       onchange="validateSaturdayToWednesday(this)" />
+                                                <div class="form-text text-muted small">
+                                                    Appointments can only be scheduled from <strong>Saturday to Wednesday</strong>.
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold text-dark small">Appointment Time Slot <span class="text-danger">*</span></label>
+                                                <select name="appointmentTime" class="form-select rounded-3" required>
+                                                    <option value="">-- Select Time Slot --</option>
+                                                    <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                                                    <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                                                    <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                                    <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                                    <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                                                    <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                                                    <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold text-dark small">Room / Location (Optional)</label>
+                                                <input type="text" name="appointmentRoom" class="form-control rounded-3" placeholder="e.g. Counseling Room 302" value="@item.AppointmentRoom" />
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 p-4 pt-0">
+                                            <button type="button" class="btn btn-light rounded-3 px-4 fw-semibold" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn rounded-3 px-4 fw-bold" style="background:#806C5D; color:white;">
+                                                <i class="bi bi-calendar-check me-1"></i> Confirm Next Appointment
                                             </button>
                                         </div>
                                     </form>
@@ -600,3 +869,17 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        function validateSaturdayToWednesday(input) {
+            if (!input.value) return;
+            var selectedDate = new Date(input.value + 'T00:00:00');
+            var day = selectedDate.getDay(); // 0: Sunday, 1: Monday, 2: Tuesday, 3: Wednesday, 4: Thursday, 5: Friday, 6: Saturday
+            if (day === 4 || day === 5) { // 4: Thursday, 5: Friday
+                alert('Follow-up appointments can only be scheduled from Saturday to Wednesday (Thursday & Friday are weekend). Please select a valid working day.');
+                input.value = '';
+            }
+        }
+    </script>
+}

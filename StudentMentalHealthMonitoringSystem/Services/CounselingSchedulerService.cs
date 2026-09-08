@@ -180,6 +180,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             var psychologists =
                 await _context.Psychologists
+                    .Where(p => !p.IsSuspended)
                     .OrderBy(p =>
                         p.FullName)
                     .ToListAsync();
@@ -192,27 +193,37 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     Success = false,
                     Created = false,
                     Message =
-                        "No psychologist is available in the system."
+                        "No active psychologist is available in the system."
                 };
             }
 
 
             // =================================================
-            // Fixed Counseling Slots
+            // Fixed Counseling Slots (8 Standard Slots)
             // =================================================
             //
-            // 09:00 AM - 10:00 AM
-            // 10:00 AM - 11:00 AM
-            // 11:00 AM - 12:00 PM
+            // 08:30 AM - 09:30 AM
+            // 09:35 AM - 10:35 AM
+            // 10:40 AM - 11:40 AM
+            // 11:45 AM - 12:45 PM
+            // 01:10 PM - 02:10 PM
+            // 02:15 PM - 03:15 PM
+            // 03:20 PM - 04:20 PM
+            // 04:25 PM - 05:25 PM
             //
             // =================================================
 
             var availableStartTimes =
                 new List<TimeSpan>
                 {
-                    new TimeSpan(9, 0, 0),
-                    new TimeSpan(10, 0, 0),
-                    new TimeSpan(11, 0, 0)
+                    new TimeSpan(8, 30, 0),
+                    new TimeSpan(9, 35, 0),
+                    new TimeSpan(10, 40, 0),
+                    new TimeSpan(11, 45, 0),
+                    new TimeSpan(13, 10, 0),
+                    new TimeSpan(14, 15, 0),
+                    new TimeSpan(15, 20, 0),
+                    new TimeSpan(16, 25, 0)
                 };
 
 
@@ -233,13 +244,13 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
                 // =================================================
                 // University Working Days
-                // Monday - Friday
+                // Saturday - Wednesday (Thursday & Friday Weekend)
                 // =================================================
 
                 if (appointmentDate.DayOfWeek ==
-                        DayOfWeek.Saturday ||
+                        DayOfWeek.Thursday ||
                     appointmentDate.DayOfWeek ==
-                        DayOfWeek.Sunday)
+                        DayOfWeek.Friday)
                 {
                     continue;
                 }
@@ -1139,34 +1150,39 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             // =================================================
             // Working Day Check
-            // Monday - Friday
+            // Saturday - Wednesday (Thursday & Friday Weekend)
             // =================================================
 
             if (followUpDate.DayOfWeek ==
-                    DayOfWeek.Saturday ||
+                    DayOfWeek.Thursday ||
                 followUpDate.DayOfWeek ==
-                    DayOfWeek.Sunday)
+                    DayOfWeek.Friday)
             {
                 return new CounselingSchedulerResult
                 {
                     Success = false,
                     Created = false,
                     Message =
-                        "Follow-up appointments can only be scheduled from Monday to Friday."
+                        "Follow-up appointments can only be scheduled from Saturday to Wednesday."
                 };
             }
 
 
             // =================================================
-            // Fixed Slot Check
+            // Fixed Slot Check (8 Standard Slots)
             // =================================================
 
             var validStartTimes =
                 new List<TimeSpan>
                 {
-                    new TimeSpan(9, 0, 0),
-                    new TimeSpan(10, 0, 0),
-                    new TimeSpan(11, 0, 0)
+                    new TimeSpan(8, 30, 0),
+                    new TimeSpan(9, 35, 0),
+                    new TimeSpan(10, 40, 0),
+                    new TimeSpan(11, 45, 0),
+                    new TimeSpan(13, 10, 0),
+                    new TimeSpan(14, 15, 0),
+                    new TimeSpan(15, 20, 0),
+                    new TimeSpan(16, 25, 0)
                 };
 
 
@@ -1178,7 +1194,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
                     Success = false,
                     Created = false,
                     Message =
-                        "Please select a valid follow-up time: 9:00 AM, 10:00 AM, or 11:00 AM."
+                        "Please select a valid follow-up time slot: 8:30 AM, 9:35 AM, 10:40 AM, 11:45 AM, 1:10 PM, 2:15 PM, 3:20 PM, or 4:25 PM."
                 };
             }
 
@@ -1256,24 +1272,25 @@ namespace StudentMentalHealthMonitoringSystem.Services
             // Check Psychologist Exists
             // =================================================
 
-            var psychologistExists =
+            var psychologistActive =
                 await _context.Psychologists
                     .AnyAsync(
                         p =>
                             p.PsychologistId ==
                                 currentCounseling
-                                    .PsychologistId
+                                    .PsychologistId &&
+                            !p.IsSuspended
                     );
 
 
-            if (!psychologistExists)
+            if (!psychologistActive)
             {
                 return new CounselingSchedulerResult
                 {
                     Success = false,
                     Created = false,
                     Message =
-                        "Psychologist was not found."
+                        "The assigned psychologist is suspended or not found."
                 };
             }
 

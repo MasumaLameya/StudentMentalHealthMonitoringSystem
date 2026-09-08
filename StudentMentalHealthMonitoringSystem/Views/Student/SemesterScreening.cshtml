@@ -3,7 +3,9 @@
 
     bool phqCompleted = ViewBag.PHQCompleted == true;
     bool cssrsCompleted = ViewBag.CSSRSCompleted == true;
-    bool allCompleted = phqCompleted && cssrsCompleted;
+    bool isPHQSevere = ViewBag.IsPHQSevere == true;
+    bool isCSSRSSevere = ViewBag.IsCSSRSSevere == true;
+    bool isScreeningComplete = ViewBag.IsScreeningComplete == true;
 }
 
 <style>
@@ -116,13 +118,20 @@
                                 @if (phqCompleted)
                                 {
                                     <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                        <i class="bi bi-check-circle-fill me-1"></i>Completed (@(ViewBag.PHQSeverity ?? "Evaluated"))
                                     </span>
                                     <a href="/Student/PHQ" class="btn btn-outline-primary btn-lg w-100 rounded-3 fs-6 fw-semibold">View Result</a>
                                 }
+                                else if (isCSSRSSevere)
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
+                                        <i class="bi bi-info-circle me-1"></i>Optional (C-SSRS Safety Indicator)
+                                    </span>
+                                    <a href="/Student/PHQ" class="btn btn-outline-primary btn-lg w-100 rounded-3 fs-6 fw-semibold">Take Assessment</a>
+                                }
                                 else
                                 {
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
+                                    <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
                                         <i class="bi bi-hourglass-split me-1"></i>Pending
                                     </span>
                                     <a href="/Student/PHQ" class="btn btn-primary btn-lg w-100 rounded-3 text-white fs-6 fw-semibold">Start Assessment</a>
@@ -145,13 +154,20 @@
                                 @if (cssrsCompleted)
                                 {
                                     <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Completed
+                                        <i class="bi bi-check-circle-fill me-1"></i>Completed (@(ViewBag.CSSRSRiskLevel ?? "Evaluated"))
                                     </span>
                                     <a href="/Student/CSRRS" class="btn btn-outline-danger btn-lg w-100 rounded-3 fs-6 fw-semibold">View Result</a>
                                 }
+                                else if (isPHQSevere)
+                                {
+                                    <span class="badge bg-info-subtle text-info border border-info rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
+                                        <i class="bi bi-info-circle me-1"></i>Optional (PHQ-9 Severe Indicator)
+                                    </span>
+                                    <a href="/Student/CSRRS" class="btn btn-outline-danger btn-lg w-100 rounded-3 fs-6 fw-semibold">Take Assessment</a>
+                                }
                                 else
                                 {
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
+                                    <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-1.5 mb-3 d-block fs-6">
                                         <i class="bi bi-hourglass-split me-1"></i>Pending
                                     </span>
                                     <a href="/Student/CSRRS" class="btn btn-danger btn-lg w-100 rounded-3 text-white fs-6 fw-semibold">Start Assessment</a>
@@ -161,23 +177,23 @@
                     </div>
                 </div>
 
-                <!-- Overall Status Banner & Semester Gating Rules -->
+                <!-- Overall Status Banner -->
                 <div class="glass-card p-4 text-center mb-4">
-                    @if (phqCompleted && cssrsCompleted)
+                    @if (isScreeningComplete)
                     {
                         <div class="py-2">
                             <i class="bi bi-patch-check-fill display-5 text-success mb-2 d-block"></i>
-                            <h4 class="fw-bold text-success">Mandatory Semester Screening Completed!</h4>
-                            <p class="text-secondary fs-6 mb-0">You have completed both PHQ-9 and C-SSRS screening for @ViewBag.CurrentSemester. You are fully compliant and eligible for next semester advancement.</p>
+                            <h4 class="fw-bold text-success">Semester Mental Health Screening Evaluated!</h4>
+                            <p class="text-secondary fs-6 mb-0">Your mental health evaluation for @ViewBag.CurrentSemester is completed. Status: <strong>@(ViewBag.StatusBadgeText ?? "Compliant")</strong>.</p>
                         </div>
                     }
                     else
                     {
                         <div class="py-2">
-                            <i class="bi bi-lock-fill display-5 text-danger mb-2 d-block"></i>
-                            <h4 class="fw-bold text-danger">Screening Pending — Advancement Blocked!</h4>
+                            <i class="bi bi-exclamation-triangle-fill display-5 text-warning mb-2 d-block"></i>
+                            <h4 class="fw-bold text-dark">@(ViewBag.ScreeningWarningTitle ?? "Semester Screening Pending")</h4>
                             <p class="text-secondary fs-6 mb-0">
-                                You must fill up both <strong>PHQ-9</strong> and <strong>C-SSRS</strong> questionnaires for <strong>@ViewBag.CurrentSemester</strong>. Without completing both screenings, advancement to the next semester is blocked.
+                                @(ViewBag.ScreeningWarningReason ?? $"Please complete your remaining mental health questionnaire for {ViewBag.CurrentSemester}.")
                             </p>
                         </div>
                     }

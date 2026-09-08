@@ -92,7 +92,9 @@
 
                         <input asp-for="StudentIdNumber"
                                class="form-control rounded-3"
-                               placeholder="Enter student ID" />
+                               placeholder="Enter student ID"
+                               pattern="^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$"
+                               title="Student ID cannot start with a minus sign or be negative." />
 
                         <span asp-validation-for="StudentIdNumber"
                               class="text-danger">
@@ -173,7 +175,8 @@
 
                         <input asp-for="DateOfBirth"
                                type="date"
-                               class="form-control rounded-3" />
+                               class="form-control rounded-3"
+                               max="@DateTime.Today.ToString("yyyy-MM-dd")" />
 
                         <span asp-validation-for="DateOfBirth"
                               class="text-danger">

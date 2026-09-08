@@ -398,6 +398,21 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(student);
             }
 
+            // ================= Validate Student ID format (No negative / minus IDs) =================
+            if (string.IsNullOrWhiteSpace(student.StudentIdNumber) ||
+                student.StudentIdNumber.Trim().StartsWith("-") ||
+                (long.TryParse(student.StudentIdNumber.Trim(), out long numVal) && numVal <= 0) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(student.StudentIdNumber.Trim(), @"^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$"))
+            {
+                ModelState.AddModelError(
+                    "StudentIdNumber",
+                    "Student ID cannot start with a minus sign or be negative. Please enter a valid Student ID."
+                );
+
+                PopulateRegistrationDepartments();
+                return View(student);
+            }
+
             // ================= Duplicate Student ID =================
 
             if (_context.Students.Any(
@@ -410,6 +425,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Student ID already exists."
                 );
 
+                PopulateRegistrationDepartments();
+                return View(student);
+            }
+
+            // ================= Validate Date of Birth (No future date) =================
+            if (student.DateOfBirth.HasValue && student.DateOfBirth.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("DateOfBirth", "Date of birth cannot be in the future. Please select a valid birth date.");
                 PopulateRegistrationDepartments();
                 return View(student);
             }
@@ -870,15 +893,31 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // ================= Semester Screening Compliance =================
             var currentSemester = string.IsNullOrWhiteSpace(student.Semester) ? "Semester 1" : student.Semester;
 
-            bool hasPHQ = await _context.PHQAssessments
-                .AnyAsync(p => p.StudentId == student.StudentId && p.Semester.ToLower() == currentSemester.ToLower());
+            var phqRecord = await _context.PHQAssessments
+                .Where(p => p.StudentId == student.StudentId && p.Semester.ToLower() == currentSemester.ToLower())
+                .OrderByDescending(p => p.AssessmentDate)
+                .FirstOrDefaultAsync();
 
-            bool hasCSSRS = await _context.CSSRSAssessments
-                .AnyAsync(c => c.StudentId == student.StudentId && c.Semester.ToLower() == currentSemester.ToLower());
+            var cssrsRecord = await _context.CSSRSAssessments
+                .Where(c => c.StudentId == student.StudentId && c.Semester.ToLower() == currentSemester.ToLower())
+                .OrderByDescending(c => c.AssessmentDate)
+                .FirstOrDefaultAsync();
 
-            ViewBag.HasPHQ = hasPHQ;
-            ViewBag.HasCSSRS = hasCSSRS;
-            ViewBag.IsScreeningComplete = hasPHQ && hasCSSRS;
+            var screeningEval = Services.ScreeningComplianceService.Evaluate(
+                hasPHQ: phqRecord != null,
+                phqSeverity: phqRecord?.SeverityLevel,
+                phqScore: phqRecord?.TotalScore,
+                hasCSSRS: cssrsRecord != null,
+                cssrsRiskLevel: cssrsRecord?.RiskLevel
+            );
+
+            ViewBag.HasPHQ = phqRecord != null;
+            ViewBag.HasCSSRS = cssrsRecord != null;
+            ViewBag.ScreeningCompleted = screeningEval.IsScreeningComplete;
+            ViewBag.IsScreeningComplete = screeningEval.IsScreeningComplete;
+            ViewBag.ScreeningWarningTitle = screeningEval.WarningTitle;
+            ViewBag.ScreeningWarningReason = screeningEval.WarningReason;
+            ViewBag.ScreeningStatusBadgeText = screeningEval.StatusBadgeText;
 
             return View(
                 student
@@ -930,32 +969,39 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
-            // ================= PHQ Status =================
+            // ================= Evaluate Screening Compliance =================
+            var phqRecord = await _context.PHQAssessments
+                .Where(p => p.StudentId == student.StudentId && p.Semester.ToLower() == student.Semester.ToLower())
+                .OrderByDescending(p => p.AssessmentDate)
+                .FirstOrDefaultAsync();
 
-            ViewBag.PHQCompleted =
-                await _context.PHQAssessments
-                    .AnyAsync(
-                        p =>
-                            p.StudentId ==
-                            student.StudentId &&
-                            p.Semester ==
-                            student.Semester
-                    );
+            var cssrsRecord = await _context.CSSRSAssessments
+                .Where(c => c.StudentId == student.StudentId && c.Semester.ToLower() == student.Semester.ToLower())
+                .OrderByDescending(c => c.AssessmentDate)
+                .FirstOrDefaultAsync();
 
-            // ================= C-SSRS Status =================
+            var screeningEval = Services.ScreeningComplianceService.Evaluate(
+                hasPHQ: phqRecord != null,
+                phqSeverity: phqRecord?.SeverityLevel,
+                phqScore: phqRecord?.TotalScore,
+                hasCSSRS: cssrsRecord != null,
+                cssrsRiskLevel: cssrsRecord?.RiskLevel
+            );
 
-            ViewBag.CSSRSCompleted =
-                await _context.CSSRSAssessments
-                    .AnyAsync(
-                        c =>
-                            c.StudentId ==
-                            student.StudentId &&
-                            c.Semester ==
-                            student.Semester
-                    );
+            ViewBag.PHQCompleted = phqRecord != null;
+            ViewBag.PHQSeverity = phqRecord?.SeverityLevel;
+            ViewBag.PHQScore = phqRecord?.TotalScore;
+            ViewBag.IsPHQSevere = screeningEval.IsPHQSevere;
 
-            ViewBag.CurrentSemester =
-                student.Semester;
+            ViewBag.CSSRSCompleted = cssrsRecord != null;
+            ViewBag.CSSRSRiskLevel = cssrsRecord?.RiskLevel;
+            ViewBag.IsCSSRSSevere = screeningEval.IsCSSRSSevere;
+
+            ViewBag.IsScreeningComplete = screeningEval.IsScreeningComplete;
+            ViewBag.ScreeningWarningTitle = screeningEval.WarningTitle;
+            ViewBag.ScreeningWarningReason = screeningEval.WarningReason;
+            ViewBag.StatusBadgeText = screeningEval.StatusBadgeText;
+            ViewBag.CurrentSemester = student.Semester;
 
             return View();
         }
@@ -2741,10 +2787,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
 
-            // ================= Get Psychologists =================
+            // ================= Get Psychologists (Only Active / Non-Suspended) =================
 
             var psychologists =
                 await _context.Psychologists
+                    .Where(p => !p.IsSuspended)
                     .ToListAsync();
 
 
@@ -2752,7 +2799,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 ModelState.AddModelError(
                     "",
-                    "No psychologist account is currently available."
+                    "No active psychologist is currently available."
                 );
 
                 return View(
@@ -3408,14 +3455,22 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 .OrderByDescending(c => c.AssessmentDate)
                 .FirstOrDefaultAsync();
 
-            bool isCleared = phq != null && cssrs != null;
+            var screeningEval = Services.ScreeningComplianceService.Evaluate(
+                hasPHQ: phq != null,
+                phqSeverity: phq?.SeverityLevel,
+                phqScore: phq?.TotalScore,
+                hasCSSRS: cssrs != null,
+                cssrsRiskLevel: cssrs?.RiskLevel
+            );
+
+            bool isCleared = screeningEval.IsScreeningComplete;
             string remarks = isCleared
-                ? "All mandatory screening evaluations for this semester have been completed. Your academic course registration and semester promotion hold is removed."
-                : (phq == null && cssrs == null
-                    ? "Pending completion of both PHQ-9 and C-SSRS assessments. Please complete both screening modules to clear registration holds."
-                    : (phq == null
-                        ? "Pending completion of PHQ-9 depression screening assessment."
-                        : "Pending completion of C-SSRS suicide risk screening assessment."));
+                ? (phq != null && cssrs != null
+                    ? "All mandatory screening evaluations for this semester have been completed. Your screening record is fully compliant."
+                    : (screeningEval.IsPHQSevere
+                        ? "PHQ-9 screening evaluated with clinical severity indicator. Case is forwarded for clinical counseling care."
+                        : "C-SSRS screening evaluated with clinical safety indicator. Case is forwarded for clinical counseling care."))
+                : screeningEval.WarningReason;
 
             var model = new StudentScreeningClearanceViewModel
             {
@@ -3729,6 +3784,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 }
             }
 
+            // Validate Date of Birth (No future date)
+            if (model.DateOfBirth.HasValue && model.DateOfBirth.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError("DateOfBirth", "Date of birth cannot be in the future. Please select a valid birth date.");
+            }
+
             // Password update handling
             if (!string.IsNullOrWhiteSpace(model.NewPassword))
             {
@@ -3816,15 +3877,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(model);
             }
 
-            // Update all student properties
+            // Update editable student properties (Department, AdmissionYear and Semester cannot be modified by the student)
             student.FullName = model.FullName.Trim();
             student.Email = model.Email.Trim();
             student.Phone = model.Phone.Trim();
             student.DateOfBirth = model.DateOfBirth;
             student.Gender = model.Gender;
-            student.Department = model.Department;
-            student.AdmissionYear = model.AdmissionYear;
-            // Running semester is system-managed and cannot be manually modified by the student
+            // Department, AdmissionYear and Semester are locked for students and strictly preserved from existing records
             student.Semester = student.ActiveSemester;
             student.Height = model.Height;
             student.Weight = model.Weight;

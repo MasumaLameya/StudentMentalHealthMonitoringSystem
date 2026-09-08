@@ -119,21 +119,39 @@
                                 <!-- ================= Status ================= -->
 
                                 <td>
-
+                                    @{
+                                        bool isPast = item.CounselingDate.Date < DateTime.Today || 
+                                                      (item.CounselingDate.Date == DateTime.Today && 
+                                                       (item.AppointmentEndTime != default ? item.AppointmentEndTime < DateTime.Now.TimeOfDay : item.AppointmentTime < DateTime.Now.TimeOfDay));
+                                    }
                                     @if (item.Status == "Completed")
                                     {
                                         <span class="badge bg-success">
-
                                             Completed
-
+                                        </span>
+                                    }
+                                    else if (item.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger">
+                                            Cancelled
+                                        </span>
+                                    }
+                                    else if (item.Status == "Missed" || isPast)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Missed
+                                        </span>
+                                    }
+                                    else if (item.Status == "Confirmed")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Confirmed
                                         </span>
                                     }
                                     else
                                     {
                                         <span class="badge bg-warning text-dark">
-
-                                            Pending
-
+                                            @item.Status
                                         </span>
                                     }
 

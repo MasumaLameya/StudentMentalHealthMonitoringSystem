@@ -16,8 +16,9 @@ namespace StudentMentalHealthMonitoringSystem.Models
 
         // ================= Student Information =================
 
-        [Required]
+        [Required(ErrorMessage = "Student ID is required.")]
         [Display(Name = "Student ID")]
+        [RegularExpression(@"^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$", ErrorMessage = "Student ID cannot start with a minus sign or be negative. Please enter a valid Student ID.")]
         public string StudentIdNumber { get; set; } =
             string.Empty;
 

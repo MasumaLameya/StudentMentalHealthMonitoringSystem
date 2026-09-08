@@ -65,10 +65,6 @@
 
 
                 <div class="d-flex gap-2 flex-wrap align-items-center">
-                    <button type="button" class="btn btn-danger rounded-3 px-3 shadow-sm fw-bold" onclick="downloadReportPdf('#psychologistCounselingDetailsContent', { title: 'Counseling_Session_@(counseling?.CounselingId)', filename: 'Counseling_Session_@(counseling?.CounselingId)' })">
-                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
-                    </button>
-
                     <a asp-controller="Psychologist"
                        asp-action="StudentProgressDetails"
                        asp-route-id="@(counseling?.StudentId ?? 0)"
@@ -397,105 +393,6 @@
 
                     <div class="card-body p-4">
 
-                        <div class="mb-4">
-
-                            <label class="form-label fw-semibold d-block">
-
-                                Follow-up Required?
-
-                            </label>
-
-
-                            <div class="form-check form-check-inline">
-
-                                <input class="form-check-input"
-                                       type="radio"
-                                       asp-for="FollowUpRequired"
-                                       value="true"
-                                       id="followUpYes" />
-
-                                <label class="form-check-label"
-                                       for="followUpYes">
-
-                                    Yes
-
-                                </label>
-
-                            </div>
-
-
-                            <div class="form-check form-check-inline">
-
-                                <input class="form-check-input"
-                                       type="radio"
-                                       asp-for="FollowUpRequired"
-                                       value="false"
-                                       id="followUpNo" />
-
-                                <label class="form-check-label"
-                                       for="followUpNo">
-
-                                    No
-
-                                </label>
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="mb-3">
-
-                            <label asp-for="NextFollowUpDate"
-                                   class="form-label fw-semibold">
-
-                                Next Follow-up Date
-
-                            </label>
-
-                            <input asp-for="NextFollowUpDate"
-                                   type="date"
-                                   class="form-control rounded-3"
-                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
-
-                            <span asp-validation-for="NextFollowUpDate"
-                                  class="text-danger">
-                            </span>
-
-                        </div>
-
-
-                        <div class="mb-3">
-
-                            <label asp-for="NextFollowUpTime"
-                                   class="form-label fw-semibold">
-
-                                Next Follow-up Time
-
-                            </label>
-
-                            <select asp-for="NextFollowUpTime"
-                                    class="form-select rounded-3">
-
-                                <option value="">Select Follow-up Time</option>
-                                <option value="08:30:00">8:30 AM - 9:30 AM</option>
-                                <option value="09:35:00">9:35 AM - 10:35 AM</option>
-                                <option value="10:40:00">10:40 AM - 11:40 AM</option>
-                                <option value="11:45:00">11:45 AM - 12:45 PM</option>
-                                <option value="13:10:00">1:10 PM - 2:10 PM</option>
-                                <option value="14:15:00">2:15 PM - 3:15 PM</option>
-                                <option value="15:20:00">3:20 PM - 4:20 PM</option>
-                                <option value="16:25:00">4:25 PM - 5:25 PM</option>
-
-                            </select>
-
-                            <span asp-validation-for="NextFollowUpTime"
-                                  class="text-danger">
-                            </span>
-
-                        </div>
-
-
                         <div class="mb-0">
 
                             <label asp-for="AppointmentRoom"
@@ -522,6 +419,80 @@
             <!-- Right Side -->
             <!-- ===================================================== -->
 
+            @if (counseling?.Status == "Cancelled" || counseling?.Status == "Missed")
+            {
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm rounded-4 border-start border-4 @(counseling?.Status == "Missed" ? "border-warning" : "border-danger") mb-4" style="background:@(counseling?.Status == "Missed" ? "#FFFBEB" : "#FFF5F5");">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="p-3 @(counseling?.Status == "Missed" ? "bg-warning text-dark" : "bg-danger text-white") rounded-circle shadow-sm">
+                                    <i class="bi @(counseling?.Status == "Missed" ? "bi-clock-history" : "bi-x-circle-fill") fs-3"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold @(counseling?.Status == "Missed" ? "text-warning text-dark" : "text-danger") mb-1">
+                                        @(counseling?.Status == "Missed" ? "Appointment Missed" : "Appointment Cancelled")
+                                    </h5>
+                                    <p class="text-muted mb-0">
+                                        @(counseling?.Status == "Missed"
+                                            ? "Clinical notes and observations cannot be submitted for a missed appointment because the scheduled time has passed without the session taking place. You can schedule the next appointment date below."
+                                            : "Clinical notes and observations cannot be submitted for a cancelled counseling session. You can schedule the next appointment date below.")
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Next Appointment Card -->
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header border-0 py-3" style="background:#E8DDD2;">
+                            <h5 class="mb-0 fw-bold" style="color:#5F5146;">
+                                <i class="bi bi-calendar-plus me-2"></i> Schedule Next Appointment
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="text-muted small mb-4">
+                                Schedule a new counseling session for <strong>@(counseling?.Student?.FullName ?? "this student")</strong>.
+                                Sessions can be scheduled from <strong>Saturday to Wednesday</strong>.
+                            </p>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-dark small">Next Appointment Date *</label>
+                                    <input type="date" name="appointmentDate" id="cancelledNextDateInput" class="form-control rounded-3" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" onchange="validateSatToWedDate(this)" />
+                                    <small class="text-muted">Saturday to Wednesday only</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-dark small">Preferred Time Slot *</label>
+                                    <select name="appointmentTime" id="cancelledNextTimeInput" class="form-select rounded-3">
+                                        <option value="" disabled selected>-- Select Time Slot --</option>
+                                        <option value="08:30:00">08:30 AM - 09:30 AM</option>
+                                        <option value="09:35:00">09:35 AM - 10:35 AM</option>
+                                        <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                        <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                        <option value="13:10:00">01:10 PM - 02:10 PM</option>
+                                        <option value="14:15:00">02:15 PM - 03:15 PM</option>
+                                        <option value="15:20:00">03:20 PM - 04:20 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-dark small">Counseling Room</label>
+                                <input type="text" name="appointmentRoom" id="cancelledNextRoomInput" class="form-control rounded-3" value="@(counseling?.AppointmentRoom ?? "Mental Health & Counseling Center, Room 402")" placeholder="Room 402" />
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a asp-controller="Psychologist" asp-action="Appointment" class="btn btn-light rounded-3 px-4">Back</a>
+                                <button type="button" class="btn rounded-3 px-4 fw-bold shadow-sm" style="background:#006837; color:white;" onclick="submitRescheduleForm()">
+                                    <i class="bi bi-calendar-check me-1"></i> Confirm Next Appointment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
             <div class="col-lg-7">
 
                 <div class="card border-0 shadow-sm rounded-4">
@@ -1024,14 +995,8 @@
                                style="color:#A67C52;">
                             </i>
 
-                            Every completed counseling session stores
-                            its own Observation.
-
-                            If another session is required, use
-                            <strong>Complete &amp; Add Follow-up</strong>.
-
-                            If counseling is complete, use
-                            <strong>No Follow-up Needed</strong>.
+                            Every completed counseling session stores its own clinical observation &amp; progress score.
+                            Follow-up sessions can be scheduled or cancelled anytime directly from the <strong>Appointments</strong> page.
 
                         </div>
 
@@ -1064,36 +1029,24 @@
                                 </button>
                             }
 
-                            <button type="submit"
-                                    name="completionType"
-                                    value="WithoutFollowUp"
-                                    onclick="document.getElementById('followUpNo').checked = true;"
-                                    class="btn rounded-3 px-4"
-                                    style="
-                                background:#8A7563;
-                                color:white;">
-
-                                <i class="bi bi-check-circle me-1"></i>
-
-                                No Follow-up Needed
-
-                            </button>
-
-
-                            <button type="submit"
-                                    name="completionType"
-                                    value="WithFollowUp"
-                                    onclick="document.getElementById('followUpYes').checked = true;"
-                                    class="btn rounded-3 px-4"
-                                    style="
-                                background:#A67C52;
-                                color:white;">
-
-                                <i class="bi bi-calendar-plus me-1"></i>
-
-                                Complete &amp; Add Follow-up
-
-                            </button>
+                            @if (counseling?.Status == "Completed")
+                            {
+                                <button type="submit"
+                                        class="btn rounded-3 px-4 fw-bold shadow-sm"
+                                        style="background:#006837; color:white;">
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    Update Clinical Notes
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit"
+                                        class="btn rounded-3 px-4 fw-bold shadow-sm"
+                                        style="background:#006837; color:white;">
+                                    <i class="bi bi-check2-circle me-1"></i>
+                                    Save &amp; Complete Observation
+                                </button>
+                            }
 
                         </div>
 
@@ -1102,9 +1055,20 @@
                 </div>
 
             </div>
+            }
 
         </div>
 
+    </form>
+
+    <form id="directRescheduleForm" asp-controller="Psychologist" asp-action="ScheduleNextAppointment" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="studentId" value="@(counseling?.StudentId ?? 0)" />
+        <input type="hidden" name="previousCounselingId" value="@(counseling?.CounselingId ?? 0)" />
+        <input type="hidden" name="returnUrl" value="/Psychologist/Appointment" />
+        <input type="hidden" name="appointmentDate" id="hiddenRescheduleDate" />
+        <input type="hidden" name="appointmentTime" id="hiddenRescheduleTime" />
+        <input type="hidden" name="appointmentRoom" id="hiddenRescheduleRoom" />
     </form>
 
     @if (ViewBag.CanCancel == true && counseling != null)
@@ -1121,6 +1085,7 @@
                     <form asp-controller="Psychologist" asp-action="CancelAppointment" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@counseling.CounselingId" />
+                        <input type="hidden" name="returnUrl" value="/Psychologist/Appointment" />
                         <div class="modal-body p-4">
                             <div class="alert alert-warning border-0 rounded-3 mb-3">
                                 <i class="bi bi-info-circle me-1"></i>
@@ -1130,9 +1095,35 @@
                                 <label for="psychCancelDetailsReason" class="form-label fw-semibold text-dark small">
                                     Reason for Cancellation (Optional)
                                 </label>
-                                <textarea name="reason" id="psychCancelDetailsReason" rows="3" class="form-control rounded-3" placeholder="Provide note or reason for cancellation..."></textarea>
+                                <textarea name="reason" id="psychCancelDetailsReason" rows="2" class="form-control rounded-3" placeholder="Provide note or reason for cancellation..."></textarea>
                             </div>
-                            <p class="small text-muted mb-0">
+
+                            <div class="border-top pt-3 mt-3">
+                                <h6 class="fw-bold text-dark small mb-2">
+                                    <i class="bi bi-calendar-plus me-1 text-primary"></i> Reschedule Next Appointment Date (Optional)
+                                </h6>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-dark small fw-semibold mb-1">Next Date (Sat-Wed)</label>
+                                        <input type="date" name="nextDate" class="form-control rounded-3" min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" onchange="validateSatToWedDate(this)" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-dark small fw-semibold mb-1">Preferred Time Slot</label>
+                                        <select name="nextTime" class="form-select rounded-3">
+                                            <option value="">-- Optional Slot --</option>
+                                            <option value="08:30:00">08:30 AM - 09:30 AM</option>
+                                            <option value="09:35:00">09:35 AM - 10:35 AM</option>
+                                            <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                                            <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                                            <option value="13:10:00">01:10 PM - 02:10 PM</option>
+                                            <option value="14:15:00">02:15 PM - 03:15 PM</option>
+                                            <option value="15:20:00">03:20 PM - 04:20 PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="small text-muted mb-0 mt-3">
                                 Appointments can only be cancelled before the appointment date. An email notification will be sent to the student.
                             </p>
                         </div>
@@ -1148,12 +1139,40 @@
         </div>
     }
 
-    </div>
-
 </div>
-
 
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function validateSatToWedDate(input) {
+            if (!input.value) return;
+            var d = new Date(input.value + "T00:00:00");
+            var day = d.getDay(); // 0 = Sun, 1 = Mon, 2 = Tue, 3 = Wed, 4 = Thu, 5 = Fri, 6 = Sat
+            if (day === 4 || day === 5) { // Thursday or Friday
+                alert("Counseling appointments can only be scheduled from Saturday to Wednesday.");
+                input.value = "";
+            }
+        }
+
+        function submitRescheduleForm() {
+            var d = document.getElementById("cancelledNextDateInput")?.value;
+            var t = document.getElementById("cancelledNextTimeInput")?.value;
+            var r = document.getElementById("cancelledNextRoomInput")?.value;
+
+            if (!d) {
+                alert("Please select a date for the next appointment.");
+                return;
+            }
+            if (!t) {
+                alert("Please select a time slot for the next appointment.");
+                return;
+            }
+
+            document.getElementById("hiddenRescheduleDate").value = d;
+            document.getElementById("hiddenRescheduleTime").value = t;
+            document.getElementById("hiddenRescheduleRoom").value = r;
+            document.getElementById("directRescheduleForm").submit();
+        }
+    </script>
 }

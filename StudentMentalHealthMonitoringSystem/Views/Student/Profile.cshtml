@@ -221,21 +221,25 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label asp-for="Department" class="form-label fw-bold small text-secondary">Academic Department</label>
-                                        <select asp-for="Department" class="form-select">
-                                            <option value="">-- Select Department --</option>
-                                            <option value="CSE">CSE</option>
-                                            <option value="EEE">EEE</option>
-                                            <option value="Mechanical">Mechanical</option>
-                                            <option value="Civil">Civil</option>
-                                            <option value="BBA">BBA</option>
-                                            <option value="BATHM">BATHM</option>
-                                        </select>
+                                        <label asp-for="Department" class="form-label fw-bold small text-secondary">
+                                            Academic Department <span class="badge bg-secondary-subtle text-secondary ms-1"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="Department" class="form-control bg-light text-muted" readonly tabindex="-1" style="cursor: not-allowed;" />
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock-fill"></i></span>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i>Department is managed by administration and cannot be edited.</small>
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label asp-for="AdmissionYear" class="form-label fw-bold small text-secondary">Admission / Batch Year</label>
-                                        <input asp-for="AdmissionYear" type="number" class="form-control" placeholder="e.g. 2023" min="2000" max="2035" />
+                                        <label asp-for="AdmissionYear" class="form-label fw-bold small text-secondary">
+                                            Admission / Batch Year <span class="badge bg-secondary-subtle text-secondary ms-1"><i class="bi bi-lock-fill me-1"></i>Locked</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="AdmissionYear" class="form-control bg-light text-muted" readonly tabindex="-1" style="cursor: not-allowed;" />
+                                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock-fill"></i></span>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i>Admission year cannot be changed from profile.</small>
                                     </div>
 
                                     <div class="col-md-6">
@@ -251,7 +255,7 @@
 
                                     <div class="col-md-6">
                                         <label asp-for="DateOfBirth" class="form-label fw-bold small text-secondary">Date of Birth</label>
-                                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                        <input asp-for="DateOfBirth" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
                                     </div>
 
                                     <div class="col-md-6">

@@ -30,7 +30,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="StudentIdNumber" class="fw-bold text-dark fs-6 mb-1"></label>
-                        <input asp-for="StudentIdNumber" class="form-control fs-6" placeholder="e.g. 2024001" />
+                        <input asp-for="StudentIdNumber" class="form-control fs-6" placeholder="e.g. 2024001" pattern="^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$" title="Student ID cannot start with a minus sign or be negative." />
                         <span asp-validation-for="StudentIdNumber" class="text-danger"></span>
                     </div>
 
@@ -60,7 +60,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label asp-for="DateOfBirth" class="fw-bold text-dark fs-6 mb-1"></label>
-                        <input asp-for="DateOfBirth" type="date" class="form-control fs-6" />
+                        <input asp-for="DateOfBirth" type="date" class="form-control fs-6" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
                         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                     </div>
 
@@ -180,23 +180,7 @@
 
                 </div>
 
-                <hr class="my-4">
 
-                <h4 class="fw-bold mb-3" style="color: #004D25;"><i class="bi bi-cash-stack me-2" style="color: #006837;"></i>Financial Condition</h4>
-
-                <div class="mb-3">
-
-                    <select asp-for="FinancialCondition" class="form-select fs-6">
-                        <option value="">-- Select Financial Condition --</option>
-                        <option>Excellent</option>
-                        <option>Good</option>
-                        <option>Average</option>
-                        <option>Poor</option>
-                    </select>
-
-                    <span asp-validation-for="FinancialCondition" class="text-danger"></span>
-
-                </div>
 
                 <hr class="my-4">
 

@@ -77,12 +77,12 @@
         <div class="col-md-3">
             <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
                 <div class="d-flex align-items-center">
-                    <div class="rounded-circle p-3 me-3" style="background:#F8D7DA; color:#842029;">
-                        <i class="bi bi-lock-fill fs-3"></i>
+                    <div class="rounded-circle p-3 me-3" style="background:#FFF3CD; color:#664D03;">
+                        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
                     </div>
                     <div>
-                        <div class="text-muted small fw-semibold">Promotion Blocked (Incomplete)</div>
-                        <h3 class="fw-bold mb-0 text-danger">@Model.NonCompliantStudents</h3>
+                        <div class="text-muted small fw-semibold">Pending Screening (Warning)</div>
+                        <h3 class="fw-bold mb-0 text-warning">@Model.NonCompliantStudents</h3>
                     </div>
                 </div>
             </div>
@@ -111,7 +111,7 @@
                     @Html.AntiForgeryToken()
                     <div class="modal-body p-4">
                         <p class="text-secondary small">
-                            Closing the current 4-month term will advance all compliant students who finished PHQ-9 & C-SSRS screenings.
+                            Closing the current term will advance compliant students who finished mandatory screenings or have severe evaluations on record.
                         </p>
                         
                         <div class="mb-3">
@@ -121,7 +121,7 @@
 
                         <div class="alert alert-warning border-0 rounded-3 p-3 small mb-0">
                             <i class="bi bi-info-circle-fill me-1"></i>
-                            <strong>Note:</strong> @Model.NonCompliantStudents student(s) with pending screenings will NOT be promoted and will receive a warning reminder.
+                            <strong>Note:</strong> @Model.NonCompliantStudents student(s) with pending assessments will receive active reminder warnings on their dashboards.
                         </div>
                     </div>
                     <div class="modal-footer border-0 p-4 pt-0">
@@ -135,13 +135,13 @@
         </div>
     </div>
 
-    <!-- ================= Non-Compliant Blocked Students Table ================= -->
+    <!-- ================= Non-Compliant Pending Students Table ================= -->
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
             <h5 class="fw-bold mb-0" style="color:#002147;">
-                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Students Blocked From Advancement
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Students With Active Screening Warnings
             </h5>
-            <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 fw-semibold">@Model.BlockedStudents.Count Pending</span>
+            <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 fw-semibold">@Model.BlockedStudents.Count Pending</span>
         </div>
 
         <div class="table-responsive">
@@ -153,7 +153,7 @@
                         <th>Current Semester</th>
                         <th>PHQ-9 Status</th>
                         <th>C-SSRS Status</th>
-                        <th>Advancement Action Required</th>
+                        <th>Warning / Action Required</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -193,8 +193,8 @@
                                     }
                                 </td>
                                 <td>
-                                    <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-1.5 fw-semibold">
-                                        <i class="bi bi-lock-fill me-1"></i>Must Complete Screening
+                                    <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-3 py-1.5 fw-semibold">
+                                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Pending Screening Reminder
                                     </span>
                                 </td>
                             </tr>

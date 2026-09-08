@@ -88,10 +88,10 @@
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6">
-            <div class="metric-card-admin p-3 text-center h-100 border-danger-subtle" style="background:#FEF2F2;">
-                <small class="text-danger text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Registration Locked / Blocked</small>
-                <h3 class="fw-bold mb-0 text-danger">@Model.TotalBlockedStudents</h3>
-                <small class="text-danger-emphasis">Non-Compliant Students</small>
+            <div class="metric-card-admin p-3 text-center h-100 border-warning-subtle" style="background:#FFFBEB;">
+                <small class="text-warning text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Screening Warning Active</small>
+                <h3 class="fw-bold mb-0 text-warning">@Model.TotalBlockedStudents</h3>
+                <small class="text-muted">Pending Assessment</small>
             </div>
         </div>
 
@@ -136,7 +136,7 @@
                             </div>
                             <div class="d-flex justify-content-between text-muted small">
                                 <span><i class="bi bi-check-circle text-success me-1"></i> @dept.ClearedStudents Cleared</span>
-                                <span><i class="bi bi-slash-circle text-danger me-1"></i> @dept.BlockedStudents Blocked</span>
+                                <span><i class="bi bi-exclamation-triangle text-warning me-1"></i> @dept.BlockedStudents Warning</span>
                             </div>
                         </div>
                     </div>
@@ -145,14 +145,14 @@
         </div>
     </div>
 
-    <!-- ================= Filter Toolbar ================= -->
+    <!-- ================= Student Filter Bar ================= -->
     <div class="glass-card-admin mb-4">
         <div class="card-body p-3">
             <form method="get" asp-controller="Admin" asp-action="AcademicAdministrationReport" class="row g-2 align-items-center">
                 <div class="col-md-3 col-sm-6">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Search student name, ID..." />
+                        <input type="text" name="searchTerm" class="form-control" placeholder="Search by name, ID..." value="@Model.SearchTerm" />
                     </div>
                 </div>
 
@@ -170,7 +170,7 @@
                     <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="All" selected="@(Model.SelectedStatus == "All")">All Registration Statuses</option>
                         <option value="Cleared" selected="@(Model.SelectedStatus == "Cleared")">Cleared for Registration</option>
-                        <option value="Blocked" selected="@(Model.SelectedStatus == "Blocked")">Registration Blocked</option>
+                        <option value="Blocked" selected="@(Model.SelectedStatus == "Blocked" || Model.SelectedStatus == "Warning")">Screening Warning Active</option>
                     </select>
                 </div>
 
@@ -250,8 +250,8 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-2.5 py-1">
-                                                <i class="bi bi-x-circle-fill me-1"></i> Pending
+                                            <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-hourglass-split me-1"></i> Pending
                                             </span>
                                         }
                                     </td>
@@ -265,8 +265,8 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-2.5 py-1">
-                                                <i class="bi bi-x-circle-fill me-1"></i> Pending
+                                            <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-2.5 py-1">
+                                                <i class="bi bi-hourglass-split me-1"></i> Pending
                                             </span>
                                         }
                                     </td>
@@ -280,8 +280,8 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 shadow-sm">
-                                                <i class="bi bi-lock-fill me-1"></i> Blocked
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 shadow-sm">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Warning Active
                                             </span>
                                         }
                                     </td>

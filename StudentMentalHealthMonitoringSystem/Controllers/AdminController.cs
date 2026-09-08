@@ -84,7 +84,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         // ================= Dashboard =================
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             // Get Logged-in Admin Id from Session
             var adminId = HttpContext.Session.GetInt32("AdminId");
@@ -94,6 +94,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 return RedirectToAction("Login");
             }
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // Get Admin Information
             var admin = _context.Admins
@@ -124,7 +126,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 TotalCounselingSessions = _context.Counselings.Count(),
 
                 PendingCounselingSessions = _context.Counselings
-                    .Count(c => c.Status == "Pending")
+                    .Count(c => c.Status == "Pending" || c.Status == "Confirmed")
             };
 
             return View(model);
@@ -205,6 +207,31 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             if (!ModelState.IsValid)
             {
+                return View(student);
+            }
+
+            // ================= Validate Student ID format (No negative / minus IDs) =================
+            if (string.IsNullOrWhiteSpace(student.StudentIdNumber) ||
+                student.StudentIdNumber.Trim().StartsWith("-") ||
+                (long.TryParse(student.StudentIdNumber.Trim(), out long numVal) && numVal <= 0) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(student.StudentIdNumber.Trim(), @"^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$"))
+            {
+                ModelState.AddModelError(
+                    "StudentIdNumber",
+                    "Student ID cannot start with a minus sign or be negative. Please enter a valid Student ID."
+                );
+
+                return View(student);
+            }
+
+            // ================= Validate Date of Birth (No future date) =================
+            if (student.DateOfBirth.HasValue && student.DateOfBirth.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    "DateOfBirth",
+                    "Date of birth cannot be in the future. Please select a valid birth date."
+                );
+
                 return View(student);
             }
 
@@ -429,7 +456,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditStudent(Student student)
+        public async Task<IActionResult> EditStudent(Student student, string? newPassword, string? confirmPassword)
         {
             // Check Admin Session
             var adminId = HttpContext.Session.GetInt32("AdminId");
@@ -439,13 +466,38 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Password and ImageFile are not edited from this form
+            // Password and ImageFile are not edited directly from model binding
             ModelState.Remove("Password");
             ModelState.Remove("ImageFile");
 
             // Check Validation
             if (!ModelState.IsValid)
             {
+                return View(student);
+            }
+
+            // ================= Validate Student ID format (No negative / minus IDs) =================
+            if (string.IsNullOrWhiteSpace(student.StudentIdNumber) ||
+                student.StudentIdNumber.Trim().StartsWith("-") ||
+                (long.TryParse(student.StudentIdNumber.Trim(), out long numVal) && numVal <= 0) ||
+                !System.Text.RegularExpressions.Regex.IsMatch(student.StudentIdNumber.Trim(), @"^[a-zA-Z0-9][a-zA-Z0-9_\-\./]*$"))
+            {
+                ModelState.AddModelError(
+                    "StudentIdNumber",
+                    "Student ID cannot start with a minus sign or be negative. Please enter a valid Student ID."
+                );
+
+                return View(student);
+            }
+
+            // ================= Validate Date of Birth (No future date) =================
+            if (student.DateOfBirth.HasValue && student.DateOfBirth.Value.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(
+                    "DateOfBirth",
+                    "Date of birth cannot be in the future. Please select a valid birth date."
+                );
+
                 return View(student);
             }
 
@@ -457,6 +509,21 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (existingStudent == null)
             {
                 return NotFound();
+            }
+
+            // ================= Duplicate Student ID Check =================
+            bool studentIdExists = _context.Students.Any(s =>
+                s.StudentIdNumber == student.StudentIdNumber &&
+                s.StudentId != student.StudentId);
+
+            if (studentIdExists)
+            {
+                ModelState.AddModelError(
+                    "StudentIdNumber",
+                    "This Student ID is already used by another student."
+                );
+
+                return View(student);
             }
 
             // ================= Duplicate Email Check =================
@@ -473,6 +540,30 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
 
                 return View(student);
+            }
+
+            // ================= Optional Password Update =================
+            if (!string.IsNullOrWhiteSpace(newPassword))
+            {
+                if (newPassword.Length < 8)
+                {
+                    ModelState.AddModelError("Password", "Password must be at least 8 characters long.");
+                    return View(student);
+                }
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+                {
+                    ModelState.AddModelError("Password", "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
+                    return View(student);
+                }
+
+                if (newPassword != confirmPassword)
+                {
+                    ModelState.AddModelError("Password", "New password and confirmation password do not match.");
+                    return View(student);
+                }
+
+                existingStudent.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             }
 
             // ================= Update Student Information =================
@@ -594,6 +685,59 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     id = existingStudent.StudentId
                 }
             );
+        }
+
+        // ================= Change Student Password (Admin) =================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeStudentPassword(int studentId, string newPassword, string confirmPassword, string? returnUrl)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            if (adminId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FindAsync(studentId);
+            if (student == null)
+            {
+                TempData["Error"] = "Student not found.";
+                return RedirectToAction("Students");
+            }
+
+            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
+            {
+                TempData["Error"] = "Password must be at least 8 characters long.";
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+                return RedirectToAction("StudentDetails", new { id = studentId });
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(newPassword, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$"))
+            {
+                TempData["Error"] = "Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.";
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+                return RedirectToAction("StudentDetails", new { id = studentId });
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["Error"] = "Passwords do not match.";
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
+                return RedirectToAction("StudentDetails", new { id = studentId });
+            }
+
+            student.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Password for student '{student.FullName}' (ID: {student.StudentIdNumber}) has been updated successfully.";
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("StudentDetails", new { id = studentId });
         }
 
         // ================= Delete Student =================
@@ -2250,10 +2394,18 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 var sem = string.IsNullOrWhiteSpace(student.Semester) ? "Semester 1" : student.Semester;
 
-                bool hasPHQ = phqList.Any(p => p.StudentId == student.StudentId && p.Semester.ToLower() == sem.ToLower());
-                bool hasCSSRS = cssrsList.Any(c => c.StudentId == student.StudentId && c.Semester.ToLower() == sem.ToLower());
+                var phq = phqList.Where(p => p.StudentId == student.StudentId && p.Semester.ToLower() == sem.ToLower()).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
+                var cssrs = cssrsList.Where(c => c.StudentId == student.StudentId && c.Semester.ToLower() == sem.ToLower()).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
 
-                if (hasPHQ && hasCSSRS)
+                var eval = Services.ScreeningComplianceService.Evaluate(
+                    hasPHQ: phq != null,
+                    phqSeverity: phq?.SeverityLevel,
+                    phqScore: phq?.TotalScore,
+                    hasCSSRS: cssrs != null,
+                    cssrsRiskLevel: cssrs?.RiskLevel
+                );
+
+                if (eval.IsScreeningComplete)
                 {
                     compliantCount++;
                 }
@@ -2267,8 +2419,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                         Semester = sem,
                         Email = student.Email,
                         Phone = student.Phone,
-                        HasPHQ = hasPHQ,
-                        HasCSSRS = hasCSSRS
+                        HasPHQ = phq != null,
+                        PHQScore = phq?.TotalScore,
+                        PHQSeverity = phq?.SeverityLevel ?? "Pending",
+                        HasCSSRS = cssrs != null,
+                        CSSRSRiskLevel = cssrs?.RiskLevel ?? "Pending"
                     });
                 }
             }
@@ -2316,10 +2471,18 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 var sem = string.IsNullOrWhiteSpace(student.Semester) ? "Semester 1" : student.Semester;
 
-                bool hasPHQ = phqList.Any(p => p.StudentId == student.StudentId && p.Semester.ToLower() == sem.ToLower());
-                bool hasCSSRS = cssrsList.Any(c => c.StudentId == student.StudentId && c.Semester.ToLower() == sem.ToLower());
+                var phq = phqList.Where(p => p.StudentId == student.StudentId && p.Semester.ToLower() == sem.ToLower()).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
+                var cssrs = cssrsList.Where(c => c.StudentId == student.StudentId && c.Semester.ToLower() == sem.ToLower()).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
 
-                if (hasPHQ && hasCSSRS)
+                var eval = Services.ScreeningComplianceService.Evaluate(
+                    hasPHQ: phq != null,
+                    phqSeverity: phq?.SeverityLevel,
+                    phqScore: phq?.TotalScore,
+                    hasCSSRS: cssrs != null,
+                    cssrsRiskLevel: cssrs?.RiskLevel
+                );
+
+                if (eval.IsScreeningComplete)
                 {
                     student.Semester = targetSemester;
                     promotedCount++;
@@ -2332,7 +2495,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"🎉 Semester transition completed! Advanced active students to {targetSemester}. {promotedCount} compliant student(s) promoted, {blockedCount} non-compliant student(s) blocked & warning emails dispatched. Overall End-of-Semester Department Reports generated.";
+            TempData["Success"] = $"🎉 Semester transition completed! Advanced active students to {targetSemester}. {promotedCount} compliant student(s) promoted, {blockedCount} student(s) with pending screening received a warning reminder email. Overall End-of-Semester Department Reports generated.";
             return RedirectToAction(nameof(SemesterEndReports));
         }
 
@@ -2387,7 +2550,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     bool hasPHQ = phq != null && string.Equals(phq.Semester, sem, StringComparison.OrdinalIgnoreCase);
                     bool hasCSSRS = cssrs != null && string.Equals(cssrs.Semester, sem, StringComparison.OrdinalIgnoreCase);
 
-                    if (hasPHQ && hasCSSRS)
+                    var eval = Services.ScreeningComplianceService.Evaluate(
+                        hasPHQ: hasPHQ,
+                        phqSeverity: phq?.SeverityLevel,
+                        phqScore: phq?.TotalScore,
+                        hasCSSRS: hasCSSRS,
+                        cssrsRiskLevel: cssrs?.RiskLevel
+                    );
+
+                    if (eval.IsScreeningComplete)
                     {
                         promotedCount++;
                     }
@@ -2402,7 +2573,10 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                             Semester = sem,
                             Email = st.Email,
                             HasPHQ = hasPHQ,
-                            HasCSSRS = hasCSSRS
+                            PHQScore = phq?.TotalScore,
+                            PHQSeverity = phq?.SeverityLevel ?? "Pending",
+                            HasCSSRS = hasCSSRS,
+                            CSSRSRiskLevel = cssrs?.RiskLevel ?? "Pending"
                         });
                     }
 
@@ -3032,42 +3206,39 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 });
             }
 
-            // Calculate Slot Occupancies
-            int slot9 = counselings.Count(c => c.AppointmentTime.Hours == 9);
-            int slot10 = counselings.Count(c => c.AppointmentTime.Hours == 10);
-            int slot11 = counselings.Count(c => c.AppointmentTime.Hours == 11);
-            int otherSlots = counselings.Count(c => c.AppointmentTime.Hours != 9 && c.AppointmentTime.Hours != 10 && c.AppointmentTime.Hours != 11);
-
-            int totalValidBookings = counselings.Count;
-            var slotOccupancies = new List<SlotOccupancyViewModel>
+            // Calculate Slot Occupancies across 8 standard slots
+            var standardSlots = new (string Name, TimeSpan Time)[]
             {
-                new SlotOccupancyViewModel
-                {
-                    SlotName = "09:00 AM - 10:00 AM (Slot 1)",
-                    TotalBookings = slot9,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot9 / totalValidBookings * 100, 1) : 0
-                },
-                new SlotOccupancyViewModel
-                {
-                    SlotName = "10:00 AM - 11:00 AM (Slot 2)",
-                    TotalBookings = slot10,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot10 / totalValidBookings * 100, 1) : 0
-                },
-                new SlotOccupancyViewModel
-                {
-                    SlotName = "11:00 AM - 12:00 PM (Slot 3)",
-                    TotalBookings = slot11,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)slot11 / totalValidBookings * 100, 1) : 0
-                }
+                ("08:30 AM - 09:30 AM (Slot 1)", new TimeSpan(8, 30, 0)),
+                ("09:35 AM - 10:35 AM (Slot 2)", new TimeSpan(9, 35, 0)),
+                ("10:40 AM - 11:40 AM (Slot 3)", new TimeSpan(10, 40, 0)),
+                ("11:45 AM - 12:45 PM (Slot 4)", new TimeSpan(11, 45, 0)),
+                ("01:10 PM - 02:10 PM (Slot 5)", new TimeSpan(13, 10, 0)),
+                ("02:15 PM - 03:15 PM (Slot 6)", new TimeSpan(14, 15, 0)),
+                ("03:20 PM - 04:20 PM (Slot 7)", new TimeSpan(15, 20, 0)),
+                ("04:25 PM - 05:25 PM (Slot 8)", new TimeSpan(16, 25, 0))
             };
 
-            if (otherSlots > 0)
+            int totalValidBookings = counselings.Count;
+            var slotOccupancies = standardSlots.Select(slot =>
+            {
+                int count = counselings.Count(c => c.AppointmentTime == slot.Time);
+                return new SlotOccupancyViewModel
+                {
+                    SlotName = slot.Name,
+                    TotalBookings = count,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)count / totalValidBookings * 100, 1) : 0
+                };
+            }).ToList();
+
+            int otherCount = counselings.Count(c => !standardSlots.Any(s => s.Time == c.AppointmentTime));
+            if (otherCount > 0)
             {
                 slotOccupancies.Add(new SlotOccupancyViewModel
                 {
-                    SlotName = "Afternoon / Custom Follow-up Slots",
-                    TotalBookings = otherSlots,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)otherSlots / totalValidBookings * 100, 1) : 0
+                    SlotName = "Other Custom Slots",
+                    TotalBookings = otherCount,
+                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)otherCount / totalValidBookings * 100, 1) : 0
                 });
             }
 
@@ -3151,15 +3322,23 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 foreach (var st in dStudents)
                 {
-                    bool hasP = (sem == "Overall")
-                        ? allPhq.Any(p => p.StudentId == st.StudentId)
-                        : allPhq.Any(p => p.StudentId == st.StudentId && p.Semester == sem);
+                    var stPhq = (sem == "Overall")
+                        ? allPhq.Where(p => p.StudentId == st.StudentId).OrderByDescending(p => p.AssessmentDate).FirstOrDefault()
+                        : allPhq.Where(p => p.StudentId == st.StudentId && p.Semester == sem).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
 
-                    bool hasC = (sem == "Overall")
-                        ? allCssrs.Any(c => c.StudentId == st.StudentId)
-                        : allCssrs.Any(c => c.StudentId == st.StudentId && c.Semester == sem);
+                    var stCssrs = (sem == "Overall")
+                        ? allCssrs.Where(c => c.StudentId == st.StudentId).OrderByDescending(c => c.AssessmentDate).FirstOrDefault()
+                        : allCssrs.Where(c => c.StudentId == st.StudentId && c.Semester == sem).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
 
-                    bool isCleared = hasP && hasC;
+                    var eval = ScreeningComplianceService.Evaluate(
+                        hasPHQ: stPhq != null,
+                        phqSeverity: stPhq?.SeverityLevel,
+                        phqScore: stPhq?.TotalScore,
+                        hasCSSRS: stCssrs != null,
+                        cssrsRiskLevel: stCssrs?.RiskLevel
+                    );
+
+                    bool isCleared = eval.IsCleared;
                     if (isCleared) dCleared++;
                     else dBlocked++;
 
@@ -3194,19 +3373,27 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             foreach (var st in filteredStudents.ToList())
             {
-                bool hasP = (sem == "Overall")
-                    ? allPhq.Any(p => p.StudentId == st.StudentId)
-                    : allPhq.Any(p => p.StudentId == st.StudentId && p.Semester == sem);
+                var stPhq = (sem == "Overall")
+                    ? allPhq.Where(p => p.StudentId == st.StudentId).OrderByDescending(p => p.AssessmentDate).FirstOrDefault()
+                    : allPhq.Where(p => p.StudentId == st.StudentId && p.Semester == sem).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
 
-                bool hasC = (sem == "Overall")
-                    ? allCssrs.Any(c => c.StudentId == st.StudentId)
-                    : allCssrs.Any(c => c.StudentId == st.StudentId && c.Semester == sem);
+                var stCssrs = (sem == "Overall")
+                    ? allCssrs.Where(c => c.StudentId == st.StudentId).OrderByDescending(c => c.AssessmentDate).FirstOrDefault()
+                    : allCssrs.Where(c => c.StudentId == st.StudentId && c.Semester == sem).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
 
-                bool isCleared = hasP && hasC;
-                string regClearance = isCleared ? "Cleared" : "Blocked";
+                var eval = ScreeningComplianceService.Evaluate(
+                    hasPHQ: stPhq != null,
+                    phqSeverity: stPhq?.SeverityLevel,
+                    phqScore: stPhq?.TotalScore,
+                    hasCSSRS: stCssrs != null,
+                    cssrsRiskLevel: stCssrs?.RiskLevel
+                );
+
+                bool isCleared = eval.IsCleared;
+                string regClearance = isCleared ? "Cleared" : "Warning";
 
                 if (stat == "Cleared" && !isCleared) continue;
-                if (stat == "Blocked" && isCleared) continue;
+                if ((stat == "Blocked" || stat == "Warning") && isCleared) continue;
 
                 if (!string.IsNullOrEmpty(search))
                 {
@@ -3239,9 +3426,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 string actionReq = isCleared
                     ? "Full clearance granted. Eligible for course registration & promotion."
-                    : (!hasP && !hasC
-                        ? "Course registration locked. Pending both PHQ-9 and C-SSRS screenings."
-                        : (!hasP ? "Pending PHQ-9 depression screening." : "Pending C-SSRS suicide risk screening."));
+                    : $"Screening pending warning active: {eval.PendingReason}";
 
                 rosterList.Add(new StudentAcademicRosterItem
                 {
@@ -3251,11 +3436,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     Department = st.Department ?? "-",
                     Semester = st.Semester ?? "-",
                     ProfileImage = st.ProfileImage,
-                    ScreeningStatus = isCleared ? "Completed" : "Non-Compliant",
+                    ScreeningStatus = isCleared ? "Completed" : "Warning (Pending)",
                     RegistrationClearance = regClearance,
                     MentalHealthSeverity = sev,
-                    HasPHQ = hasP,
-                    HasCSSRS = hasC,
+                    HasPHQ = stPhq != null,
+                    HasCSSRS = stCssrs != null,
                     ActionRequired = actionReq
                 });
             }

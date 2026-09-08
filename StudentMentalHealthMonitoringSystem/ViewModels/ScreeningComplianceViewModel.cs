@@ -23,10 +23,24 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string CSSRSRiskLevel { get; set; } = "Pending";
         public DateTime? CSSRSDate { get; set; }
 
-        // Overall Compliance
-        public bool IsFullyScreened => HasPHQ && HasCSSRS;
-        public bool IsBlockedFromNextSemester => !IsFullyScreened;
+        // Overall Compliance & Clinical Rule
+        public bool IsPHQSevere => HasPHQ && Services.ScreeningComplianceService.IsPHQSevereLevel(PHQSeverity, PHQScore);
+        public bool IsCSSRSSevere => HasCSSRS && Services.ScreeningComplianceService.IsCSSRSSevereLevel(CSSRSRiskLevel);
+        public bool IsFullyScreened => (HasPHQ && HasCSSRS) || IsPHQSevere || IsCSSRSSevere;
+        public bool HasPendingWarning => !IsFullyScreened;
         public string ComplianceStatus => IsFullyScreened ? "Completed" : "Pending";
+        public string ComplianceStatusDescription
+        {
+            get
+            {
+                if (HasPHQ && HasCSSRS) return "Completed (Both Modules)";
+                if (IsPHQSevere) return "Evaluated (PHQ-9 Severe Indicator)";
+                if (IsCSSRSSevere) return "Evaluated (C-SSRS Safety Indicator)";
+                if (HasPHQ && !HasCSSRS) return "PHQ-9 Normal — C-SSRS Required";
+                if (HasCSSRS && !HasPHQ) return "C-SSRS Normal — PHQ-9 Required";
+                return "Both Modules Pending";
+            }
+        }
     }
 
     public class ScreeningComplianceViewModel

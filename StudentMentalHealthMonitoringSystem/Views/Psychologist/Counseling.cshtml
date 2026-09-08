@@ -136,6 +136,7 @@
 
                     <span asp-validation-for="NextFollowUpDate"
                           class="text-danger"></span>
+                    <small class="text-muted d-block mt-1">Available counseling days: Saturday to Wednesday.</small>
 
                 </div>
 
@@ -143,11 +144,19 @@
 
                 <div class="mb-3">
 
-                    <label asp-for="AppointmentTime"></label>
+                    <label asp-for="AppointmentTime" class="form-label fw-bold">Appointment Time Slot</label>
 
-                    <input asp-for="AppointmentTime"
-                           type="time"
-                           class="form-control" />
+                    <select asp-for="AppointmentTime" class="form-select" required>
+                        <option value="">-- Select Time Slot --</option>
+                        <option value="08:30:00">8:30 AM - 9:30 AM</option>
+                        <option value="09:35:00">9:35 AM - 10:35 AM</option>
+                        <option value="10:40:00">10:40 AM - 11:40 AM</option>
+                        <option value="11:45:00">11:45 AM - 12:45 PM</option>
+                        <option value="13:10:00">1:10 PM - 2:10 PM</option>
+                        <option value="14:15:00">2:15 PM - 3:15 PM</option>
+                        <option value="15:20:00">3:20 PM - 4:20 PM</option>
+                        <option value="16:25:00">4:25 PM - 5:25 PM</option>
+                    </select>
 
                     <span asp-validation-for="AppointmentTime"
                           class="text-danger"></span>

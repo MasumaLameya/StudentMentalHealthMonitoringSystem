@@ -340,7 +340,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // DASHBOARD
         // =========================================================
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             // ================= Check Session =================
 
@@ -357,6 +357,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // ================= Get Psychologist =================
 
@@ -486,7 +487,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // HIGH RISK STUDENTS
         // =========================================================
 
-        public IActionResult Students()
+        public async Task<IActionResult> Students()
         {
             // ================= Check Session =================
 
@@ -502,6 +503,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login"
                 );
             }
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
 
             // =====================================================
@@ -1037,7 +1040,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelAppointment(int id, string? reason)
+        public async Task<IActionResult> CancelAppointment(
+            int id, 
+            string? reason, 
+            DateTime? nextDate, 
+            TimeSpan? nextTime, 
+            string? nextRoom,
+            string? returnUrl)
         {
             var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
             if (psychologistId == null)
@@ -1056,19 +1065,19 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (counseling == null)
             {
                 TempData["Error"] = "Appointment not found.";
-                return RedirectToAction("Appointment");
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
             if (counseling.Status == "Cancelled")
             {
                 TempData["Error"] = "This appointment has already been cancelled.";
-                return RedirectToAction("Appointment");
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
             if (counseling.Status == "Completed")
             {
                 TempData["Error"] = "Completed sessions cannot be cancelled.";
-                return RedirectToAction("Appointment");
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
             // Psychologist can cancel the appointment strictly before the scheduled date and time
@@ -1085,7 +1094,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     await _context.SaveChangesAsync();
                 }
                 TempData["Error"] = "Appointments can only be cancelled before the scheduled date and time.";
-                return RedirectToAction("Appointment");
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
             // Update status to Cancelled
@@ -1100,7 +1109,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Send notification email to student
+            // Send cancellation notification email to student
             try
             {
                 if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
@@ -1123,12 +1132,346 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 Console.WriteLine($"[PsychologistController] Failed to send cancellation email: {ex.Message}");
             }
 
-            TempData["Success"] = "Appointment cancelled successfully.";
+            // Check if immediate next appointment is provided
+            if (nextDate.HasValue && nextTime.HasValue)
+            {
+                if (nextDate.Value.DayOfWeek == DayOfWeek.Thursday || nextDate.Value.DayOfWeek == DayOfWeek.Friday)
+                {
+                    TempData["Success"] = "Appointment cancelled. However, next appointment date must be Saturday to Wednesday. Please schedule next appointment from the list.";
+                    return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+                }
+
+                if (nextDate.Value.Date < DateTime.Today)
+                {
+                    TempData["Success"] = "Appointment cancelled. Please select a valid future date to schedule the next appointment.";
+                    return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+                }
+
+                int assignedPsychId = counseling.PsychologistId;
+                var currentPsych = await _context.Psychologists.FindAsync(assignedPsychId);
+                if (currentPsych == null || currentPsych.IsSuspended)
+                {
+                    var firstActive = await _context.Psychologists.FirstOrDefaultAsync(p => !p.IsSuspended);
+                    assignedPsychId = firstActive?.PsychologistId ?? 0;
+                }
+
+                var newCounseling = new Counseling
+                {
+                    StudentId = counseling.StudentId,
+                    PsychologistId = assignedPsychId,
+                    CounselingDate = nextDate.Value.Date,
+                    AppointmentTime = nextTime.Value,
+                    AppointmentEndTime = nextTime.Value.Add(TimeSpan.FromHours(1)),
+                    Status = "Confirmed",
+                    RiskLevel = counseling.RiskLevel,
+                    AppointmentRoom = !string.IsNullOrWhiteSpace(nextRoom) ? nextRoom.Trim() : (counseling.AppointmentRoom ?? "Mental Health & Counseling Center, Room 402"),
+                    AppointmentSource = "Rescheduled",
+                    TriggerSource = "Psychologist Reschedule",
+                    TriggerSeverity = counseling.TriggerSeverity ?? counseling.RiskLevel,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Counselings.Add(newCounseling);
+                await _context.SaveChangesAsync();
+
+                try
+                {
+                    if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                    {
+                        await _emailService.SendAppointmentConfirmationEmailAsync(
+                            recipientEmail: counseling.Student.Email,
+                            studentName: counseling.Student.FullName,
+                            studentIdNumber: counseling.Student.StudentIdNumber,
+                            psychologistName: counseling.Psychologist?.FullName ?? "University Psychologist",
+                            psychologistSpecialization: counseling.Psychologist?.Specialization,
+                            appointmentDate: newCounseling.CounselingDate,
+                            startTime: newCounseling.AppointmentTime,
+                            endTime: newCounseling.AppointmentEndTime,
+                            appointmentRoom: newCounseling.AppointmentRoom,
+                            appointmentSource: "Rescheduled",
+                            severityOrReason: "Rescheduled Counseling Session"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PsychologistController] Failed to send rescheduled email: {ex.Message}");
+                }
+
+                TempData["Success"] = $"Appointment cancelled and next session scheduled for {nextDate.Value:MMM dd, yyyy} at {DateTime.Today.Add(nextTime.Value):h:mm tt} successfully.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            TempData["Success"] = "Appointment cancelled successfully. You can schedule the next appointment date anytime.";
+            return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+        }
+
+        // =========================================================
+        // SCHEDULE NEXT APPOINTMENT (FROM CANCELLED STATE OR DIRECT)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ScheduleNextAppointment(
+            int studentId,
+            DateTime appointmentDate,
+            TimeSpan appointmentTime,
+            string? appointmentRoom,
+            int? previousCounselingId,
+            string? returnUrl)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (appointmentDate.DayOfWeek == DayOfWeek.Thursday || appointmentDate.DayOfWeek == DayOfWeek.Friday)
+            {
+                TempData["Error"] = "Counseling appointments can only be scheduled from Saturday to Wednesday.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            if (appointmentDate.Date < DateTime.Today || (appointmentDate.Date == DateTime.Today && appointmentTime <= DateTime.Now.TimeOfDay))
+            {
+                TempData["Error"] = "Please select a future appointment date and time.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == studentId);
+            if (student == null)
+            {
+                TempData["Error"] = "Student not found.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            var psychologist = await _context.Psychologists.FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value && !p.IsSuspended);
+            if (psychologist == null)
+            {
+                TempData["Error"] = "Your psychologist account is suspended or not found.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            // Check if active uncompleted session exists
+            var existingActive = await _context.Counselings
+                .FirstOrDefaultAsync(c => c.StudentId == studentId &&
+                                          (c.Status == "Confirmed" || c.Status == "Pending") &&
+                                          c.CounselingDate.Date >= DateTime.Today);
+
+            if (existingActive != null)
+            {
+                TempData["Error"] = $"This student already has an active scheduled appointment on {existingActive.CounselingDate:MMM dd, yyyy}.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
+            var prevCounseling = previousCounselingId.HasValue 
+                ? await _context.Counselings.FirstOrDefaultAsync(c => c.CounselingId == previousCounselingId.Value) 
+                : null;
+
+            var newCounseling = new Counseling
+            {
+                StudentId = studentId,
+                PsychologistId = psychologistId.Value,
+                CounselingDate = appointmentDate.Date,
+                AppointmentTime = appointmentTime,
+                AppointmentEndTime = appointmentTime.Add(TimeSpan.FromHours(1)),
+                Status = "Confirmed",
+                RiskLevel = prevCounseling?.RiskLevel ?? "Moderate",
+                AppointmentRoom = !string.IsNullOrWhiteSpace(appointmentRoom) ? appointmentRoom.Trim() : "Mental Health & Counseling Center, Room 402",
+                AppointmentSource = "Rescheduled",
+                TriggerSource = "Psychologist Next Appointment",
+                TriggerSeverity = prevCounseling?.TriggerSeverity ?? prevCounseling?.RiskLevel ?? "Moderate",
+                ParentCounselingId = prevCounseling?.CounselingId,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.Counselings.Add(newCounseling);
+            await _context.SaveChangesAsync();
+
+            // Send confirmation email
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(student.Email))
+                {
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        recipientEmail: student.Email,
+                        studentName: student.FullName,
+                        studentIdNumber: student.StudentIdNumber,
+                        psychologistName: psychologist?.FullName ?? "University Psychologist",
+                        psychologistSpecialization: psychologist?.Specialization,
+                        appointmentDate: newCounseling.CounselingDate,
+                        startTime: newCounseling.AppointmentTime,
+                        endTime: newCounseling.AppointmentEndTime,
+                        appointmentRoom: newCounseling.AppointmentRoom,
+                        appointmentSource: "NextAppointment",
+                        severityOrReason: "Next Counseling Session"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[PsychologistController] Failed to send next appointment email: {ex.Message}");
+            }
+
+            TempData["Success"] = $"Next counseling appointment for {student.FullName} scheduled for {appointmentDate:MMM dd, yyyy} at {DateTime.Today.Add(appointmentTime):h:mm tt} successfully.";
+            return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+        }
+
+        // =========================================================
+        // SCHEDULE FOLLOW-UP APPOINTMENT (FROM APPOINTMENTS PAGE)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ScheduleFollowUp(int counselingId, DateTime followUpDate, TimeSpan followUpTime)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var currentPsychCheck = await _context.Psychologists.FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value && !p.IsSuspended);
+            if (currentPsychCheck == null)
+            {
+                TempData["Error"] = "Your psychologist account is suspended or not found.";
+                return RedirectToAction("Appointment");
+            }
+
+            var counseling = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .FirstOrDefaultAsync(c => c.CounselingId == counselingId && c.PsychologistId == psychologistId.Value);
+
+            if (counseling == null)
+            {
+                TempData["Error"] = "Counseling session not found.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Overwrite Protection: Prevent scheduling another follow-up if an active one already exists
+            var existingFollowUp = await _context.Counselings
+                .FirstOrDefaultAsync(c => c.ParentCounselingId == counselingId && c.Status != "Cancelled");
+
+            if (existingFollowUp != null || (counseling.NextFollowUpDate.HasValue && counseling.NextFollowUpDate.Value.Date >= DateTime.Today))
+            {
+                TempData["Error"] = "An active follow-up appointment is already scheduled. You cannot overwrite it. Please cancel the existing follow-up first to schedule a new one.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Date validation (Saturday to Wednesday only)
+            if (followUpDate.Date < DateTime.Today)
+            {
+                TempData["Error"] = "Follow-up date cannot be in the past.";
+                return RedirectToAction("Appointment");
+            }
+
+            if (followUpDate.DayOfWeek == DayOfWeek.Thursday || followUpDate.DayOfWeek == DayOfWeek.Friday)
+            {
+                TempData["Error"] = "Follow-up appointments can only be scheduled from Saturday to Wednesday (Thursday & Friday are weekend).";
+                return RedirectToAction("Appointment");
+            }
+
+            var followUpResult = await _counselingSchedulerService.CreateFollowUpAppointmentAsync(
+                counseling,
+                followUpDate.Date,
+                followUpTime
+            );
+
+            if (!followUpResult.Success)
+            {
+                TempData["Error"] = followUpResult.Message;
+                return RedirectToAction("Appointment");
+            }
+
+            // Update parent counseling session tracking
+            counseling.NextFollowUpDate = followUpDate.Date;
+            counseling.NextFollowUpTime = followUpTime;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Follow-up appointment for {counseling.Student?.FullName} scheduled on {followUpDate:dd MMM yyyy} at {DateTime.Today.Add(followUpTime):h:mm tt}.";
+            return RedirectToAction("Appointment");
+        }
+
+        // =========================================================
+        // CANCEL FOLLOW-UP APPOINTMENT (FROM APPOINTMENTS PAGE)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelFollowUp(int counselingId, string? reason)
+        {
+            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
+            if (psychologistId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var counseling = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .FirstOrDefaultAsync(c => c.CounselingId == counselingId && c.PsychologistId == psychologistId.Value);
+
+            if (counseling == null)
+            {
+                TempData["Error"] = "Counseling session not found.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Find all active follow-up child sessions
+            var childFollowUps = await _context.Counselings
+                .Where(c => c.ParentCounselingId == counselingId && c.Status != "Cancelled")
+                .ToListAsync();
+
+            string cancelMsg = string.IsNullOrWhiteSpace(reason)
+                ? $"Follow-up cancelled by psychologist on {DateTime.Now:MMM dd, yyyy h:mm tt}."
+                : $"Follow-up cancelled by psychologist on {DateTime.Now:MMM dd, yyyy h:mm tt}. Reason: {reason.Trim()}";
+
+            foreach (var child in childFollowUps)
+            {
+                child.Status = "Cancelled";
+                child.Observation = string.IsNullOrWhiteSpace(child.Observation)
+                    ? cancelMsg
+                    : $"{child.Observation} | {cancelMsg}";
+            }
+
+            // Clear parent record's next follow-up date and time
+            counseling.NextFollowUpDate = null;
+            counseling.NextFollowUpTime = null;
+            await _context.SaveChangesAsync();
+
+            // Send notification email to student
+            if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+            {
+                try
+                {
+                    await _emailService.SendEmailAsync(
+                        counseling.Student.Email,
+                        "Follow-up Counseling Session Cancelled - Student Mental Health Monitoring System",
+                        $@"
+                        <div style='font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;'>
+                            <h2 style='color: #842029;'>Follow-up Counseling Session Cancelled</h2>
+                            <p>Dear <strong>{counseling.Student.FullName}</strong>,</p>
+                            <p>Your upcoming follow-up counseling session with Psychologist <strong>{counseling.Psychologist?.FullName}</strong> has been cancelled.</p>
+                            {(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason.Trim()}</p>")}
+                            <p>If you need further counseling support, you may request a new appointment from your student portal.</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;' />
+                            <small style='color: #888;'>Student Mental Health Monitoring System</small>
+                        </div>"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[PsychologistController] Failed to send follow-up cancellation email: {ex.Message}");
+                }
+            }
+
+            TempData["Success"] = $"Follow-up appointment for {counseling.Student?.FullName} has been cancelled successfully. You can now schedule a new follow-up whenever needed.";
             return RedirectToAction("Appointment");
         }
 
 
-        /// =========================================================
+        // =========================================================
         // COUNSELING DETAILS
         // =========================================================
 
@@ -1443,6 +1786,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
+            if (counseling.Status == "Missed" || counseling.Status == "Cancelled")
+            {
+                TempData["Error"] = $"Cannot submit observation notes for a {counseling.Status.ToLower()} appointment. Please schedule a next appointment instead.";
+                return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
+            }
+
 
             // =====================================================
             // CLEAR AUTOMATIC MODEL VALIDATION
@@ -1464,35 +1813,24 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
-            // COMPLETION TYPE
+            // CHECK IF UPDATE OR CREATE
             // =====================================================
 
-            if (completionType ==
-                "WithFollowUp")
+            bool isUpdate = await _context.CounselingObservations.AnyAsync(o => o.CounselingId == counseling.CounselingId);
+
+            if (completionType == "WithFollowUp")
             {
-                model.FollowUpRequired =
-                    true;
+                model.FollowUpRequired = true;
             }
-            else if (completionType ==
-                     "WithoutFollowUp")
+            else if (completionType == "WithoutFollowUp")
             {
-                model.FollowUpRequired =
-                    false;
-
-
-                model.NextFollowUpDate =
-                    null;
-
-
-                model.NextFollowUpTime =
-                    null;
+                model.FollowUpRequired = false;
+                model.NextFollowUpDate = null;
+                model.NextFollowUpTime = null;
             }
             else
             {
-                ModelState.AddModelError(
-                    "",
-                    "Please select how the counseling should be completed."
-                );
+                model.FollowUpRequired = model.NextFollowUpDate.HasValue;
             }
 
 
@@ -1612,43 +1950,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 ModelState.AddModelError(
                     nameof(model.StudentReportedImprovement),
                     "Please select the student-reported improvement."
-                );
-            }
-
-
-            // =====================================================
-            // FOLLOW-UP VALIDATION
-            // =====================================================
-
-            if (completionType ==
-                "WithFollowUp")
-            {
-                if (!model.NextFollowUpDate.HasValue)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.NextFollowUpDate),
-                        "Please select the follow-up date."
-                    );
-                }
-
-
-                if (!model.NextFollowUpTime.HasValue)
-                {
-                    ModelState.AddModelError(
-                        nameof(model.NextFollowUpTime),
-                        "Please select the follow-up time."
-                    );
-                }
-            }
-
-
-            if (model.NextFollowUpDate.HasValue &&
-                model.NextFollowUpDate.Value.Date <
-                    DateTime.Today)
-            {
-                ModelState.AddModelError(
-                    nameof(model.NextFollowUpDate),
-                    "Follow-up date cannot be in the past."
                 );
             }
 
@@ -2051,92 +2352,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 model.AssessmentSummary?.Trim() ?? string.Empty;
 
 
-            observationReport.IsFinal =
-                model.FollowUpRequired != true;
-
-
-            observationReport.FinalizedAt =
-                model.FollowUpRequired == true
-                    ? null
-                    : DateTime.Now;
-
-
-            observationReport.UpdatedAt =
-                DateTime.Now;
-
-
-            // =====================================================
-            // COMPLETE WITH FOLLOW-UP
-            // =====================================================
-
-            if (completionType ==
-                    "WithFollowUp" &&
-                model.NextFollowUpDate.HasValue &&
-                model.NextFollowUpTime.HasValue)
-            {
-                var followUpResult =
-                    await _counselingSchedulerService
-                        .CreateFollowUpAppointmentAsync(
-                            counseling,
-                            model.NextFollowUpDate.Value,
-                            model.NextFollowUpTime.Value
-                        );
-
-
-                // ================= Follow-up Failed =================
-
-                if (!followUpResult.Success)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        followUpResult.Message
-                    );
-
-
-                    return View(
-                        model
-                    );
-                }
-
-
-                // ================= Follow-up Success =================
-
-                if (followUpResult.Created)
-                {
-                    TempData["Success"] =
-                        "Observation saved and follow-up appointment created successfully.";
-                }
-                else
-                {
-                    TempData["Success"] =
-                        "Observation saved successfully. The follow-up appointment already exists.";
-                }
-
-
-                return RedirectToAction(
-                    "Appointment"
-                );
-            }
-
-
-            // =====================================================
-            // NO FOLLOW-UP NEEDED
-            // =====================================================
-
-            counseling.NextFollowUpDate =
-                null;
-
-
-            counseling.NextFollowUpTime =
-                null;
-
+            observationReport.IsFinal = true;
+            observationReport.FinalizedAt = DateTime.Now;
+            observationReport.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
-
-            TempData["Success"] =
-                "Observation saved successfully. No further follow-up is required.";
-
+            TempData["Success"] = isUpdate
+                ? "Clinical notes and observations updated successfully."
+                : "Counseling observation saved and completed successfully. You can schedule a follow-up appointment anytime from the Appointments page.";
 
             return RedirectToAction(
                 "Appointment"
@@ -2538,7 +2762,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // REPORTS
         // =========================================================
 
-        public IActionResult Reports()
+        public async Task<IActionResult> Reports()
         {
             // ================= Check Session =================
 
@@ -2555,6 +2779,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // ================= Own Counseling Records =================
 
@@ -2592,7 +2817,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // COUNSELING HISTORY
         // =========================================================
 
-        public IActionResult CounselingHistory(
+        public async Task<IActionResult> CounselingHistory(
             int id)
         {
             // ================= Check Session =================
@@ -2610,6 +2835,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             // ================= Get Student =================
 
