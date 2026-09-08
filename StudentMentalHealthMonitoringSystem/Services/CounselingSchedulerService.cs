@@ -151,26 +151,38 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             if (existingActiveAppointment != null)
             {
-                // =================================================
-                // Update Existing Combined Screening Report
-                // =================================================
-
-                await CreateOrUpdateCombinedScreeningReportAsync(
-                    existingActiveAppointment,
-                    triggerSource,
-                    severityLevel
-                );
-
-
-                return new CounselingSchedulerResult
+                if (existingActiveAppointment.Psychologist != null && !existingActiveAppointment.Psychologist.IsSuspended)
                 {
-                    Success = true,
-                    Created = false,
-                    Message =
-                        "The student already has an active counseling appointment scheduled. Existing appointment and psychologist retained.",
-                    Counseling =
-                        existingActiveAppointment
-                };
+                    // =================================================
+                    // Update Existing Combined Screening Report
+                    // =================================================
+
+                    await CreateOrUpdateCombinedScreeningReportAsync(
+                        existingActiveAppointment,
+                        triggerSource,
+                        severityLevel
+                    );
+
+
+                    return new CounselingSchedulerResult
+                    {
+                        Success = true,
+                        Created = false,
+                        Message =
+                            "The student already has an active counseling appointment scheduled. Existing appointment and psychologist retained.",
+                        Counseling =
+                            existingActiveAppointment
+                    };
+                }
+                else
+                {
+                    // Existing appointment was with a suspended psychologist.
+                    // Cancel it and proceed to assign an active psychologist.
+                    existingActiveAppointment.Status = "Cancelled";
+                    existingActiveAppointment.Observation = (existingActiveAppointment.Observation ?? "") +
+                        " [System: Reassigned because previously assigned psychologist was suspended.]";
+                    await _context.SaveChangesAsync();
+                }
             }
 
 
@@ -520,7 +532,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
                     try
                     {
-                        if (!string.IsNullOrWhiteSpace(student.Email))
+                        if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                         {
                             await _emailService.SendAppointmentConfirmationEmailAsync(
                                 recipientEmail: student.Email,
@@ -1483,7 +1495,7 @@ namespace StudentMentalHealthMonitoringSystem.Services
                 var psychologist = await _context.Psychologists
                     .FirstOrDefaultAsync(p => p.PsychologistId == currentCounseling.PsychologistId);
 
-                if (student != null && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
+                if (student != null && !student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
                 {
                     await _emailService.SendAppointmentConfirmationEmailAsync(
                         recipientEmail: student.Email,
@@ -1523,8 +1535,14 @@ namespace StudentMentalHealthMonitoringSystem.Services
         // =========================================================
         // If an appointment's date/time has passed without the session
         // being assessed/completed or cancelled, it is automatically marked as Missed.
+        // If the appointment was auto-assigned from screening, notify the student's department.
         // =========================================================
-        public static async Task<int> UpdateMissedAppointmentsAsync(ApplicationDbContext context)
+        public async Task<int> UpdateMissedAppointmentsAsync()
+        {
+            return await UpdateMissedAppointmentsAsync(_context, _emailService);
+        }
+
+        public static async Task<int> UpdateMissedAppointmentsAsync(ApplicationDbContext context, EmailService? emailService = null)
         {
             try
             {
@@ -1533,6 +1551,8 @@ namespace StudentMentalHealthMonitoringSystem.Services
                 var currentTime = now.TimeOfDay;
 
                 var missedCounselings = await context.Counselings
+                    .Include(c => c.Student)
+                    .Include(c => c.Psychologist)
                     .Where(c => c.Status != "Completed" &&
                                 c.Status != "Cancelled" &&
                                 c.Status != "Missed" &&
@@ -1542,9 +1562,55 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
                 if (missedCounselings.Any())
                 {
+                    List<Department>? departments = null;
+                    if (emailService != null)
+                    {
+                        departments = await context.Departments.ToListAsync();
+                    }
+
                     foreach (var counseling in missedCounselings)
                     {
                         counseling.Status = "Missed";
+
+                        // Notify Department if this appointment was auto-assigned from Screening
+                        if (emailService != null &&
+                            departments != null &&
+                            counseling.Student != null &&
+                            !string.IsNullOrWhiteSpace(counseling.Student.Department) &&
+                            (counseling.AppointmentSource == "AutoAssignment" || 
+                             counseling.AppointmentSource == "Auto-Scheduled" || 
+                             !string.IsNullOrWhiteSpace(counseling.TriggerSource)))
+                        {
+                            var dept = departments.FirstOrDefault(d => 
+                                d.DepartmentName.Trim().Equals(counseling.Student.Department.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                            if (dept != null && !string.IsNullOrWhiteSpace(dept.Email) && !dept.IsSuspended)
+                            {
+                                try
+                                {
+                                    await emailService.SendMissedScreeningAppointmentToDepartmentAsync(
+                                        recipientEmail: dept.Email,
+                                        departmentName: dept.DepartmentName,
+                                        headOfDepartment: dept.HeadOfDepartment,
+                                        studentName: counseling.Student.FullName,
+                                        studentIdNumber: counseling.Student.StudentIdNumber,
+                                        studentEmail: counseling.Student.Email,
+                                        studentPhone: counseling.Student.Phone,
+                                        psychologistName: counseling.Psychologist?.FullName,
+                                        triggerSource: counseling.TriggerSource ?? "Mental Health Screening",
+                                        severityLevel: counseling.TriggerSeverity ?? counseling.RiskLevel ?? "High Risk",
+                                        appointmentDate: counseling.CounselingDate,
+                                        startTime: counseling.AppointmentTime,
+                                        endTime: counseling.AppointmentEndTime,
+                                        appointmentRoom: counseling.AppointmentRoom
+                                    );
+                                }
+                                catch (Exception mailEx)
+                                {
+                                    Console.WriteLine($"[CounselingSchedulerService] Failed sending missed screening notification to department: {mailEx.Message}");
+                                }
+                            }
+                        }
                     }
 
                     return await context.SaveChangesAsync();

@@ -370,47 +370,49 @@
 
                 </div>
 
+                @if (counseling?.Status != "Cancelled" && counseling?.Status != "Missed")
+                {
+                    <!-- ================= Follow-up Information ================= -->
 
-                <!-- ================= Follow-up Information ================= -->
+                    <div class="card border-0 shadow-sm rounded-4 mt-4"
+                         style="background:#F7F2ED; border:1px solid #E5D8CC !important;">
 
-                <div class="card border-0 shadow-sm rounded-4 mt-4"
-                     style="background:#F7F2ED; border:1px solid #E5D8CC !important;">
+                        <div class="card-header border-0 py-3"
+                             style="background:#E8DDD2;">
 
-                    <div class="card-header border-0 py-3"
-                         style="background:#E8DDD2;">
+                            <h5 class="mb-0"
+                                style="color:#5F5146;">
 
-                        <h5 class="mb-0"
-                            style="color:#5F5146;">
+                                <i class="bi bi-calendar-plus me-2"></i>
 
-                            <i class="bi bi-calendar-plus me-2"></i>
+                                Follow-up Schedule
 
-                            Follow-up Schedule
+                            </h5>
 
-                        </h5>
-
-                    </div>
+                        </div>
 
 
-                    <div class="card-body p-4">
+                        <div class="card-body p-4">
 
-                        <div class="mb-0">
+                            <div class="mb-0">
 
-                            <label asp-for="AppointmentRoom"
-                                   class="form-label fw-semibold">
+                                <label asp-for="AppointmentRoom"
+                                       class="form-label fw-semibold">
 
-                                Counseling Room
+                                    Counseling Room
 
-                            </label>
+                                </label>
 
-                            <input asp-for="AppointmentRoom"
-                                   class="form-control rounded-3"
-                                   placeholder="Example: Counseling Room 01" />
+                                <input asp-for="AppointmentRoom"
+                                       class="form-control rounded-3"
+                                       placeholder="Example: Counseling Room 01" />
+
+                            </div>
 
                         </div>
 
                     </div>
-
-                </div>
+                }
 
             </div>
 
@@ -434,7 +436,7 @@
                                     </h5>
                                     <p class="text-muted mb-0">
                                         @(counseling?.Status == "Missed"
-                                            ? "Clinical notes and observations cannot be submitted for a missed appointment because the scheduled time has passed without the session taking place. You can schedule the next appointment date below."
+                                            ? "Missed appointment-এর জন্য Observation Form পূরণ বা Observation Report জমা দেওয়া যাবে না। সেশনের নির্ধারিত সময় পার হয়ে যাওয়ায় এটি Missed হিসেবে চিহ্নিত হয়েছে। আপনি চাইলে নিচে শিক্ষার্থীর জন্য পরবর্তী appointment নির্ধারণ করতে পারেন।"
                                             : "Clinical notes and observations cannot be submitted for a cancelled counseling session. You can schedule the next appointment date below.")
                                     </p>
                                 </div>

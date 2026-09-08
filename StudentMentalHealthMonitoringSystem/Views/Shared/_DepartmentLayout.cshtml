@@ -666,32 +666,6 @@
                     </a>
 
 
-                    <!-- =============================================
-                     OBSERVATION REPORTS
-                     ============================================= -->
-
-                    <a asp-controller="Department"
-                       asp-action="ObservationReports"
-                       class="department-nav-link
-                        @((currentAction == "ObservationReports" ||
-                          currentAction == "ObservationReportDetails")
-                          ? "active"
-                          : "")">
-
-                        <span class="department-nav-icon">
-
-                            <i class="bi bi-journal-medical"></i>
-
-                        </span>
-
-                        <span>
-
-                            Observation Reports
-
-                        </span>
-
-                    </a>
-
 
                     <!-- =============================================
                      SCREENING ANALYTICS
@@ -791,6 +765,31 @@
                         <span>
 
                             Semester End Report
+
+                        </span>
+
+                    </a>
+
+                    <!-- =============================================
+                     CHANGE PASSWORD
+                     ============================================= -->
+
+                    <a asp-controller="Department"
+                       asp-action="ChangePassword"
+                       class="department-nav-link
+                        @(currentAction == "ChangePassword"
+                          ? "active"
+                          : "")">
+
+                        <span class="department-nav-icon">
+
+                            <i class="bi bi-key-fill"></i>
+
+                        </span>
+
+                        <span>
+
+                            Change Password
 
                         </span>
 
@@ -901,24 +900,34 @@
 
 
                 <!-- =============================================
-                 DEPARTMENT NAME
+                 DEPARTMENT NAME & LOGOUT
                  ============================================= -->
 
-                <div class="topbar-department">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="topbar-department">
 
-                    <div class="topbar-department-icon">
+                        <div class="topbar-department-icon">
 
-                        <i class="bi bi-building"></i>
+                            <i class="bi bi-building"></i>
+
+                        </div>
+
+
+                        <span class="topbar-department-name">
+
+                            @departmentName
+
+                        </span>
 
                     </div>
 
-
-                    <span class="topbar-department-name">
-
-                        @departmentName
-
-                    </span>
-
+                    <!-- Top-Right Logout Button -->
+                    <a asp-controller="Department"
+                       asp-action="Logout"
+                       class="btn btn-danger text-white fw-bold px-3.5 py-1.5 rounded-pill shadow-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
 
             </header>

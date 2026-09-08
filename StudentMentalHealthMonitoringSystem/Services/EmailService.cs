@@ -575,5 +575,161 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             await SendEmailAsync(recipientEmail, subject, htmlBody);
         }
+
+        // =========================================================
+        // Send Missed Auto-Assigned Screening Session Alert to Department
+        // =========================================================
+        public async Task SendMissedScreeningAppointmentToDepartmentAsync(
+            string recipientEmail,
+            string departmentName,
+            string? headOfDepartment,
+            string studentName,
+            string studentIdNumber,
+            string? studentEmail,
+            string? studentPhone,
+            string? psychologistName,
+            string? triggerSource,
+            string? severityLevel,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail))
+            {
+                return;
+            }
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var formattedStartTime = DateTime.Today.Add(startTime).ToString("h:mm tt");
+            var formattedEndTime = DateTime.Today.Add(endTime).ToString("h:mm tt");
+            var formattedSlot = $"{formattedStartTime} - {formattedEndTime}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom)
+                ? "Mental Health & Counseling Center, Room 402"
+                : appointmentRoom;
+
+            var recipientGreeting = string.IsNullOrWhiteSpace(headOfDepartment)
+                ? $"Department of {departmentName}"
+                : $"{headOfDepartment} ({departmentName} Department)";
+
+            var trigger = string.IsNullOrWhiteSpace(triggerSource) ? "Mental Health Screening" : triggerSource;
+            var severity = string.IsNullOrWhiteSpace(severityLevel) ? "High Risk" : severityLevel;
+            var psychologist = string.IsNullOrWhiteSpace(psychologistName) ? "Assigned Psychologist" : psychologistName;
+
+            var subject = $"⚠️ MISSED COUNSELING ALERT: {studentName} ({studentIdNumber}) - {departmentName} Department";
+
+            var htmlBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Missed Counseling Session Notification</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #F8FAFC; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 600px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #E2E8F0;'>
+                    
+                    <!-- Alert Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); padding: 30px 24px; text-align: center;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.22); border-radius: 20px; padding: 5px 16px; color: #FFFFFF; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                ⚠️ Missed Screening Counseling Session
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 21px; font-weight: 700;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.92); margin: 6px 0 0 0; font-size: 13px;'>Departmental Student Care &amp; Early Intervention Alert</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 30px 26px;'>
+                            <h3 style='color: #0F172A; margin: 0 0 10px 0; font-size: 17px; font-weight: 600;'>Dear {recipientGreeting},</h3>
+                            <p style='color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;'>
+                                This is an automated notification to inform you that a high-priority counseling session automatically scheduled following a mental health screening was <strong>MISSED</strong> by the student.
+                            </p>
+
+                            <!-- High-Risk Alert Notice -->
+                            <div style='background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;'>
+                                <p style='color: #991B1B; font-size: 13px; font-weight: 600; margin: 0;'>
+                                    ⚠️ Student completed clinical screening (<strong style='color:#7F1D1D;'>{trigger}</strong>) with <strong style='color:#7F1D1D;'>{severity}</strong> severity, but did not attend their scheduled appointment.
+                                </p>
+                            </div>
+
+                            <!-- Student & Missed Session Details Table -->
+                            <div style='background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr style='background-color: #F1F5F9;'>
+                                        <th colspan='2' style='padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #334155;'>
+                                            📋 Student &amp; Appointment Details
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; width: 38%; border-bottom: 1px solid #E2E8F0;'>Student Name:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E2E8F0;'>{studentName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Student ID:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>{studentIdNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Department:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px; border-bottom: 1px solid #E2E8F0;'>{departmentName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Contact:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px; border-bottom: 1px solid #E2E8F0;'>{studentEmail ?? "-"} | {studentPhone ?? "-"}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Screening Assessment:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E2E8F0;'>{trigger} ({severity})</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Missed Date &amp; Time:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E2E8F0;'>{formattedDate} at {formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>Assigned Psychologist:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E2E8F0;'>{psychologist}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #64748B; font-size: 13px; font-weight: 600;'>Venue / Room:</td>
+                                        <td style='padding: 9px 14px; color: #0F172A; font-size: 13px;'>{room}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Recommended Action for Department -->
+                            <div style='background-color: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;'>
+                                <strong style='color: #1E293B; font-size: 13px; display: block; margin-bottom: 6px;'>📌 Recommended Departmental Action:</strong>
+                                <ul style='margin: 0; padding-left: 20px; color: #475569; font-size: 13px; line-height: 1.5;'>
+                                    <li>Have the student's academic advisor or department coordinator gently reach out to the student.</li>
+                                    <li>Encourage the student to reschedule via their student portal or schedule a new slot from the Department Portal.</li>
+                                    <li>Review the complete list of missed screening cases under the <em>Department Portal &rarr; Counseling &rarr; Missed Screening Sessions</em> roster.</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F8FAFC; padding: 18px 24px; text-align: center; border-top: 1px solid #E2E8F0;'>
+                            <p style='color: #94A3B8; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). Confidential Student Health Information.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
     }
 }

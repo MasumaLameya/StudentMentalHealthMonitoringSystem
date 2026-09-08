@@ -25,31 +25,6 @@
         </div>
     </div>
 
-    <!-- ================= Filters ================= -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-4">
-            <form method="get" asp-controller="Department" asp-action="ScreeningAnalytics" class="row g-3 align-items-end">
-                <div class="col-md-9">
-                    <label for="semester" class="form-label fw-semibold text-secondary">
-                        <i class="bi bi-calendar3 me-1"></i> Select Semester
-                    </label>
-                    <select id="semester" name="semester" class="form-select rounded-3">
-                        @foreach (var sem in Model.AvailableSemesters)
-                        {
-                            <option value="@sem" selected="@(sem == Model.SelectedSemester ? "selected" : null)">@sem</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-semibold">
-                        <i class="bi bi-filter me-1"></i> Filter Semester
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- ================= KPI Summary Cards ================= -->
     <div class="row g-3 mb-4">
         <div class="col-md-2">

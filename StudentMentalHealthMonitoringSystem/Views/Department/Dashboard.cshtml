@@ -333,7 +333,91 @@
 
     </div>
 
+    <!-- =====================================================
+         MISSED SCREENING SESSIONS ALERT FOR DEPARTMENT
+         ===================================================== -->
+    @if (Model.MissedScreeningCounselings != null && Model.MissedScreeningCounselings.Any())
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-danger" style="background: #FFF8F8;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(220,38,38,0.15);">
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2">
+                                <h5 class="fw-bold mb-0 text-danger">⚠️ Missed Auto-Assigned Screening Sessions</h5>
+                                <span class="badge bg-danger text-white rounded-pill px-3 py-1">@Model.MissedScreeningSessionsCount Students Missed</span>
+                            </div>
+                            <p class="text-muted small mb-0 mt-1">
+                                These students completed clinical screenings and were auto-assigned a psychologist, but their appointments were missed.
+                            </p>
+                        </div>
+                    </div>
+                    <a asp-controller="Department" asp-action="Counseling" class="btn btn-sm btn-danger rounded-pill px-3 py-1.5 fw-semibold shadow-sm">
+                        <i class="bi bi-calendar-check me-1"></i> Manage in Counseling
+                    </a>
+                </div>
 
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="background:#FFFFFF; border-radius:12px; overflow:hidden;">
+                        <thead class="table-light">
+                            <tr class="small text-secondary text-uppercase">
+                                <th class="ps-3 py-2">Student</th>
+                                <th class="py-2">Screening Source</th>
+                                <th class="py-2">Severity</th>
+                                <th class="py-2">Missed Date &amp; Time</th>
+                                <th class="py-2">Psychologist</th>
+                                <th class="text-end pe-3 py-2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.MissedScreeningCounselings)
+                            {
+                                var stName = c.Student?.FullName ?? "Student";
+                                var stId = c.Student?.StudentIdNumber ?? "-";
+                                var trig = string.IsNullOrWhiteSpace(c.TriggerSource) ? "Screening Assessment" : c.TriggerSource;
+                                var sev = string.IsNullOrWhiteSpace(c.TriggerSeverity) ? (c.RiskLevel ?? "High Risk") : c.TriggerSeverity;
+                                var psy = c.Psychologist?.FullName ?? "Assigned Psychologist";
+                                var slot = DateTime.Today.Add(c.AppointmentTime).ToString("h:mm tt") + " - " + DateTime.Today.Add(c.AppointmentEndTime).ToString("h:mm tt");
+
+                                <tr>
+                                    <td class="ps-3 py-2.5">
+                                        <strong class="text-dark d-block">@stName</strong>
+                                        <small class="text-muted">ID: @stId • @(c.Student?.Department ?? "")</small>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <span class="badge rounded-pill px-2.5 py-1 text-danger" style="background:#FEE2E2;">
+                                            @trig
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <span class="badge @(sev == "Extremely Severe" ? "bg-danger text-white" : "bg-warning-subtle text-dark border border-warning") rounded-pill px-2.5 py-1">
+                                            @sev
+                                        </span>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <span class="text-danger fw-semibold small d-block">@c.CounselingDate.ToString("dd MMM yyyy")</span>
+                                        <small class="text-muted">@slot</small>
+                                    </td>
+                                    <td class="py-2.5 small text-dark fw-semibold">
+                                        @psy
+                                    </td>
+                                    <td class="text-end pe-3 py-2.5">
+                                        <a asp-controller="Department" asp-action="StudentDetails" asp-route-id="@c.StudentId"
+                                           class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-semibold">
+                                            <i class="bi bi-eye me-1"></i> Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- =====================================================
          LOWER SECTION

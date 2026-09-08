@@ -88,10 +88,10 @@
         </div>
 
         <div class="col-md-3 col-sm-6">
-            <div class="metric-card-admin p-3 text-center h-100 border-warning-subtle" style="background:#FFFBEB;">
-                <small class="text-warning-emphasis text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Overdue Interventions (&gt;48h)</small>
-                <h3 class="fw-bold mb-0 text-warning-emphasis">@Model.OverdueInterventionsCount</h3>
-                <small class="text-muted">Unattended / Unconfirmed</small>
+            <div class="metric-card-admin p-3 text-center h-100 border-danger-subtle" style="background:#FFF5F5;">
+                <small class="text-danger text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Missed Interventions (&gt;48h)</small>
+                <h3 class="fw-bold mb-0 text-danger">@Model.OverdueInterventionsCount</h3>
+                <small class="text-muted">Unattended / Missed Sessions</small>
             </div>
         </div>
 
@@ -134,7 +134,7 @@
                     <label class="small text-muted fw-bold mb-1">Intervention Status</label>
                     <select name="statusFilter" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="All" selected="@(Model.SelectedStatus == "All")">All Care Statuses</option>
-                        <option value="Overdue" selected="@(Model.SelectedStatus == "Overdue")">Overdue (&gt; 48 hours)</option>
+                        <option value="Missed" selected="@(Model.SelectedStatus == "Missed" || Model.SelectedStatus == "Overdue")">Missed (&gt; 48 hours)</option>
                         <option value="Pending" selected="@(Model.SelectedStatus == "Pending")">Confirmed / Pending Session</option>
                         <option value="Completed" selected="@(Model.SelectedStatus == "Completed")">Completed Session</option>
                     </select>
@@ -246,10 +246,10 @@
                                                 <i class="bi bi-check-circle-fill me-1"></i> Session Completed
                                             </span>
                                         }
-                                        else if (item.IsOverdue)
+                                        else if (item.IsMissed)
                                         {
                                             <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 shadow-sm animate-pulse">
-                                                <i class="bi bi-alarm-fill me-1"></i> Overdue (&gt;48h)
+                                                <i class="bi bi-x-circle-fill me-1"></i> Missed
                                             </span>
                                         }
                                         else if (item.CounselingStatus == "Confirmed" || item.CounselingStatus == "Pending")

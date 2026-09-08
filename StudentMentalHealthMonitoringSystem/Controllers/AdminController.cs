@@ -11,13 +11,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _environment;
+        private readonly EmailService _emailService;
 
         public AdminController(
             ApplicationDbContext context,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            EmailService emailService)
         {
             _context = context;
             _environment = environment;
+            _emailService = emailService;
         }
 
        
@@ -2630,304 +2633,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // =========================================================
 
         [HttpGet]
-        public async Task<IActionResult> AIConversationReports(string? sessionType, string? riskStatus, string? department, string? searchTerm)
+        public IActionResult AIConversationReports(string? sessionType, string? riskStatus, string? department, string? searchTerm)
         {
-            var adminId = HttpContext.Session.GetInt32("AdminId");
-            if (adminId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var type = string.IsNullOrWhiteSpace(sessionType) ? "All" : sessionType.Trim();
-            var risk = string.IsNullOrWhiteSpace(riskStatus) ? "All" : riskStatus.Trim();
-            var dept = string.IsNullOrWhiteSpace(department) ? "All" : department.Trim();
-            var search = string.IsNullOrWhiteSpace(searchTerm) ? "" : searchTerm.Trim().ToLower();
-
-            var availableDepartments = await _context.Departments
-                .Select(d => d.DepartmentName)
-                .OrderBy(d => d)
-                .ToListAsync();
-
-            var conversationItems = new List<AdminAIConversationItemViewModel>();
-
-            // 1. Fetch Chat Sessions
-            if (type == "All" || type == "Chat")
-            {
-                var chatQuery = _context.ChatSessions
-                    .Include(s => s.Student)
-                    .Include(s => s.ChatMessages)
-                    .Include(s => s.RiskAssessments)
-                    .AsQueryable();
-
-                if (dept != "All")
-                {
-                    chatQuery = chatQuery.Where(s => s.Student != null && s.Student.Department == dept);
-                }
-
-                var chatSessions = await chatQuery.ToListAsync();
-
-                foreach (var cs in chatSessions)
-                {
-                    var latestAssessment = cs.RiskAssessments.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
-                    var riskVal = latestAssessment?.RiskStatus ?? "Normal";
-                    var summaryVal = latestAssessment?.Summary ?? cs.Summary ?? "General mental wellness chat support.";
-
-                    if (risk != "All" && !string.Equals(riskVal, risk, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (!string.IsNullOrEmpty(search))
-                    {
-                        bool match = (cs.Student?.FullName ?? "").ToLower().Contains(search) ||
-                                     (cs.Student?.StudentIdNumber ?? "").ToLower().Contains(search) ||
-                                     summaryVal.ToLower().Contains(search);
-                        if (!match) continue;
-                    }
-
-                    var duration = (cs.EndedAt.HasValue && cs.EndedAt > cs.StartedAt)
-                        ? $"{Math.Max(1, (int)(cs.EndedAt.Value - cs.StartedAt).TotalMinutes)} mins"
-                        : "Active";
-
-                    conversationItems.Add(new AdminAIConversationItemViewModel
-                    {
-                        SessionId = cs.ChatSessionId,
-                        SessionType = "Chat",
-                        StudentId = cs.StudentId,
-                        StudentName = cs.Student?.FullName ?? "Student",
-                        StudentIdNumber = cs.Student?.StudentIdNumber ?? "-",
-                        Department = cs.Student?.Department ?? "-",
-                        ProfileImage = cs.Student?.ProfileImage,
-                        RiskStatus = riskVal,
-                        Summary = summaryVal,
-                        StartedAt = cs.StartedAt,
-                        EndedAt = cs.EndedAt,
-                        DurationFormatted = duration,
-                        MessageOrTranscriptCount = cs.ChatMessages.Count,
-                        IsActive = cs.IsActive
-                    });
-                }
-            }
-
-            // 2. Fetch Voice Bot Sessions
-            if (type == "All" || type == "VoiceBot")
-            {
-                var voiceQuery = _context.VoiceBotSessions
-                    .Include(s => s.Student)
-                    .AsQueryable();
-
-                if (dept != "All")
-                {
-                    voiceQuery = voiceQuery.Where(s => s.Student != null && s.Student.Department == dept);
-                }
-
-                var voiceSessions = await voiceQuery.ToListAsync();
-                var voiceSessionIds = voiceSessions.Select(v => v.VoiceBotSessionId).ToList();
-
-                var voiceReports = await _context.VoiceBotReports
-                    .Where(r => voiceSessionIds.Contains(r.VoiceBotSessionId))
-                    .ToListAsync();
-
-                var voiceTranscripts = await _context.VoiceBotTranscripts
-                    .Where(t => voiceSessionIds.Contains(t.VoiceBotSessionId))
-                    .ToListAsync();
-
-                foreach (var vs in voiceSessions)
-                {
-                    var report = voiceReports.FirstOrDefault(r => r.VoiceBotSessionId == vs.VoiceBotSessionId);
-                    var transcripts = voiceTranscripts.Where(t => t.VoiceBotSessionId == vs.VoiceBotSessionId).ToList();
-
-                    var riskVal = report != null
-                        ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalStatus) ? report.FinalStatus : report.CurrentStatus)
-                        : vs.CurrentStatus;
-
-                    var summaryVal = report != null
-                        ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalSummary) ? report.FinalSummary : report.CurrentSummary)
-                        : vs.CurrentSummary ?? "Live voice consultation.";
-
-                    if (risk != "All" && !string.Equals(riskVal, risk, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (!string.IsNullOrEmpty(search))
-                    {
-                        bool match = (vs.Student?.FullName ?? "").ToLower().Contains(search) ||
-                                     (vs.Student?.StudentIdNumber ?? "").ToLower().Contains(search) ||
-                                     (summaryVal ?? "").ToLower().Contains(search);
-                        if (!match) continue;
-                    }
-
-                    var duration = (vs.EndedAt.HasValue && vs.EndedAt > vs.StartedAt)
-                        ? $"{Math.Max(1, (int)(vs.EndedAt.Value - vs.StartedAt).TotalMinutes)} mins"
-                        : (vs.IsActive ? "Live Call" : "Completed");
-
-                    conversationItems.Add(new AdminAIConversationItemViewModel
-                    {
-                        SessionId = vs.VoiceBotSessionId,
-                        SessionType = "VoiceBot",
-                        StudentId = vs.StudentId,
-                        StudentName = vs.Student?.FullName ?? "Student",
-                        StudentIdNumber = vs.Student?.StudentIdNumber ?? "-",
-                        Department = vs.Student?.Department ?? "-",
-                        ProfileImage = vs.Student?.ProfileImage,
-                        RiskStatus = riskVal,
-                        Summary = summaryVal,
-                        StartedAt = vs.StartedAt,
-                        EndedAt = vs.EndedAt,
-                        DurationFormatted = duration,
-                        MessageOrTranscriptCount = transcripts.Count,
-                        IsActive = vs.IsActive
-                    });
-                }
-            }
-
-            var sortedItems = conversationItems.OrderByDescending(x => x.StartedAt).ToList();
-
-            int nightCount = sortedItems.Count(x => x.StartedAt.Hour >= 22 || x.StartedAt.Hour < 6);
-            int severeCount = sortedItems.Count(x => x.RiskStatus == "Severe" || x.RiskStatus == "Extremely Severe");
-
-            var model = new AdminAIReportsListViewModel
-            {
-                SelectedType = type,
-                SelectedRisk = risk,
-                SelectedDepartment = dept,
-                SearchTerm = searchTerm,
-                AvailableDepartments = availableDepartments,
-                TotalSessions = sortedItems.Count,
-                TotalChatSessions = sortedItems.Count(x => x.SessionType == "Chat"),
-                TotalVoiceSessions = sortedItems.Count(x => x.SessionType == "VoiceBot"),
-                SevereOrCriticalCount = severeCount,
-                NightTimeSessionsCount = nightCount,
-                Sessions = sortedItems
-            };
-
-            return View(model);
+            return RedirectToAction(nameof(Reports));
         }
 
-        // =========================================================
-        // AI CONVERSATION DETAILS & TRANSCRIPT VIEWER
-        // =========================================================
-
         [HttpGet]
-        public async Task<IActionResult> AIConversationDetails(int id, string type)
+        public IActionResult AIConversationDetails(int id, string type)
         {
-            var adminId = HttpContext.Session.GetInt32("AdminId");
-            if (adminId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var sessionType = string.Equals(type, "VoiceBot", StringComparison.OrdinalIgnoreCase) ? "VoiceBot" : "Chat";
-
-            if (sessionType == "Chat")
-            {
-                var chatSession = await _context.ChatSessions
-                    .Include(s => s.Student)
-                    .Include(s => s.ChatMessages)
-                    .Include(s => s.RiskAssessments)
-                    .FirstOrDefaultAsync(s => s.ChatSessionId == id);
-
-                if (chatSession == null)
-                {
-                    return NotFound();
-                }
-
-                var latestAssessment = chatSession.RiskAssessments.OrderByDescending(r => r.CreatedAt).FirstOrDefault();
-                var riskVal = latestAssessment?.RiskStatus ?? "Normal";
-                var summaryVal = latestAssessment?.Summary ?? chatSession.Summary ?? "No automated summary recorded for this chat session.";
-
-                var duration = (chatSession.EndedAt.HasValue && chatSession.EndedAt > chatSession.StartedAt)
-                    ? $"{Math.Max(1, (int)(chatSession.EndedAt.Value - chatSession.StartedAt).TotalMinutes)} mins"
-                    : (chatSession.IsActive ? "Active Session" : "Closed");
-
-                var model = new AdminAIConversationDetailsViewModel
-                {
-                    SessionId = chatSession.ChatSessionId,
-                    SessionType = "Chat",
-                    StudentId = chatSession.StudentId,
-                    StudentName = chatSession.Student?.FullName ?? "Student",
-                    StudentIdNumber = chatSession.Student?.StudentIdNumber ?? "-",
-                    Department = chatSession.Student?.Department ?? "-",
-                    Email = chatSession.Student?.Email ?? "-",
-                    Phone = chatSession.Student?.Phone ?? "-",
-                    ProfileImage = chatSession.Student?.ProfileImage,
-                    StartedAt = chatSession.StartedAt,
-                    EndedAt = chatSession.EndedAt,
-                    DurationFormatted = duration,
-                    IsActive = chatSession.IsActive,
-                    RiskStatus = riskVal,
-                    ClinicalSummary = summaryVal,
-                    ChatMessages = chatSession.ChatMessages
-                        .OrderBy(m => m.CreatedAt)
-                        .Select(m => new ChatMessageItemViewModel
-                        {
-                            Sender = m.Sender,
-                            MessageText = m.MessageText,
-                            CreatedAt = m.CreatedAt
-                        }).ToList()
-                };
-
-                return View(model);
-            }
-            else
-            {
-                var voiceSession = await _context.VoiceBotSessions
-                    .Include(s => s.Student)
-                    .FirstOrDefaultAsync(s => s.VoiceBotSessionId == id);
-
-                if (voiceSession == null)
-                {
-                    return NotFound();
-                }
-
-                var report = await _context.VoiceBotReports
-                    .FirstOrDefaultAsync(r => r.VoiceBotSessionId == id);
-
-                var transcripts = await _context.VoiceBotTranscripts
-                    .Where(t => t.VoiceBotSessionId == id)
-                    .OrderBy(t => t.CreatedAt)
-                    .ToListAsync();
-
-                var riskVal = report != null
-                    ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalStatus) ? report.FinalStatus : report.CurrentStatus)
-                    : voiceSession.CurrentStatus;
-
-                var summaryVal = report != null
-                    ? (report.IsFinal && !string.IsNullOrWhiteSpace(report.FinalSummary) ? report.FinalSummary : report.CurrentSummary)
-                    : voiceSession.CurrentSummary ?? "Live voice call recorded.";
-
-                var duration = (voiceSession.EndedAt.HasValue && voiceSession.EndedAt > voiceSession.StartedAt)
-                    ? $"{Math.Max(1, (int)(voiceSession.EndedAt.Value - voiceSession.StartedAt).TotalMinutes)} mins"
-                    : (voiceSession.IsActive ? "Live In-Progress" : "Completed");
-
-                var model = new AdminAIConversationDetailsViewModel
-                {
-                    SessionId = voiceSession.VoiceBotSessionId,
-                    SessionType = "VoiceBot",
-                    StudentId = voiceSession.StudentId,
-                    StudentName = voiceSession.Student?.FullName ?? "Student",
-                    StudentIdNumber = voiceSession.Student?.StudentIdNumber ?? "-",
-                    Department = voiceSession.Student?.Department ?? "-",
-                    Email = voiceSession.Student?.Email ?? "-",
-                    Phone = voiceSession.Student?.Phone ?? "-",
-                    ProfileImage = voiceSession.Student?.ProfileImage,
-                    StartedAt = voiceSession.StartedAt,
-                    EndedAt = voiceSession.EndedAt,
-                    DurationFormatted = duration,
-                    IsActive = voiceSession.IsActive,
-                    RiskStatus = riskVal,
-                    ClinicalSummary = summaryVal,
-                    VoiceTranscripts = transcripts.Select(t => new VoiceTranscriptItemViewModel
-                    {
-                        Speaker = t.Speaker,
-                        TranscriptText = t.TranscriptText,
-                        CreatedAt = t.CreatedAt
-                    }).ToList()
-                };
-
-                return View(model);
-            }
+            return RedirectToAction(nameof(Reports));
         }
 
         // =========================================================
@@ -2978,7 +2692,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - c.AssessmentDate).TotalHours > 48;
                     string apptStatus = appt?.Status ?? "Unassigned";
 
-                    if (stat == "Overdue" && !isOverdue) continue;
+                    if ((stat == "Missed" || stat == "Overdue") && !isOverdue && apptStatus != "Missed") continue;
                     if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
                     if (stat == "Completed" && apptStatus != "Completed") continue;
 
@@ -3022,7 +2736,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - p.AssessmentDate).TotalHours > 48;
                     string apptStatus = appt?.Status ?? "Unassigned";
 
-                    if (stat == "Overdue" && !isOverdue) continue;
+                    if ((stat == "Missed" || stat == "Overdue") && !isOverdue && apptStatus != "Missed") continue;
                     if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
                     if (stat == "Completed" && apptStatus != "Completed") continue;
 
@@ -3069,7 +2783,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - c.CreatedAt).TotalHours > 48;
                     string apptStatus = appt?.Status ?? "Unassigned";
 
-                    if (stat == "Overdue" && !isOverdue) continue;
+                    if ((stat == "Missed" || stat == "Overdue") && !isOverdue && apptStatus != "Missed") continue;
                     if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
                     if (stat == "Completed" && apptStatus != "Completed") continue;
 
@@ -3113,7 +2827,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     bool isOverdue = (appt == null || appt.Status == "Cancelled") && (DateTime.Now - v.LastUpdatedAt).TotalHours > 48;
                     string apptStatus = appt?.Status ?? "Unassigned";
 
-                    if (stat == "Overdue" && !isOverdue) continue;
+                    if ((stat == "Missed" || stat == "Overdue") && !isOverdue && apptStatus != "Missed") continue;
                     if (stat == "Pending" && apptStatus != "Pending" && apptStatus != "Confirmed") continue;
                     if (stat == "Completed" && apptStatus != "Completed") continue;
 
@@ -3151,7 +2865,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 AvailableDepartments = availableDepartments,
                 TotalCrisisEvents = sortedItems.Count,
                 ExtremelySevereCount = sortedItems.Count(x => x.SeverityLevel == "Extremely Severe"),
-                OverdueInterventionsCount = sortedItems.Count(x => x.IsOverdue),
+                OverdueInterventionsCount = sortedItems.Count(x => x.IsMissed),
                 ResolvedInterventionsCount = sortedItems.Count(x => x.CounselingStatus == "Completed"),
                 Items = sortedItems
             };
@@ -3517,18 +3231,124 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SuspendPsychologist(int id)
+        public async Task<IActionResult> SuspendPsychologist(int id)
         {
             var adminId = HttpContext.Session.GetInt32("AdminId");
             if (adminId == null) return RedirectToAction("Login");
 
-            var psychologist = _context.Psychologists.Find(id);
+            var psychologist = await _context.Psychologists.FindAsync(id);
             if (psychologist == null) return NotFound();
 
             psychologist.IsSuspended = true;
-            _context.SaveChanges();
 
-            TempData["SuccessMessage"] = $"Psychologist \"{psychologist.FullName}\" has been suspended.";
+            // Transition any expired unassessed appointments to Missed
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            // Reassign any upcoming active appointments to available active psychologists
+            var now = DateTime.Now;
+            var upcomingAppointments = await _context.Counselings
+                .Include(c => c.Student)
+                .Where(c => c.PsychologistId == id &&
+                            c.Status != "Completed" &&
+                            c.Status != "Cancelled" &&
+                            c.Status != "Missed" &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                            (c.CounselingDate.Date == DateTime.Today && c.AppointmentEndTime >= now.TimeOfDay)))
+                .ToListAsync();
+
+            var activePsychologists = await _context.Psychologists
+                .Where(p => !p.IsSuspended && p.PsychologistId != id)
+                .OrderBy(p => p.FullName)
+                .ToListAsync();
+
+            int reassignedCount = 0;
+            int cancelledCount = 0;
+
+            foreach (var appointment in upcomingAppointments)
+            {
+                Psychologist? substitutePsych = null;
+
+                if (activePsychologists.Any())
+                {
+                    // Find an active psychologist free at the exact same slot
+                    foreach (var candidate in activePsychologists)
+                    {
+                        bool isBusy = await _context.Counselings
+                            .AnyAsync(c => c.PsychologistId == candidate.PsychologistId &&
+                                           c.CounselingDate.Date == appointment.CounselingDate.Date &&
+                                           c.Status != "Cancelled" &&
+                                           appointment.AppointmentTime < c.AppointmentEndTime &&
+                                           appointment.AppointmentEndTime > c.AppointmentTime);
+
+                        if (!isBusy)
+                        {
+                            substitutePsych = candidate;
+                            break;
+                        }
+                    }
+
+                    // If none free at exact slot, pick the first active psychologist (or lowest workload)
+                    if (substitutePsych == null)
+                    {
+                        substitutePsych = activePsychologists.FirstOrDefault();
+                    }
+                }
+
+                if (substitutePsych != null)
+                {
+                    appointment.PsychologistId = substitutePsych.PsychologistId;
+                    appointment.Observation = (appointment.Observation ?? "") +
+                        $" [System: Reassigned to {substitutePsych.FullName} due to previous clinician suspension]";
+                    reassignedCount++;
+
+                    // Send email notification to student
+                    try
+                    {
+                        if (appointment.Student != null && !appointment.Student.IsSuspended && !string.IsNullOrWhiteSpace(appointment.Student.Email))
+                        {
+                            await _emailService.SendAppointmentConfirmationEmailAsync(
+                                recipientEmail: appointment.Student.Email,
+                                studentName: appointment.Student.FullName,
+                                studentIdNumber: appointment.Student.StudentIdNumber ?? "-",
+                                psychologistName: substitutePsych.FullName,
+                                psychologistSpecialization: substitutePsych.Specialization,
+                                appointmentDate: appointment.CounselingDate,
+                                startTime: appointment.AppointmentTime,
+                                endTime: appointment.AppointmentEndTime,
+                                appointmentRoom: appointment.AppointmentRoom ?? "Mental Health & Counseling Center, Room 402",
+                                appointmentSource: appointment.AppointmentSource ?? "AutoAssignment",
+                                severityOrReason: "Reassigned to Active Psychologist"
+                            );
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[AdminController] Failed to send reassign email: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    // No other active psychologist available
+                    appointment.Status = "Cancelled";
+                    appointment.Observation = (appointment.Observation ?? "") +
+                        " [System: Cancelled because assigned psychologist was suspended and no other active psychologist is available]";
+                    cancelledCount++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            string msg = $"Psychologist \"{psychologist.FullName}\" has been suspended.";
+            if (reassignedCount > 0)
+            {
+                msg += $" {reassignedCount} upcoming appointment(s) were automatically reassigned to active psychologists.";
+            }
+            if (cancelledCount > 0)
+            {
+                msg += $" {cancelledCount} appointment(s) were cancelled due to lack of other active psychologists.";
+            }
+
+            TempData["SuccessMessage"] = msg;
             return RedirectToAction("Psychologists");
         }
 
@@ -3551,40 +3371,41 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
         // =====================================================
-        // SUSPEND / UNSUSPEND — DEPARTMENT
+        // CHANGE DEPARTMENT PASSWORD — ADMIN
         // =====================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SuspendDepartment(int id)
+        public async Task<IActionResult> ChangeDepartmentPassword(int departmentId, string newPassword, string confirmPassword)
         {
             var adminId = HttpContext.Session.GetInt32("AdminId");
             if (adminId == null) return RedirectToAction("Login");
 
-            var department = _context.Departments.Find(id);
+            if (string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+            {
+                TempData["ErrorMessage"] = "Password fields cannot be empty.";
+                return RedirectToAction("Departments");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                TempData["ErrorMessage"] = "New password and confirmation do not match.";
+                return RedirectToAction("Departments");
+            }
+
+            if (newPassword.Length < 6)
+            {
+                TempData["ErrorMessage"] = "Password must be at least 6 characters long.";
+                return RedirectToAction("Departments");
+            }
+
+            var department = await _context.Departments.FindAsync(departmentId);
             if (department == null) return NotFound();
 
-            department.IsSuspended = true;
-            _context.SaveChanges();
+            department.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Department \"{department.DepartmentName}\" has been suspended.";
-            return RedirectToAction("Departments");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult UnsuspendDepartment(int id)
-        {
-            var adminId = HttpContext.Session.GetInt32("AdminId");
-            if (adminId == null) return RedirectToAction("Login");
-
-            var department = _context.Departments.Find(id);
-            if (department == null) return NotFound();
-
-            department.IsSuspended = false;
-            _context.SaveChanges();
-
-            TempData["SuccessMessage"] = $"Department \"{department.DepartmentName}\" has been reactivated.";
+            TempData["SuccessMessage"] = $"Password for {department.DepartmentName} department updated successfully.";
             return RedirectToAction("Departments");
         }
 

@@ -1,4 +1,4 @@
-﻿@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentRiskReportViewModel
+@model StudentMentalHealthMonitoringSystem.ViewModels.DepartmentRiskReportViewModel
 
 @{
     ViewData["Title"] = "Reports";
@@ -381,7 +381,7 @@
 
                                     <!-- ================= Risk Level ================= -->
 
-                                    <div class="col-lg-2">
+                                    <div class="col-lg-3">
 
                                         <div class="page-subtitle mb-2">
 
@@ -415,7 +415,7 @@
 
                                     <!-- ================= Guardian ================= -->
 
-                                    <div class="col-lg-2">
+                                    <div class="col-lg-3">
 
                                         <div class="page-subtitle mb-1">
 
@@ -437,26 +437,6 @@
                                                 ?? "No email")
 
                                         </div>
-
-                                    </div>
-
-
-                                    <!-- ================= Email ================= -->
-
-                                    <div class="col-lg-2">
-
-                                        @if (!string.IsNullOrWhiteSpace(
-                                            student.Email))
-                                        {
-                                            <a href="mailto:@student.Email"
-                                               class="mail-btn text-decoration-none">
-
-                                                <i class="bi bi-envelope me-1"></i>
-
-                                                Student
-
-                                            </a>
-                                        }
 
                                     </div>
 

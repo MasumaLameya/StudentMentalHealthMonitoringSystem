@@ -912,7 +912,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 var psychologist = await _context.Psychologists
                     .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
 
-                if (student != null && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
+                if (student != null && !student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
                 {
                     var targetDate = counseling.NextFollowUpDate ?? counseling.CounselingDate;
                     var startTime = counseling.AppointmentTime != default ? counseling.AppointmentTime : new TimeSpan(10, 0, 0);
@@ -1112,7 +1112,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Send cancellation notification email to student
             try
             {
-                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                if (counseling.Student != null && !counseling.Student.IsSuspended && !string.IsNullOrWhiteSpace(counseling.Student.Email))
                 {
                     await _emailService.SendAppointmentCancellationEmailAsync(
                         recipientEmail: counseling.Student.Email,
@@ -1176,7 +1176,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 try
                 {
-                    if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                    if (counseling.Student != null && !counseling.Student.IsSuspended && !string.IsNullOrWhiteSpace(counseling.Student.Email))
                     {
                         await _emailService.SendAppointmentConfirmationEmailAsync(
                             recipientEmail: counseling.Student.Email,
@@ -1291,7 +1291,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Send confirmation email
             try
             {
-                if (!string.IsNullOrWhiteSpace(student.Email))
+                if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                 {
                     await _emailService.SendAppointmentConfirmationEmailAsync(
                         recipientEmail: student.Email,
@@ -1441,7 +1441,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             await _context.SaveChangesAsync();
 
             // Send notification email to student
-            if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+            if (counseling.Student != null && !counseling.Student.IsSuspended && !string.IsNullOrWhiteSpace(counseling.Student.Email))
             {
                 try
                 {
@@ -1766,6 +1766,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
             // ================= Get Counseling =================
 
             var counseling =
@@ -1786,9 +1788,19 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
-            if (counseling.Status == "Missed" || counseling.Status == "Cancelled")
+            var now = DateTime.Now;
+            bool isPastSession = counseling.Status != "Completed" && (counseling.CounselingDate.Date < DateTime.Today ||
+                (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentEndTime < now.TimeOfDay));
+
+            if (counseling.Status == "Missed" || isPastSession || counseling.Status == "Cancelled")
             {
-                TempData["Error"] = $"Cannot submit observation notes for a {counseling.Status.ToLower()} appointment. Please schedule a next appointment instead.";
+                if (counseling.Status != "Cancelled" && counseling.Status != "Missed")
+                {
+                    counseling.Status = "Missed";
+                    await _context.SaveChangesAsync();
+                }
+
+                TempData["Error"] = "Missed appointment-এর জন্য Observation Form পূরণ বা রিপোর্ট প্রদান করা যাবে না। অনুগ্রহ করে পরবর্তী appointment শিডিউল করুন।";
                 return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
             }
 
@@ -2664,28 +2676,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // ================= Observation Reports =================
 
         [HttpGet]
-        public async Task<IActionResult> ObservationReports()
+        public IActionResult ObservationReports()
         {
-            // ================= Check Session =================
-            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
-            if (psychologistId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-
-            // ================= Observation Reports =================
-            var allReports = await _context.ObservationReports
-                .Include(r => r.Student)
-                .Include(r => r.Psychologist)
-                .Include(r => r.RootCounseling)
-                .OrderByDescending(r => r.UpdatedAt)
-                .ToListAsync();
-
-            var userReports = allReports.Where(r => r.PsychologistId == psychologistId.Value).ToList();
-            var observationReports = userReports.Any() ? userReports : allReports;
-
-            return View(observationReports);
+            return RedirectToAction(nameof(StudentProgressReports));
         }
 
         // ================= Observation Report Details =================
@@ -2762,51 +2755,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // REPORTS
         // =========================================================
 
-        public async Task<IActionResult> Reports()
+        public IActionResult Reports()
         {
-            // ================= Check Session =================
-
-            var psychologistId =
-                HttpContext.Session.GetInt32(
-                    "PsychologistId"
-                );
-
-
-            if (psychologistId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
-
-            // ================= Own Counseling Records =================
-
-            var reports =
-                _context.Counselings
-                    .Include(c => c.Student)
-                    .Include(c => c.Psychologist)
-
-                    .Where(c =>
-                        c.PsychologistId ==
-                            psychologistId.Value
-                    )
-
-                    .OrderByDescending(
-                        c => c.CounselingDate
-                    )
-
-                    .ThenByDescending(
-                        c => c.AppointmentTime
-                    )
-
-                    .ToList();
-
-
-            return View(
-                reports
-            );
+            return RedirectToAction(nameof(StudentProgressReports));
         }
 
 

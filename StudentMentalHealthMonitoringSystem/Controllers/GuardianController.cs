@@ -68,6 +68,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View();
             }
 
+            if (student.IsSuspended)
+            {
+                ViewBag.Error = "The student account associated with this ID is currently suspended. Portal access and verification codes are restricted. Please contact university administration.";
+                return View();
+            }
+
             // Check if Guardian Email is registered
             if (string.IsNullOrWhiteSpace(student.GuardianEmail))
             {
@@ -210,6 +216,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (studentId == null || string.IsNullOrWhiteSpace(guardianEmail))
             {
                 return Json(new { success = false, message = "Session expired. Please enter Student ID again." });
+            }
+
+            var student = await _context.Students.FindAsync(studentId.Value);
+            if (student == null || student.IsSuspended)
+            {
+                return Json(new { success = false, message = "The student account is suspended or unavailable. Verification code cannot be sent." });
             }
 
             var otp = Random.Shared.Next(100000, 999999).ToString();

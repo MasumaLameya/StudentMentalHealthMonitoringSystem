@@ -124,15 +124,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
 
-            // =====================================================
-            // Check Account Suspension
-            // =====================================================
-
-            if (department.IsSuspended)
-            {
-                ViewBag.SuspendedError = true;
-                return View();
-            }
 
 
             // =====================================================
@@ -382,7 +373,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login");
             }
 
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
 
             // =====================================================
@@ -533,6 +524,25 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
+            // Missed Auto-Assigned Screening Sessions
+            // =====================================================
+
+            var missedScreeningCounselings =
+                await _context.Counselings
+                    .Include(c => c.Student)
+                    .Include(c => c.Psychologist)
+                    .Where(c =>
+                        departmentStudentIds.Contains(c.StudentId) &&
+                        c.Status == "Missed" &&
+                        (c.AppointmentSource == "AutoAssignment" ||
+                         c.AppointmentSource == "Auto-Scheduled" ||
+                         !string.IsNullOrWhiteSpace(c.TriggerSource)))
+                    .OrderByDescending(c => c.CounselingDate)
+                    .ThenByDescending(c => c.AppointmentTime)
+                    .ToListAsync();
+
+
+            // =====================================================
             // Create Dashboard ViewModel
             // =====================================================
 
@@ -555,7 +565,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                         upcomingFollowUps,
 
                     UpcomingCounselings =
-                        upcomingCounselings
+                        upcomingCounselings,
+
+                    MissedScreeningSessionsCount =
+                        missedScreeningCounselings.Count,
+
+                    MissedScreeningCounselings =
+                        missedScreeningCounselings
                 };
 
 
@@ -683,7 +699,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login");
             }
 
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
 
             // =====================================================
@@ -770,7 +786,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login");
             }
 
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
 
             // =====================================================
@@ -838,6 +854,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
+            // Missed Auto-Assigned Screening Sessions
+            // =====================================================
+
+            var missedScreeningCounselings =
+                counselings
+                    .Where(c =>
+                        c.Status == "Missed" &&
+                        (c.AppointmentSource == "AutoAssignment" ||
+                         c.AppointmentSource == "Auto-Scheduled" ||
+                         !string.IsNullOrWhiteSpace(c.TriggerSource)))
+                    .ToList();
+
+
+            // =====================================================
             // ViewBag Data
             // =====================================================
 
@@ -846,6 +876,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             ViewBag.Counselings =
                 counselings;
+
+            ViewBag.MissedScreeningCounselings =
+                missedScreeningCounselings;
 
 
             return View(students);
@@ -1291,7 +1324,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             try
             {
-                if (!string.IsNullOrWhiteSpace(student.Email))
+                if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                 {
                     await _emailService.SendAppointmentConfirmationEmailAsync(
                         recipientEmail: student.Email,
@@ -1354,7 +1387,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
             var counseling = await _context.Counselings
                 .Include(c => c.Student)
@@ -1422,7 +1455,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 var psychologistName = counseling.Psychologist?.FullName ?? "University Psychologist";
 
                 // 1. Notify Student
-                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.Email))
+                if (counseling.Student != null && !counseling.Student.IsSuspended && !string.IsNullOrWhiteSpace(counseling.Student.Email))
                 {
                     await _emailService.SendAppointmentCancellationEmailAsync(
                         recipientEmail: counseling.Student.Email,
@@ -1453,8 +1486,8 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     );
                 }
 
-                // 3. Notify Guardian
-                if (counseling.Student != null && !string.IsNullOrWhiteSpace(counseling.Student.GuardianEmail))
+                // 3. Notify Guardian (only if student is not suspended)
+                if (counseling.Student != null && !counseling.Student.IsSuspended && !string.IsNullOrWhiteSpace(counseling.Student.GuardianEmail))
                 {
                     await _emailService.SendAppointmentCancellationEmailAsync(
                         recipientEmail: counseling.Student.GuardianEmail,
@@ -1523,7 +1556,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     var student = counseling.Student ?? await _context.Students.FindAsync(counseling.StudentId);
                     var psych = counseling.Psychologist ?? await _context.Psychologists.FindAsync(assignedPsychologistId);
 
-                    if (student != null && !string.IsNullOrWhiteSpace(student.Email))
+                    if (student != null && !student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                     {
                         await _emailService.SendAppointmentConfirmationEmailAsync(
                             recipientEmail: student.Email,
@@ -1644,7 +1677,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             try
             {
                 var psych = await _context.Psychologists.FindAsync(psychId);
-                if (!string.IsNullOrWhiteSpace(student.Email))
+                if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                 {
                     await _emailService.SendAppointmentConfirmationEmailAsync(
                         recipientEmail: student.Email,
@@ -2448,8 +2481,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Send Email To Student
             // =====================================================
 
-            if (!string.IsNullOrWhiteSpace(
-                student.Email))
+            if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
             {
                 await _emailService.SendEmailAsync(
                     student.Email,
@@ -2463,8 +2495,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Send Email To Guardian
             // =====================================================
 
-            if (!string.IsNullOrWhiteSpace(
-                student.GuardianEmail))
+            if (!student.IsSuspended && !string.IsNullOrWhiteSpace(student.GuardianEmail))
             {
                 await _emailService.SendEmailAsync(
                     student.GuardianEmail,
@@ -3365,6 +3396,78 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             };
 
             return View(reportViewModel);
+        }
+
+        // =========================================================
+        // CHANGE PASSWORD (DEPARTMENT)
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            var departmentId = HttpContext.Session.GetInt32("DepartmentId");
+            if (departmentId == null) return RedirectToAction("Login");
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var departmentId = HttpContext.Session.GetInt32("DepartmentId");
+            if (departmentId == null) return RedirectToAction("Login");
+
+            if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
+            {
+                ViewBag.Error = "All fields are required.";
+                return View();
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "New password and Confirm password do not match.";
+                return View();
+            }
+
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "New password must be at least 6 characters long.";
+                return View();
+            }
+
+            var department = await _context.Departments.FindAsync(departmentId.Value);
+            if (department == null) return RedirectToAction("Login");
+
+            bool isCurrentValid = false;
+            try
+            {
+                if (!string.IsNullOrEmpty(department.Password))
+                {
+                    isCurrentValid = BCrypt.Net.BCrypt.Verify(currentPassword, department.Password);
+                }
+            }
+            catch
+            {
+                isCurrentValid = (department.Password == currentPassword);
+            }
+
+            if (!isCurrentValid && department.Password == currentPassword)
+            {
+                isCurrentValid = true;
+            }
+
+            if (!isCurrentValid)
+            {
+                ViewBag.Error = "Current password is incorrect.";
+                return View();
+            }
+
+            department.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Department password updated successfully.";
+            return RedirectToAction("ChangePassword");
         }
     }
 }

@@ -20,6 +20,7 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string CounselingStatus { get; set; } = "Unassigned";
         public DateTime? CounselingDate { get; set; }
         public bool IsOverdue { get; set; }
+        public bool IsMissed => IsOverdue || CounselingStatus == "Missed";
     }
 
     public class AdminCrisisReportViewModel
@@ -33,6 +34,7 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public int TotalCrisisEvents { get; set; }
         public int ExtremelySevereCount { get; set; }
         public int OverdueInterventionsCount { get; set; }
+        public int MissedInterventionsCount => OverdueInterventionsCount;
         public int ResolvedInterventionsCount { get; set; }
 
         public List<CrisisEscalationItemViewModel> Items { get; set; } = new List<CrisisEscalationItemViewModel>();

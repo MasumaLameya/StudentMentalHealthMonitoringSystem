@@ -1,4 +1,4 @@
-﻿@{
+@{
     var adminName = Context.Session.GetString("AdminName");
 
     if (string.IsNullOrEmpty(adminName))
@@ -150,6 +150,14 @@
             </ul>
 
         </div>
+
+        <!-- Logout Button -->
+        <a asp-controller="Admin"
+           asp-action="Logout"
+           class="btn btn-danger text-white fw-bold px-3.5 py-1.5 rounded-pill shadow-sm ms-3 d-flex align-items-center gap-1">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+        </a>
 
     </div>
 

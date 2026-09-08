@@ -57,6 +57,16 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
 
 
         // =========================================================
+        // MISSED AUTO-ASSIGNED SCREENING SESSIONS
+        // =========================================================
+
+        public int MissedScreeningSessionsCount { get; set; }
+
+        public List<Counseling> MissedScreeningCounselings { get; set; }
+            = new List<Counseling>();
+
+
+        // =========================================================
         // SUSPENSION STATUS
         // =========================================================
 

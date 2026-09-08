@@ -182,6 +182,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View();
             }
 
+            if (student.IsSuspended)
+            {
+                ViewBag.Error = "Your student account is currently suspended. Verification code cannot be sent. Please contact university administration.";
+                return View();
+            }
+
             var otp = Random.Shared.Next(100000, 999999).ToString();
             var expiry = DateTime.UtcNow.AddMinutes(10);
 
@@ -308,6 +314,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (student == null)
             {
                 return Json(new { success = false, message = "Student account not found." });
+            }
+
+            if (student.IsSuspended)
+            {
+                return Json(new { success = false, message = "Your student account is suspended. Verification code cannot be sent." });
             }
 
             var otp = Random.Shared.Next(100000, 999999).ToString();
@@ -2569,13 +2580,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             var now = DateTime.Now;
 
-            // Check if student already has an active, pending, or scheduled appointment
+            // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings
                 .Include(c => c.Psychologist)
                 .Where(c => c.StudentId == studentId.Value &&
                             c.Status != "Completed" &&
                             c.Status != "Cancelled" &&
                             c.Status != "Missed" &&
+                            c.Psychologist != null &&
+                            !c.Psychologist.IsSuspended &&
                             (c.CounselingDate.Date > DateTime.Today ||
                             (c.CounselingDate.Date == DateTime.Today && c.AppointmentEndTime >= now.TimeOfDay)))
                 .OrderByDescending(c => c.CounselingDate)
@@ -2623,13 +2636,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             var now = DateTime.Now;
 
-            // Check if student already has an active, pending, or scheduled appointment
+            // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings
                 .Include(c => c.Psychologist)
                 .Where(c => c.StudentId == studentId.Value &&
                             c.Status != "Completed" &&
                             c.Status != "Cancelled" &&
                             c.Status != "Missed" &&
+                            c.Psychologist != null &&
+                            !c.Psychologist.IsSuspended &&
                             (c.CounselingDate.Date > DateTime.Today ||
                             (c.CounselingDate.Date == DateTime.Today && c.AppointmentEndTime >= now.TimeOfDay)))
                 .OrderByDescending(c => c.CounselingDate)
@@ -2755,6 +2770,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             var studentAlreadyBooked =
                 await _context.Counselings
+                    .Include(c => c.Psychologist)
                     .AnyAsync(
                         c =>
                             c.StudentId ==
@@ -2765,6 +2781,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                             c.Status !=
                                 "Cancelled" &&
+
+                            c.Status !=
+                                "Missed" &&
+
+                            c.Psychologist != null &&
+                            !c.Psychologist.IsSuspended &&
 
                             model.StartTime <
                                 c.AppointmentEndTime &&
@@ -3132,7 +3154,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 var student = await _context.Students
                     .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
 
-                if (student != null && !string.IsNullOrWhiteSpace(student.Email))
+                if (student != null && !student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email))
                 {
                     await _emailService.SendAppointmentConfirmationEmailAsync(
                         recipientEmail: student.Email,
