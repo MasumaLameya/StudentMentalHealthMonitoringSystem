@@ -2580,6 +2580,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             var now = DateTime.Now;
 
+            // Check if student has completed at least one screening assessment (PHQ-9 or C-SSRS)
+            bool hasCompletedScreening = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value) ||
+                                         await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+
+            ViewBag.HasCompletedScreening = hasCompletedScreening;
+
             // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings
                 .Include(c => c.Psychologist)
@@ -2635,6 +2641,22 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             var now = DateTime.Now;
+
+            // Check if student has completed at least one screening assessment (PHQ-9 or C-SSRS)
+            bool hasCompletedScreening = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value) ||
+                                         await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+
+            ViewBag.HasCompletedScreening = hasCompletedScreening;
+
+            if (!hasCompletedScreening)
+            {
+                TempData["Error"] = "Screening required! You must complete at least one screening assessment (PHQ-9 or C-SSRS) before requesting a counseling appointment.";
+                ModelState.AddModelError(
+                    "",
+                    "Screening required! You must complete at least one screening assessment (PHQ-9 or C-SSRS) before scheduling a counseling session."
+                );
+                return View(model);
+            }
 
             // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings

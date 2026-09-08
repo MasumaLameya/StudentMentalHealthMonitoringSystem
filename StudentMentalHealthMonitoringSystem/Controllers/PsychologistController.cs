@@ -1349,6 +1349,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Appointment");
             }
 
+            // Check if current appointment has started (cannot schedule follow-up before appointment start time)
+            DateTime currentSessionStartDateTime = counseling.CounselingDate.Date.Add(counseling.AppointmentTime);
+            if (counseling.Status != "Completed" && DateTime.Now < currentSessionStartDateTime)
+            {
+                TempData["Error"] = $"Follow-up appointments cannot be scheduled before the current appointment starts. Scheduled session time: {currentSessionStartDateTime:dd MMM yyyy, h:mm tt}.";
+                return RedirectToAction("Appointment");
+            }
+
             // Overwrite Protection: Prevent scheduling another follow-up if an active one already exists
             var existingFollowUp = await _context.Counselings
                 .FirstOrDefaultAsync(c => c.ParentCounselingId == counselingId && c.Status != "Cancelled");
@@ -1518,6 +1526,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
             var now = DateTime.Now;
+            DateTime sessionStartDateTime = counseling.CounselingDate.Date.Add(counseling.AppointmentTime);
+            bool isSessionStarted = now >= sessionStartDateTime;
+            ViewBag.IsSessionStarted = isSessionStarted;
+            ViewBag.SessionStartDateTime = sessionStartDateTime;
+
             bool canCancel = (counseling.Status == "Confirmed" || counseling.Status == "Pending") &&
                 (counseling.CounselingDate.Date > DateTime.Today ||
                 (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentTime > now.TimeOfDay));
@@ -1789,6 +1802,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
             var now = DateTime.Now;
+            DateTime sessionStartDateTime = counseling.CounselingDate.Date.Add(counseling.AppointmentTime);
+            bool isSessionStarted = now >= sessionStartDateTime;
+
+            if (!isSessionStarted && counseling.Status != "Completed")
+            {
+                TempData["Error"] = $"Observation forms and follow-ups cannot be submitted before the appointment starts. Scheduled session time: {sessionStartDateTime:dd MMM yyyy, h:mm tt}.";
+                return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
+            }
+
             bool isPastSession = counseling.Status != "Completed" && (counseling.CounselingDate.Date < DateTime.Today ||
                 (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentEndTime < now.TimeOfDay));
 
@@ -1800,7 +1822,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                TempData["Error"] = "Missed appointment-এর জন্য Observation Form পূরণ বা রিপোর্ট প্রদান করা যাবে না। অনুগ্রহ করে পরবর্তী appointment শিডিউল করুন।";
+                TempData["Error"] = "Observation forms and reports cannot be submitted for a missed appointment. Please schedule a new appointment for the student below.";
                 return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
             }
 

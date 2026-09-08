@@ -2,8 +2,8 @@
 
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Counseling Appointment";
     var activeAppointment = ViewBag.ActiveAppointment as StudentMentalHealthMonitoringSystem.Models.Counseling;
+    bool hasCompletedScreening = ViewBag.HasCompletedScreening != null ? (bool)ViewBag.HasCompletedScreening : true;
 }
 
 <style>
@@ -187,6 +187,65 @@
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                }
+                else if (!hasCompletedScreening)
+                {
+                    <!-- ================= SCREENING PREREQUISITE REQUIRED CARD ================= -->
+                    <div class="glass-card p-4 p-md-5 mb-4 text-center">
+                        <div class="mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle" style="width: 84px; height: 84px; background: #FFF3CD; border: 2px solid #FFEBAA;">
+                            <i class="bi bi-shield-exclamation text-warning" style="font-size: 2.75rem;"></i>
+                        </div>
+                        <h3 class="fw-bold mb-2" style="color: #004D25;">Screening Assessment Required</h3>
+                        <p class="text-secondary mx-auto mb-4" style="max-width: 680px; font-size: 1.05rem;">
+                            Before you can schedule a counseling session, you must complete at least one baseline mental health screening (<strong class="text-dark">PHQ-9</strong> or <strong class="text-dark">C-SSRS</strong>). This ensures our psychologists have essential context to support you effectively.
+                        </p>
+
+                        <div class="row g-4 justify-content-center mb-4" style="max-width: 760px; margin: 0 auto;">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-start" style="background: #F4FBF7; border: 1px solid #D1E2D7 !important;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="badge bg-success text-white p-2.5 rounded-3 me-2">
+                                            <i class="bi bi-clipboard2-pulse fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-0 text-success">PHQ-9 Screening</h5>
+                                            <small class="text-muted">Depression & Mood Assessment</small>
+                                        </div>
+                                    </div>
+                                    <p class="small text-secondary mb-4">A standard 9-question clinical tool evaluating mood and symptom levels over the past 2 weeks.</p>
+                                    <a href="/Student/PHQ" class="btn text-white w-100 rounded-3 py-2.5 fw-bold shadow-sm" style="background: #006837;">
+                                        <i class="bi bi-pencil-square me-1"></i> Start PHQ-9 Assessment
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 text-start" style="background: #FDF9F4; border: 1px solid #F0E2D4 !important;">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="badge bg-warning text-dark p-2.5 rounded-3 me-2">
+                                            <i class="bi bi-heart-pulse fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-0 text-dark">C-SSRS Screening</h5>
+                                            <small class="text-muted">Columbia Suicide Severity Scale</small>
+                                        </div>
+                                    </div>
+                                    <p class="small text-secondary mb-4">A standardized clinical questionnaire to gauge emotional distress and personal safety risks.</p>
+                                    <a href="/Student/CSRRS" class="btn btn-warning text-dark w-100 rounded-3 py-2.5 fw-bold shadow-sm">
+                                        <i class="bi bi-pencil-square me-1"></i> Start C-SSRS Assessment
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2 flex-wrap pt-3 border-top">
+                            <a href="/Student/SemesterScreening" class="btn btn-outline-success rounded-3 px-4 py-2.5 fw-bold">
+                                <i class="bi bi-speedometer2 me-1"></i> Semester Screening Hub
+                            </a>
+                            <a href="/Student/Dashboard" class="btn btn-light border rounded-3 px-4 py-2.5 fw-bold">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                            </a>
                         </div>
                     </div>
                 }

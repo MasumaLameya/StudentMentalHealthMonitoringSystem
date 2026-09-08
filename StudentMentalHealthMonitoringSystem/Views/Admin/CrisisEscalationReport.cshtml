@@ -177,7 +177,6 @@
                                 <th>Triggered Date</th>
                                 <th>Assigned Psychologist</th>
                                 <th>Care Status</th>
-                                <th class="text-center pe-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -264,13 +263,6 @@
                                                 @item.CounselingStatus
                                             </span>
                                         }
-                                    </td>
-
-                                    <td class="text-center pe-4">
-                                        <a asp-controller="Admin" asp-action="StudentDetails" asp-route-id="@item.StudentId"
-                                           class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1.5 fw-semibold">
-                                            <i class="bi bi-person-bounding-box me-1"></i> Student Case
-                                        </a>
                                     </td>
                                 </tr>
                             }

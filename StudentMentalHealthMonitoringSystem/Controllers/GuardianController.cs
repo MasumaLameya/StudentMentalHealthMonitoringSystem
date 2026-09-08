@@ -4,8 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using StudentMentalHealthMonitoringSystem.Data;
 using StudentMentalHealthMonitoringSystem.Models;
 using StudentMentalHealthMonitoringSystem.Services;
+using StudentMentalHealthMonitoringSystem.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StudentMentalHealthMonitoringSystem.Controllers
@@ -296,6 +299,110 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.CSSRSReports = cssrsReports;
 
             return View();
+        }
+
+
+        // =====================================================
+        // GUARDIAN PROGRESS (STUDENT PROGRESS REPORT & RECOVERY)
+        // =====================================================
+
+        [HttpGet]
+        public async Task<IActionResult> Progress()
+        {
+            var studentId = HttpContext.Session.GetInt32("GuardianStudentId");
+            if (studentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+            if (student == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login");
+            }
+
+            List<ObservationReport> reports = new List<ObservationReport>();
+            try
+            {
+                reports = await _context.ObservationReports
+                    .Include(r => r.Student)
+                    .Include(r => r.Psychologist)
+                    .Where(r => r.StudentId == studentId.Value)
+                    .OrderByDescending(r => r.UpdatedAt)
+                    .ToListAsync();
+            }
+            catch (Exception)
+            {
+                reports = new List<ObservationReport>();
+            }
+
+            var progressVms = new List<StudentProgressReportDetailViewModel>();
+            var processedRootIds = new HashSet<int>();
+
+            foreach (var report in reports)
+            {
+                processedRootIds.Add(report.RootCounselingId);
+
+                List<CounselingObservation> obsList = new List<CounselingObservation>();
+                try
+                {
+                    obsList = await _context.CounselingObservations
+                        .Include(o => o.Counseling)
+                        .Where(o => o.RootCounselingId == report.RootCounselingId)
+                        .OrderBy(o => o.Counseling!.CounselingDate)
+                        .ThenBy(o => o.Counseling!.AppointmentTime)
+                        .ToListAsync();
+                }
+                catch (Exception)
+                {
+                    obsList = new List<CounselingObservation>();
+                }
+
+                var vm = ProgressScoringService.BuildDetailViewModel(report, obsList);
+                progressVms.Add(vm);
+            }
+
+            // Fallback for counselings without ObservationReport yet
+            var counselings = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId.Value)
+                .OrderBy(c => c.CounselingDate)
+                .ThenBy(c => c.AppointmentTime)
+                .ToListAsync();
+
+            var unmappedCounselings = counselings
+                .Where(c => !processedRootIds.Contains(c.CounselingId))
+                .ToList();
+
+            if (unmappedCounselings.Any() && student != null)
+            {
+                var dummyReport = new ObservationReport
+                {
+                    ObservationReportId = 0,
+                    RootCounselingId = unmappedCounselings.First().CounselingId,
+                    StudentId = student.StudentId,
+                    Student = student,
+                    PsychologistId = unmappedCounselings.First().PsychologistId,
+                    Psychologist = unmappedCounselings.First().Psychologist,
+                    IsFinal = false,
+                    CreatedAt = unmappedCounselings.First().CounselingDate,
+                    UpdatedAt = unmappedCounselings.Last().CounselingDate
+                };
+
+                var dummyObsList = await _context.CounselingObservations
+                    .Include(o => o.Counseling)
+                    .Where(o => o.StudentId == student.StudentId)
+                    .OrderBy(o => o.Counseling!.CounselingDate)
+                    .ThenBy(o => o.Counseling!.AppointmentTime)
+                    .ToListAsync();
+
+                var fallbackVm = ProgressScoringService.BuildDetailViewModel(dummyReport, dummyObsList);
+                progressVms.Add(fallbackVm);
+            }
+
+            ViewBag.Student = student;
+            return View(progressVms);
         }
 
 

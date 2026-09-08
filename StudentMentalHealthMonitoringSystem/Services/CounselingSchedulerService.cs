@@ -282,7 +282,9 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
 
                     // =================================================
-                    // Do Not Schedule In The Past
+                    // Minimum 24 Hours Lead Time Requirement
+                    // Auto-assigned appointments must be scheduled at least 24 hours
+                    // after current time in the closest available free slot.
                     // =================================================
 
                     var appointmentDateTime =
@@ -292,8 +294,8 @@ namespace StudentMentalHealthMonitoringSystem.Services
                             );
 
 
-                    if (appointmentDateTime <=
-                        DateTime.Now)
+                    if (appointmentDateTime <
+                        DateTime.Now.AddHours(24))
                     {
                         continue;
                     }

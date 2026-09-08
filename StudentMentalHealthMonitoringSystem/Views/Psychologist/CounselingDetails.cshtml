@@ -28,6 +28,12 @@
                 .Add(counseling.AppointmentEndTime)
                 .ToString("h:mm tt")
             : "-";
+
+    bool isSessionStarted = ViewBag.IsSessionStarted != null
+        ? (bool)ViewBag.IsSessionStarted
+        : (counseling != null && DateTime.Now >= counseling.CounselingDate.Date.Add(counseling.AppointmentTime));
+
+    bool isCompleted = counseling?.Status == "Completed";
 }
 
 <div class="container-fluid py-3" id="psychologistCounselingDetailsContent">
@@ -436,7 +442,7 @@
                                     </h5>
                                     <p class="text-muted mb-0">
                                         @(counseling?.Status == "Missed"
-                                            ? "Missed appointment-এর জন্য Observation Form পূরণ বা Observation Report জমা দেওয়া যাবে না। সেশনের নির্ধারিত সময় পার হয়ে যাওয়ায় এটি Missed হিসেবে চিহ্নিত হয়েছে। আপনি চাইলে নিচে শিক্ষার্থীর জন্য পরবর্তী appointment নির্ধারণ করতে পারেন।"
+                                            ? "Clinical observation forms and reports cannot be submitted for a missed appointment because the scheduled session time has passed. You may schedule the next appointment for the student below."
                                             : "Clinical notes and observations cannot be submitted for a cancelled counseling session. You can schedule the next appointment date below.")
                                     </p>
                                 </div>
@@ -515,6 +521,21 @@
 
 
                     <div class="card-body p-4">
+
+                        @if (!isSessionStarted && !isCompleted)
+                        {
+                            <div class="alert border-0 rounded-4 p-3 mb-4 d-flex align-items-center gap-3" style="background:#FFF9E6; border-left: 5px solid #FFA000 !important;">
+                                <div class="p-2 bg-warning bg-opacity-25 rounded-circle text-warning-emphasis">
+                                    <i class="bi bi-hourglass-top fs-4 text-warning"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-dark">Appointment Has Not Started Yet</h6>
+                                    <p class="small text-muted mb-0">
+                                        Observation form and follow-up scheduling are locked until the appointment time arrives (scheduled for <strong>@appointmentDate at @startTime</strong>).
+                                    </p>
+                                </div>
+                            </div>
+                        }
 
                         <!-- ================================================= -->
                         <!-- 1. Overall Progress Status -->
@@ -1038,6 +1059,16 @@
                                         style="background:#006837; color:white;">
                                     <i class="bi bi-pencil-square me-1"></i>
                                     Update Clinical Notes
+                                </button>
+                            }
+                            else if (!isSessionStarted)
+                            {
+                                <button type="button"
+                                        class="btn btn-secondary rounded-3 px-4 fw-semibold shadow-sm"
+                                        disabled
+                                        title="Observation form can only be completed during or after the appointment start time (@startTime)">
+                                    <i class="bi bi-lock-fill me-1"></i>
+                                    Locked Until @startTime
                                 </button>
                             }
                             else

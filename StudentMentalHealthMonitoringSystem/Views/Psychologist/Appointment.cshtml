@@ -482,7 +482,8 @@
                                         }
                                         else
                                         {
-                                            @if (item.Status == "Completed" || item.Status == "Confirmed")
+                                            bool isItemSessionStarted = DateTime.Now >= item.CounselingDate.Date.Add(item.AppointmentTime);
+                                            @if (item.Status == "Completed" || (item.Status == "Confirmed" && isItemSessionStarted))
                                             {
                                                 <button type="button"
                                                         class="btn btn-sm rounded-3 px-3 py-1"
@@ -491,6 +492,12 @@
                                                         data-bs-target="#scheduleFollowUpModal_@item.CounselingId">
                                                     <i class="bi bi-calendar-plus me-1"></i> + Follow-up
                                                 </button>
+                                            }
+                                            else if (!isItemSessionStarted && item.Status != "Cancelled" && item.Status != "Missed")
+                                            {
+                                                <span class="badge rounded-pill text-secondary bg-light border px-2 py-1" style="font-size:11px;" title="Follow-up can be scheduled once the session starts">
+                                                    <i class="bi bi-lock me-1"></i>Session Pending
+                                                </span>
                                             }
                                             else
                                             {
