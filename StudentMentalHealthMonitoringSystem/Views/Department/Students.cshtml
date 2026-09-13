@@ -1,4 +1,4 @@
-﻿@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
+@model IEnumerable<StudentMentalHealthMonitoringSystem.Models.Student>
 
 @{
     Layout = "_DepartmentLayout";
@@ -423,6 +423,22 @@
          STUDENT LIST CARD
          ===================================================== -->
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-check-circle-fill fs-4 me-3 text-success"></i>
+            <div class="fw-semibold">@TempData["Success"]</div>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center p-3">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-danger"></i>
+            <div class="fw-semibold">@TempData["Error"]</div>
+        </div>
+    }
+
     <div class="student-main-card">
 
         <div class="card-body p-4">
@@ -573,6 +589,12 @@
 
                                 </th>
 
+                                <th>
+
+                                    Status
+
+                                </th>
+
 
                                 <th class="text-end">
 
@@ -594,7 +616,7 @@
                             @foreach (var student in Model)
                             {
 
-                                <tr>
+                                <tr class="@(student.IsSuspended ? "table-light" : "")">
 
 
                                     <!-- =================================
@@ -613,6 +635,7 @@
 
                                                 <img src="@student.ProfileImage"
                                                      class="student-avatar me-3"
+                                                     style="@(student.IsSuspended ? "opacity:0.65;" : "")"
                                                      alt="Student Profile" />
 
                                             }
@@ -621,7 +644,8 @@
 
                                                 <div class="
                                                     student-avatar-placeholder
-                                                    me-3">
+                                                    me-3"
+                                                     style="@(student.IsSuspended ? "opacity:0.65;" : "")">
 
                                                     <i class="
                                                         bi bi-person
@@ -731,24 +755,80 @@
                                     </td>
 
 
+                                    <!-- =================================
+                                         STATUS
+                                         ================================= -->
+
+                                    <td>
+
+                                        @if (student.IsSuspended)
+                                        {
+                                            <span class="badge rounded-pill px-2.5 py-1.5"
+                                                  style="background: #FEE2E2; color: #DC2626; font-size: 11px; font-weight: 600;">
+                                                <i class="bi bi-slash-circle me-1"></i>Suspended
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill px-2.5 py-1.5"
+                                                  style="background: #E8F5E9; color: #2E7D32; font-size: 11px; font-weight: 600;">
+                                                <i class="bi bi-check-circle me-1"></i>Active
+                                            </span>
+                                        }
+
+                                    </td>
+
+
 
                                     <!-- =================================
-                                         DETAILS
+                                         ACTIONS (Details / Suspend / Reactivate)
                                          ================================= -->
 
                                     <td class="text-end">
 
-                                        <a asp-controller="Department"
-                                           asp-action="StudentDetails"
-                                           asp-route-id="@student.StudentId"
-                                           class="
-                                            student-details-btn">
+                                        <div class="d-inline-flex gap-2 align-items-center">
 
-                                            <i class="bi bi-eye me-1"></i>
+                                            <a asp-controller="Department"
+                                               asp-action="StudentDetails"
+                                               asp-route-id="@student.StudentId"
+                                               class="student-details-btn">
 
-                                            Details
+                                                <i class="bi bi-eye me-1"></i>
 
-                                        </a>
+                                                Details
+
+                                            </a>
+
+                                            @if (student.IsSuspended)
+                                            {
+                                                <form asp-controller="Department" asp-action="UnsuspendStudent" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@student.StudentId" />
+                                                    <button type="submit" 
+                                                            class="btn btn-sm"
+                                                            style="background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; border-radius: 10px; padding: 7px 13px; font-size: 12px; font-weight: 600;"
+                                                            onclick="return confirm('Are you sure you want to reactivate the student account for @student.FullName (@student.StudentIdNumber)? They will be able to log in again.');"
+                                                            title="Reactivate Student Account">
+                                                        <i class="bi bi-person-check-fill me-1"></i>Active
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form asp-controller="Department" asp-action="SuspendStudent" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@student.StudentId" />
+                                                    <button type="submit" 
+                                                            class="btn btn-sm"
+                                                            style="background: #FEE2E2; color: #B91C1C; border: 1px solid #FECACA; border-radius: 10px; padding: 7px 13px; font-size: 12px; font-weight: 600;"
+                                                            onclick="return confirm('Are you sure you want to suspend the student account for @student.FullName (@student.StudentIdNumber)? They will not be able to log in.');"
+                                                            title="Suspend Student Account">
+                                                        <i class="bi bi-person-slash me-1"></i>Suspend
+                                                    </button>
+                                                </form>
+                                            }
+
+                                        </div>
 
                                     </td>
 

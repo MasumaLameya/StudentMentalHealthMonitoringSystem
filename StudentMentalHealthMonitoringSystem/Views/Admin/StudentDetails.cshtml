@@ -114,6 +114,45 @@
 
                     </span>
 
+                    <div class="mt-3">
+                        @if (Model.Student?.IsSuspended == true)
+                        {
+                            <div class="mb-2">
+                                <span class="badge px-3 py-2 rounded-pill" style="background:#FEE2E2; color:#DC2626; font-size:12px; font-weight:700;">
+                                    <i class="bi bi-slash-circle me-1"></i>Account Suspended
+                                </span>
+                            </div>
+                            <form asp-controller="Admin" asp-action="UnsuspendStudent" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Student.StudentId" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("StudentDetails", new { id = Model.Student.StudentId })" />
+                                <button type="submit" class="btn btn-sm rounded-pill px-3 py-2 fw-bold shadow-sm"
+                                        style="background:#DCFCE7; color:#15803D; border:1px solid #BBF7D0;"
+                                        onclick="return confirm('Reactivate account for @Model.Student.FullName (@Model.Student.StudentIdNumber)? Login access will be restored.');">
+                                    <i class="bi bi-person-check-fill me-1"></i>Reactivate Account
+                                </button>
+                            </form>
+                        }
+                        else if (Model.Student != null)
+                        {
+                            <div class="mb-2">
+                                <span class="badge px-3 py-2 rounded-pill" style="background:#E8F5E9; color:#2E7D32; font-size:12px; font-weight:600;">
+                                    <i class="bi bi-check-circle me-1"></i>Account Active
+                                </span>
+                            </div>
+                            <form asp-controller="Admin" asp-action="SuspendStudent" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@Model.Student.StudentId" />
+                                <input type="hidden" name="returnUrl" value="@Url.Action("StudentDetails", new { id = Model.Student.StudentId })" />
+                                <button type="submit" class="btn btn-sm rounded-pill px-3 py-2 fw-bold"
+                                        style="background:#FEE2E2; color:#B91C1C; border:1px solid #FECACA;"
+                                        onclick="return confirm('Suspend account for @Model.Student.FullName (@Model.Student.StudentIdNumber)? They will be blocked from logging in.');">
+                                    <i class="bi bi-person-slash me-1"></i>Suspend Account
+                                </button>
+                            </form>
+                        }
+                    </div>
+
                 </div>
 
             </div>

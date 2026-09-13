@@ -731,5 +731,527 @@ namespace StudentMentalHealthMonitoringSystem.Services
 
             await SendEmailAsync(recipientEmail, subject, htmlBody);
         }
+
+        // =========================================================
+        // 1st Missed Appointment Warning - Student
+        // =========================================================
+        public async Task SendFirstMissedAppointmentWarningToStudentAsync(
+            string recipientEmail,
+            string studentName,
+            string studentIdNumber,
+            string psychologistName,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string? triggerSource,
+            string? severityLevel)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail)) return;
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var startDt = DateTime.Today.Add(startTime);
+            var endDt = DateTime.Today.Add(endTime != default ? endTime : startTime.Add(TimeSpan.FromHours(1)));
+            var formattedSlot = $"{startDt:h:mm tt} - {endDt:h:mm tt}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom) ? "Mental Health & Counseling Center, Room 402" : appointmentRoom;
+            var trigger = string.IsNullOrWhiteSpace(triggerSource) ? "Mental Health Screening" : triggerSource;
+            var severity = string.IsNullOrWhiteSpace(severityLevel) ? "High Risk" : severityLevel;
+
+            var subject = $"⚠️ Warning: Missed Mental Health Counseling Appointment - SMHMS";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Missed Counseling Appointment Warning</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #FBFBFC; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #FBFBFC; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #E5E7EB;'>
+                    
+                    <!-- Warning Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #D97706 0%, #B45309 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #F59E0B;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.22); border-radius: 20px; padding: 5px 16px; color: #FFFFFF; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                ⚠️ Missed Appointment Warning (1st Notice)
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.92); margin: 6px 0 0 0; font-size: 13px;'>University Student Wellness &amp; Counseling Support</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1F2937; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>Hello {studentName},</h3>
+                            <p style='color: #4B5563; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;'>
+                                We noticed that you missed your auto-assigned mental health counseling appointment that was scheduled following your recent mental health screening (<strong>{trigger}</strong> - {severity}).
+                            </p>
+
+                            <!-- Warning Box -->
+                            <div style='background-color: #FFFBEB; border-left: 4px solid #F59E0B; border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;'>
+                                <strong style='color: #92400E; font-size: 13px; display: block; margin-bottom: 4px;'>⚠️ Important Policy Notice:</strong>
+                                <p style='margin: 0; color: #78350F; font-size: 13px; line-height: 1.5;'>
+                                    Attending counseling sessions is essential for your wellness. <strong>Missing two (2) consecutive auto-scheduled counseling appointments will result in automatic suspension of your Student Portal account.</strong>
+                                </p>
+                            </div>
+
+                            <!-- Missed Session Details Table -->
+                            <div style='background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr style='background-color: #F3F4F6;'>
+                                        <th colspan='2' style='padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #374151;'>
+                                            📋 Missed Appointment Summary
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; width: 38%; border-bottom: 1px solid #E5E7EB;'>Student Name:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{studentName} (ID: {studentIdNumber})</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Date:</td>
+                                        <td style='padding: 9px 14px; color: #B45309; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{formattedDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Time Slot:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Psychologist:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{psychologistName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600;'>Venue / Room:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px;'>{room}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style='color: #4B5563; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0;'>
+                                Please log in to your Student Portal to view your upcoming appointments or visit the Counseling &amp; Wellness Center directly.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F9FAFB; padding: 18px 24px; text-align: center; border-top: 1px solid #E5E7EB;'>
+                            <p style='color: #9CA3AF; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
+
+        // =========================================================
+        // 1st Missed Appointment Warning - Guardian
+        // =========================================================
+        public async Task SendFirstMissedAppointmentWarningToGuardianAsync(
+            string recipientEmail,
+            string? guardianName,
+            string studentName,
+            string studentIdNumber,
+            string psychologistName,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string? triggerSource,
+            string? severityLevel)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail)) return;
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var startDt = DateTime.Today.Add(startTime);
+            var endDt = DateTime.Today.Add(endTime != default ? endTime : startTime.Add(TimeSpan.FromHours(1)));
+            var formattedSlot = $"{startDt:h:mm tt} - {endDt:h:mm tt}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom) ? "Mental Health & Counseling Center, Room 402" : appointmentRoom;
+            var greeting = string.IsNullOrWhiteSpace(guardianName) ? "Dear Guardian," : $"Dear {guardianName},";
+            var trigger = string.IsNullOrWhiteSpace(triggerSource) ? "Mental Health Screening" : triggerSource;
+            var severity = string.IsNullOrWhiteSpace(severityLevel) ? "High Risk" : severityLevel;
+
+            var subject = $"⚠️ Notice: Missed Counseling Session - Student: {studentName} ({studentIdNumber}) - SMHMS";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Missed Counseling Session Notification</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #FBFBFC; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #FBFBFC; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #E5E7EB;'>
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #D97706 0%, #B45309 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #F59E0B;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.22); border-radius: 20px; padding: 5px 16px; color: #FFFFFF; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                ⚠️ Student Attendance Notice
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.92); margin: 6px 0 0 0; font-size: 13px;'>University Student Wellness &amp; Guardian Advisory</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1F2937; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>{greeting}</h3>
+                            <p style='color: #4B5563; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;'>
+                                This is an automated wellness notification to inform you that your ward, <strong>{studentName}</strong> (Student ID: <strong>{studentIdNumber}</strong>), did not attend their scheduled mental health counseling appointment on <strong>{formattedDate}</strong> at <strong>{formattedSlot}</strong>.
+                            </p>
+
+                            <!-- Warning Box -->
+                            <div style='background-color: #FFFBEB; border-left: 4px solid #F59E0B; border-radius: 8px; padding: 14px 16px; margin-bottom: 22px;'>
+                                <strong style='color: #92400E; font-size: 13px; display: block; margin-bottom: 4px;'>⚠️ University Counseling Protocol:</strong>
+                                <p style='margin: 0; color: #78350F; font-size: 13px; line-height: 1.5;'>
+                                    This appointment was scheduled to support the student following clinical assessment results ({trigger} - {severity}). Please encourage your student to attend all scheduled counseling sessions. If a student misses <strong>two consecutive sessions</strong>, their portal account will be automatically suspended until reviewed by the academic department.
+                                </p>
+                            </div>
+
+                            <!-- Session Details Table -->
+                            <div style='background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr style='background-color: #F3F4F6;'>
+                                        <th colspan='2' style='padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #374151;'>
+                                            📋 Missed Appointment Details
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; width: 38%; border-bottom: 1px solid #E5E7EB;'>Student Name:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{studentName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Student ID:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{studentIdNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Date:</td>
+                                        <td style='padding: 9px 14px; color: #B45309; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{formattedDate}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Time Slot:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Psychologist:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{psychologistName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600;'>Location:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px;'>{room}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style='color: #4B5563; font-size: 13px; line-height: 1.6; margin: 0;'>
+                                Thank you for partnering with us to ensure the mental well-being and academic success of our students.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F9FAFB; padding: 18px 24px; text-align: center; border-top: 1px solid #E5E7EB;'>
+                            <p style='color: #9CA3AF; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). Confidential Student Information.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
+
+        // =========================================================
+        // 2nd Consecutive Missed Appointment - Student Account Suspended
+        // =========================================================
+        public async Task SendSecondMissedAppointmentSuspensionToStudentAsync(
+            string recipientEmail,
+            string studentName,
+            string studentIdNumber,
+            string? departmentName,
+            string psychologistName,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string? triggerSource,
+            string? severityLevel)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail)) return;
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var startDt = DateTime.Today.Add(startTime);
+            var endDt = DateTime.Today.Add(endTime != default ? endTime : startTime.Add(TimeSpan.FromHours(1)));
+            var formattedSlot = $"{startDt:h:mm tt} - {endDt:h:mm tt}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom) ? "Mental Health & Counseling Center, Room 402" : appointmentRoom;
+            var dept = string.IsNullOrWhiteSpace(departmentName) ? "your Academic Department" : $"Department of {departmentName}";
+            var trigger = string.IsNullOrWhiteSpace(triggerSource) ? "Mental Health Screening" : triggerSource;
+            var severity = string.IsNullOrWhiteSpace(severityLevel) ? "High Risk" : severityLevel;
+
+            var subject = $"🚨 Account Suspended: Consecutive Missed Counseling Sessions - SMHMS";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Student Account Suspended</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #FBFBFC; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #FBFBFC; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 580px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #FECACA;'>
+                    
+                    <!-- Red Suspension Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #EF4444;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.22); border-radius: 20px; padding: 5px 16px; color: #FFFFFF; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                🚨 Account Suspended
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.92); margin: 6px 0 0 0; font-size: 13px;'>University Student Wellness &amp; Administration</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1F2937; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>Hello {studentName},</h3>
+                            <p style='color: #4B5563; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;'>
+                                This is an official notice to inform you that your Student Mental Health Portal account has been <strong>SUSPENDED</strong> because you have missed <strong>two (2) consecutive auto-scheduled screening counseling sessions</strong>.
+                            </p>
+
+                            <!-- Alert Box -->
+                            <div style='background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 8px; padding: 16px; margin-bottom: 22px;'>
+                                <strong style='color: #991B1B; font-size: 14px; display: block; margin-bottom: 6px;'>🚫 Access Blocked:</strong>
+                                <p style='margin: 0; color: #7F1D1D; font-size: 13px; line-height: 1.5;'>
+                                    You will not be able to log in to the Student Portal. To reactivate your account, you must directly contact <strong>{dept}</strong>. Only your academic department has the authority to review your attendance and reactivate your account.
+                                </p>
+                            </div>
+
+                            <!-- Missed Session Details Table -->
+                            <div style='background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr style='background-color: #F3F4F6;'>
+                                        <th colspan='2' style='padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #374151;'>
+                                            📋 Most Recent Missed Appointment Details
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; width: 38%; border-bottom: 1px solid #E5E7EB;'>Student ID:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{studentIdNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Screening Trigger:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{trigger} ({severity})</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Missed Date:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{formattedDate} at {formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Psychologist:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{psychologistName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600;'>Venue / Room:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px;'>{room}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <p style='color: #4B5563; font-size: 13px; line-height: 1.6; margin: 0;'>
+                                Please contact your department coordinator or head of department immediately to schedule a meeting and restore your access.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F9FAFB; padding: 18px 24px; text-align: center; border-top: 1px solid #E5E7EB;'>
+                            <p style='color: #9CA3AF; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
+
+        // =========================================================
+        // 2nd Consecutive Missed Appointment - Guardian Alert with Severity
+        // =========================================================
+        public async Task SendSecondMissedAppointmentSuspensionToGuardianAsync(
+            string recipientEmail,
+            string? guardianName,
+            string studentName,
+            string studentIdNumber,
+            string? departmentName,
+            string psychologistName,
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string? appointmentRoom,
+            string triggerSource,
+            string severityLevel)
+        {
+            if (string.IsNullOrWhiteSpace(recipientEmail)) return;
+
+            var formattedDate = appointmentDate.ToString("dddd, MMMM dd, yyyy");
+            var startDt = DateTime.Today.Add(startTime);
+            var endDt = DateTime.Today.Add(endTime != default ? endTime : startTime.Add(TimeSpan.FromHours(1)));
+            var formattedSlot = $"{startDt:h:mm tt} - {endDt:h:mm tt}";
+            var room = string.IsNullOrWhiteSpace(appointmentRoom) ? "Mental Health & Counseling Center, Room 402" : appointmentRoom;
+            var greeting = string.IsNullOrWhiteSpace(guardianName) ? "Dear Guardian," : $"Dear {guardianName},";
+            var dept = string.IsNullOrWhiteSpace(departmentName) ? "Academic Department" : departmentName;
+            var trigger = string.IsNullOrWhiteSpace(triggerSource) ? "Mental Health Screening" : triggerSource;
+            var severity = string.IsNullOrWhiteSpace(severityLevel) ? "Severe" : severityLevel;
+
+            var subject = $"🚨 Urgent Notice: Student Account Suspended & Mental Health Status - {studentName} ({studentIdNumber}) - SMHMS";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Urgent Student Alert &amp; Account Suspension</title>
+</head>
+<body style='margin: 0; padding: 0; background-color: #FBFBFC; font-family: -apple-system, BlinkMacSystemFont, ""Segoe UI"", Roboto, Helvetica, Arial, sans-serif;'>
+    <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='background-color: #FBFBFC; padding: 30px 15px;'>
+        <tr>
+            <td align='center'>
+                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='max-width: 600px; background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.08); border: 1px solid #FECACA;'>
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style='background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); padding: 32px 24px; text-align: center; border-bottom: 4px solid #EF4444;'>
+                            <div style='display: inline-block; background-color: rgba(255,255,255,0.22); border-radius: 20px; padding: 5px 16px; color: #FFFFFF; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;'>
+                                🚨 Urgent Student Wellness Alert
+                            </div>
+                            <h2 style='color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;'>Student Mental Health Monitoring System</h2>
+                            <p style='color: rgba(255,255,255,0.92); margin: 6px 0 0 0; font-size: 13px;'>Confidential Student Mental Health &amp; Guardian Notice</p>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content -->
+                    <tr>
+                        <td style='padding: 32px 28px;'>
+                            <h3 style='color: #1F2937; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;'>{greeting}</h3>
+                            <p style='color: #4B5563; font-size: 14px; line-height: 1.6; margin: 0 0 18px 0;'>
+                                This is an urgent notification regarding your ward, <strong>{studentName}</strong>. The student has missed <strong>two (2) consecutive auto-scheduled mental health counseling appointments</strong>.
+                            </p>
+
+                            <!-- Clinical Condition Notice -->
+                            <div style='background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 8px; padding: 16px; margin-bottom: 22px;'>
+                                <strong style='color: #991B1B; font-size: 14px; display: block; margin-bottom: 6px;'>⚠️ Mental Health Screening Condition &amp; Account Suspension:</strong>
+                                <p style='margin: 0; color: #7F1D1D; font-size: 13px; line-height: 1.6;'>
+                                    Clinical assessment records show that the student's screening result is categorized as <strong style='font-size:14px; text-decoration: underline;'>{severity}</strong> ({trigger}). Due to the student missing two consecutive mandatory counseling sessions, their student account has been <strong>SUSPENDED</strong>.
+                                </p>
+                            </div>
+
+                            <!-- Student & Clinical Information Table -->
+                            <div style='background-color: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; margin-bottom: 24px;'>
+                                <table role='presentation' border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse: collapse;'>
+                                    <tr style='background-color: #F3F4F6;'>
+                                        <th colspan='2' style='padding: 10px 14px; text-align: left; font-size: 13px; font-weight: 700; color: #374151;'>
+                                            📋 Student, Condition &amp; Missed Session Summary
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; width: 38%; border-bottom: 1px solid #E5E7EB;'>Student Full Name:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{studentName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Student ID:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{studentIdNumber}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Department:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; border-bottom: 1px solid #E5E7EB;'>{dept}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Clinical Condition:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 14px; font-weight: 800; border-bottom: 1px solid #E5E7EB;'>{trigger} — {severity}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Account Status:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 800; border-bottom: 1px solid #E5E7EB;'>⛔ SUSPENDED (Login Blocked)</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Latest Missed Session:</td>
+                                        <td style='padding: 9px 14px; color: #DC2626; font-size: 13px; font-weight: 700; border-bottom: 1px solid #E5E7EB;'>{formattedDate} at {formattedSlot}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>Assigned Psychologist:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px; font-weight: 600; border-bottom: 1px solid #E5E7EB;'>{psychologistName}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding: 9px 14px; color: #6B7280; font-size: 13px; font-weight: 600;'>Venue / Room:</td>
+                                        <td style='padding: 9px 14px; color: #1F2937; font-size: 13px;'>{room}</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Action Required for Guardian -->
+                            <div style='background-color: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 10px; padding: 16px; margin-bottom: 20px;'>
+                                <strong style='color: #1E293B; font-size: 13px; display: block; margin-bottom: 6px;'>📌 Recommended Action for Guardian:</strong>
+                                <ul style='margin: 0; padding-left: 20px; color: #475569; font-size: 13px; line-height: 1.6;'>
+                                    <li>Please speak with your student about their emotional and mental wellness.</li>
+                                    <li>Contact the student's <strong>{dept}</strong> administration as soon as possible. Only the department can review the situation and reactivate the student account.</li>
+                                    <li>Coordinate with the university Counseling Center to reschedule an in-person or online session.</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style='background-color: #F9FAFB; padding: 18px 24px; text-align: center; border-top: 1px solid #E5E7EB;'>
+                            <p style='color: #9CA3AF; font-size: 11px; margin: 0;'>
+                                &copy; {DateTime.Now.Year} Student Mental Health Monitoring System (SMHMS). Confidential Student Health Information.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await SendEmailAsync(recipientEmail, subject, htmlBody);
+        }
     }
 }

@@ -34,6 +34,12 @@
         border: 1px solid #EEE6DF;
         border-radius: 18px;
         padding: 22px;
+        height: 100%;
+        transition: transform 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
     }
 
     .stat-icon {
@@ -69,6 +75,16 @@
         padding: 6px 10px;
         font-size: 12px;
         font-weight: 600;
+    }
+
+    .missed-badge {
+        background: #FCE8E6;
+        color: #C5221F;
+        border-radius: 30px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
     }
 
     .student-card {
@@ -109,6 +125,21 @@
         color: #71877B;
     }
 
+    .custom-nav-pills .nav-link {
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        color: #5F5146;
+        background: #F3ECE7;
+        margin-right: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .custom-nav-pills .nav-link.active {
+        background: #9B839F;
+        color: #FFFFFF;
+    }
+
 </style>
 
 
@@ -135,14 +166,13 @@
 
                     <h2 class="page-title mb-1">
 
-                        Mental Health Reports
+                        Department Reports Hub
 
                     </h2>
 
                     <p class="page-subtitle mb-0">
 
-                        Monitor student mental health assessment
-                        results and high-risk cases.
+                        Monitor student mental health assessment results, high-risk cases, and missed counseling appointments.
 
                     </p>
 
@@ -171,7 +201,7 @@
 
         <!-- ================= Total Students ================= -->
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
             <div class="stat-card">
 
@@ -209,13 +239,13 @@
 
         <!-- ================= High Risk Students ================= -->
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
             <div class="stat-card">
 
                 <div class="d-flex align-items-center">
 
-                    <div class="stat-icon me-3">
+                    <div class="stat-icon me-3" style="background: #FCE8E6; color: #C5221F;">
 
                         <i class="bi bi-exclamation-triangle fs-5"></i>
 
@@ -230,7 +260,7 @@
 
                         </div>
 
-                        <div class="stat-number">
+                        <div class="stat-number text-danger">
 
                             @Model.HighRiskStudents
 
@@ -245,9 +275,47 @@
         </div>
 
 
+        <!-- ================= Missed Appointments ================= -->
+
+        <div class="col-md-3">
+
+            <div class="stat-card">
+
+                <div class="d-flex align-items-center">
+
+                    <div class="stat-icon me-3" style="background: #FFF0D4; color: #B06000;">
+
+                        <i class="bi bi-clock-history fs-5"></i>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="page-subtitle">
+
+                            Missed Appointments
+
+                        </div>
+
+                        <div class="stat-number text-warning-emphasis">
+
+                            @Model.MissedAppointmentsCount
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
         <!-- ================= Report Condition ================= -->
 
-        <div class="col-md-4">
+        <div class="col-md-3">
 
             <div class="stat-card">
 
@@ -269,9 +337,9 @@
                         </div>
 
                         <div class="stat-number"
-                             style="font-size:22px;">
+                             style="font-size:18px; margin-top: 4px;">
 
-                            Severe / Extremely Severe
+                            Severe / High Risk
 
                         </div>
 
@@ -287,195 +355,330 @@
 
 
     <!-- =========================================================
-         High Risk Students
+         Tabs Navigation: High-Risk vs Missed Appointments
          ========================================================= -->
 
-    <div class="main-card">
+    <div class="main-card mb-4">
 
         <div class="card-body p-4 p-lg-5">
 
-            <div class="mb-4">
+            <ul class="nav nav-pills custom-nav-pills mb-4" id="reportTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="high-risk-tab" data-bs-toggle="pill" data-bs-target="#highRiskPane" type="button" role="tab">
+                        <i class="bi bi-shield-exclamation me-1"></i> High-Risk Cases (@Model.HighRiskStudents)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="missed-appointments-tab" data-bs-toggle="pill" data-bs-target="#missedAppointmentsPane" type="button" role="tab">
+                        <i class="bi bi-calendar-x me-1"></i> Missed Appointments (@Model.MissedAppointmentsCount)
+                    </button>
+                </li>
+            </ul>
 
-                <h5 class="page-title mb-1">
+            <div class="tab-content" id="reportTabsContent">
 
-                    High-Risk Students
+                <!-- ================= TAB 1: HIGH RISK STUDENTS ================= -->
+                <div class="tab-pane fade show active" id="highRiskPane" role="tabpanel">
 
-                </h5>
+                    <div class="mb-4">
 
-                <p class="page-subtitle mb-0">
+                        <h5 class="page-title mb-1">
 
-                    Students identified with Severe or
-                    Extremely Severe screening results.
+                            High-Risk Students Report
 
-                </p>
+                        </h5>
 
-            </div>
+                        <p class="page-subtitle mb-0">
+
+                            Students identified with Severe or Extremely Severe screening results.
+
+                        </p>
+
+                    </div>
 
 
-            @if (Model.Students != null && Model.Students.Any())
-            {
-                <div class="row g-3">
-
-                    @foreach (var student in Model.Students)
+                    @if (Model.Students != null && Model.Students.Any())
                     {
-                        <div class="col-12">
+                        <div class="row g-3">
 
-                            <div class="student-card p-4">
+                            @foreach (var student in Model.Students)
+                            {
+                                <div class="col-12">
 
-                                <div class="row align-items-center g-4">
+                                    <div class="student-card p-4">
 
-
-                                    <!-- ================= Student ================= -->
-
-                                    <div class="col-lg-3">
-
-                                        <div class="fw-semibold"
-                                             style="color:#5F5146;">
-
-                                            @student.FullName
-
-                                        </div>
-
-                                        <div class="page-subtitle">
-
-                                            @student.StudentIdNumber
-
-                                        </div>
-
-                                        <div class="page-subtitle">
-
-                                            @student.Email
-
-                                        </div>
-
-                                    </div>
+                                        <div class="row align-items-center g-4">
 
 
-                                    <!-- ================= High Risk Semester ================= -->
+                                            <!-- ================= Student ================= -->
 
-                                    <div class="col-lg-3">
+                                            <div class="col-lg-3">
 
-                                        <div class="page-subtitle mb-2">
+                                                <div class="fw-semibold"
+                                                     style="color:#5F5146;">
 
-                                            High Risk Semester
+                                                    @student.FullName
 
-                                        </div>
+                                                </div>
 
+                                                <div class="page-subtitle">
 
-                                        <span class="semester-badge">
+                                                    @student.StudentIdNumber
 
-                                            @student.HighRiskSemester
+                                                </div>
 
-                                        </span>
+                                                <div class="page-subtitle">
 
+                                                    @student.Email
 
-                                        <div class="page-subtitle mt-2">
+                                                </div>
 
-                                            Assessment:
-                                            @student.AssessmentDate.ToString("dd MMM yyyy")
-
-                                        </div>
-
-                                    </div>
+                                            </div>
 
 
-                                    <!-- ================= Risk Level ================= -->
+                                            <!-- ================= High Risk Semester ================= -->
 
-                                    <div class="col-lg-3">
+                                            <div class="col-lg-3">
 
-                                        <div class="page-subtitle mb-2">
+                                                <div class="page-subtitle mb-2">
 
-                                            Risk Level
+                                                    High Risk Semester
 
-                                        </div>
-
-                                        <span class="risk-badge">
-
-                                            @(student.TriggerSeverity
-                                                ?? student.RiskLevel)
-
-                                        </span>
+                                                </div>
 
 
-                                        <div class="page-subtitle mt-2">
+                                                <span class="semester-badge">
 
-                                            Source:
+                                                    @student.HighRiskSemester
 
-                                            <strong>
-
-                                                @(student.TriggerSource
-                                                    ?? "N/A")
-
-                                            </strong>
-
-                                        </div>
-
-                                    </div>
+                                                </span>
 
 
-                                    <!-- ================= Guardian ================= -->
+                                                <div class="page-subtitle mt-2">
 
-                                    <div class="col-lg-3">
+                                                    Assessment:
+                                                    @student.AssessmentDate.ToString("dd MMM yyyy")
 
-                                        <div class="page-subtitle mb-1">
+                                                </div>
 
-                                            Guardian
+                                            </div>
 
-                                        </div>
 
-                                        <div class="fw-semibold"
-                                             style="color:#6F6258;">
+                                            <!-- ================= Risk Level ================= -->
 
-                                            @(student.GuardianName
-                                                ?? "Not provided")
+                                            <div class="col-lg-3">
 
-                                        </div>
+                                                <div class="page-subtitle mb-2">
 
-                                        <div class="page-subtitle">
+                                                    Risk Level
 
-                                            @(student.GuardianEmail
-                                                ?? "No email")
+                                                </div>
+
+                                                <span class="risk-badge">
+
+                                                    @(student.TriggerSeverity
+                                                        ?? student.RiskLevel)
+
+                                                </span>
+
+
+                                                <div class="page-subtitle mt-2">
+
+                                                    Source:
+
+                                                    <strong>
+
+                                                        @(student.TriggerSource
+                                                            ?? "N/A")
+
+                                                    </strong>
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <!-- ================= Guardian ================= -->
+
+                                            <div class="col-lg-3">
+
+                                                <div class="page-subtitle mb-1">
+
+                                                    Guardian
+
+                                                </div>
+
+                                                <div class="fw-semibold"
+                                                     style="color:#6F6258;">
+
+                                                    @(student.GuardianName
+                                                        ?? "Not provided")
+
+                                                </div>
+
+                                                <div class="page-subtitle">
+
+                                                    @(student.GuardianEmail
+                                                        ?? "No email")
+
+                                                </div>
+
+                                            </div>
 
                                         </div>
 
                                     </div>
 
                                 </div>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- ================= No High Risk Student ================= -->
+
+                        <div class="empty-box">
+
+                            <div class="empty-icon mb-3">
+
+                                <i class="bi bi-shield-check fs-2"></i>
 
                             </div>
+
+                            <h5 class="page-title">
+
+                                No High-Risk Cases
+
+                            </h5>
+
+                            <p class="page-subtitle mb-0">
+
+                                No student currently has a
+                                Severe or Extremely Severe screening result.
+
+                            </p>
 
                         </div>
                     }
 
                 </div>
-            }
-            else
-            {
-                <!-- ================= No High Risk Student ================= -->
 
-                <div class="empty-box">
+                <!-- ================= TAB 2: MISSED APPOINTMENTS ================= -->
+                <div class="tab-pane fade" id="missedAppointmentsPane" role="tabpanel">
 
-                    <div class="empty-icon mb-3">
-
-                        <i class="bi bi-shield-check fs-2"></i>
-
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                        <div>
+                            <h5 class="page-title mb-1">
+                                Missed Counseling Appointments Report
+                            </h5>
+                            <p class="page-subtitle mb-0">
+                                List of scheduled counseling sessions where the student was absent or marked as missed.
+                            </p>
+                        </div>
+                        <div>
+                            <a asp-controller="Department" asp-action="Counseling" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1.5 fw-semibold">
+                                <i class="bi bi-calendar-plus me-1"></i> Go to Counseling &amp; Reschedule
+                            </a>
+                        </div>
                     </div>
 
-                    <h5 class="page-title">
+                    @if (Model.MissedAppointments != null && Model.MissedAppointments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #EBE3DC; color: #8F7D70; font-size: 13px;">
+                                        <th class="pb-3">Student</th>
+                                        <th class="pb-3">Scheduled Date</th>
+                                        <th class="pb-3">Time Slot</th>
+                                        <th class="pb-3">Assigned Psychologist</th>
+                                        <th class="pb-3">Source / Reason</th>
+                                        <th class="pb-3 text-center">Status</th>
+                                        <th class="pb-3 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var missed in Model.MissedAppointments)
+                                    {
+                                        var startTime = DateTime.Today.Add(missed.AppointmentTime).ToString("h:mm tt");
+                                        var endTime = missed.AppointmentEndTime != default 
+                                            ? DateTime.Today.Add(missed.AppointmentEndTime).ToString("h:mm tt") 
+                                            : DateTime.Today.Add(missed.AppointmentTime.Add(TimeSpan.FromHours(1))).ToString("h:mm tt");
 
-                        No High-Risk Cases
-
-                    </h5>
-
-                    <p class="page-subtitle mb-0">
-
-                        No student currently has a
-                        Severe or Extremely Severe screening result.
-
-                    </p>
+                                        <tr style="border-bottom: 1px solid #F0E8E1;">
+                                            <td class="py-3">
+                                                <div class="fw-bold text-dark">@(missed.Student?.FullName ?? "Unknown Student")</div>
+                                                <div class="small text-muted">ID: @(missed.Student?.StudentIdNumber ?? "-") | @(missed.Student?.Semester ?? "N/A")</div>
+                                                @if (missed.Student?.IsSuspended == true)
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 mt-1" style="font-size:10px;">
+                                                        <i class="bi bi-person-x me-1"></i> Suspended
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="semester-badge">
+                                                    <i class="bi bi-calendar3 me-1"></i> @missed.CounselingDate.ToString("dd MMM yyyy")
+                                                </span>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="badge bg-light text-dark border px-2.5 py-1.5 rounded-3">
+                                                    <i class="bi bi-clock me-1 text-muted"></i> @startTime - @endTime
+                                                </span>
+                                            </td>
+                                            <td class="py-3">
+                                                <div class="fw-semibold text-secondary">@(missed.Psychologist?.FullName ?? "Psychologist")</div>
+                                                <small class="text-muted">@(missed.Psychologist?.Specialization ?? "Mental Health Counselor")</small>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="badge bg-light text-muted border px-2.5 py-1 rounded-pill">
+                                                    @(missed.AppointmentSource ?? missed.TriggerSource ?? "Screening / Request")
+                                                </span>
+                                            </td>
+                                            <td class="py-3 text-center">
+                                                <span class="missed-badge">
+                                                    <i class="bi bi-clock-history me-1"></i> Missed
+                                                </span>
+                                            </td>
+                                            <td class="py-3 text-end">
+                                                @if (missed.Student?.IsSuspended == true)
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                        Student Suspended
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <a asp-controller="Department" asp-action="Counseling" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-sm">
+                                                        <i class="bi bi-calendar-plus me-1"></i> Reschedule
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-box">
+                            <div class="empty-icon mb-3" style="background:#E7F0EC; color:#4B8869;">
+                                <i class="bi bi-check2-circle fs-2"></i>
+                            </div>
+                            <h5 class="page-title">
+                                No Missed Appointments
+                            </h5>
+                            <p class="page-subtitle mb-0">
+                                All students in this department have attended their scheduled counseling sessions.
+                            </p>
+                        </div>
+                    }
 
                 </div>
-            }
+
+            </div>
 
         </div>
 

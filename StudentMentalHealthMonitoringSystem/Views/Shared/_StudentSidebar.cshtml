@@ -95,14 +95,8 @@
         <a href="/Student/Profile" class="list-group-item @(activePage == "Profile" ? "active" : "")">
             <i class="bi bi-person-badge"></i> My Profile
         </a>
-        <a href="/Student/SemesterScreening" class="list-group-item @(activePage == "SemesterScreening" ? "active" : "")">
+        <a href="/Student/SemesterScreening" class="list-group-item @(activePage == "SemesterScreening" || activePage == "PHQ" || activePage == "PHQResult" || activePage == "CSRRS" || activePage == "CSRRSResult" ? "active" : "")">
             <i class="bi bi-journal-check"></i> Semester Screening
-        </a>
-        <a href="/Student/PHQ" class="list-group-item @(activePage == "PHQ" || activePage == "PHQResult" ? "active" : "")">
-            <i class="bi bi-clipboard-pulse"></i> PHQ-9 Assessment
-        </a>
-        <a href="/Student/CSRRS" class="list-group-item @(activePage == "CSRRS" || activePage == "CSRRSResult" ? "active" : "")">
-            <i class="bi bi-shield-check"></i> C-SSRS Assessment
         </a>
         <a href="/Student/AIChat" class="list-group-item @(activePage == "AIChat" ? "active" : "")">
             <i class="bi bi-robot"></i> AI Companion Chat
@@ -110,17 +104,14 @@
         <a href="/VoiceBot/Index" class="list-group-item @(activePage == "VoiceBot" || activePage == "Index" && currentController == "VoiceBot" ? "active" : "")">
             <i class="bi bi-mic"></i> Live Voice Bot
         </a>
-        <a href="/Student/Appointment" class="list-group-item @(activePage == "Appointment" ? "active" : "")">
+        <a href="/Student/Appointment" class="list-group-item @(activePage == "Appointment" || activePage == "History" ? "active" : "")">
             <i class="bi bi-calendar-event"></i> Counseling Session
-        </a>
-        <a href="/Student/History" class="list-group-item @(activePage == "History" ? "active" : "")">
-            <i class="bi bi-clock-history"></i> History Records
         </a>
         <a href="/Student/Progress" class="list-group-item @(activePage == "Progress" ? "active" : "")">
             <i class="bi bi-graph-up-arrow"></i> Recovery Progress
         </a>
         <a href="/Student/Reports" class="list-group-item @(activePage == "Reports" ? "active" : "")">
-            <i class="bi bi-file-earmark-medical"></i> Official Reports
+            <i class="bi bi-file-earmark-medical"></i> Report
         </a>
         <a href="/Student/Logout" class="list-group-item text-danger fw-bold border-top mt-2">
             <i class="bi bi-box-arrow-right text-danger me-1"></i> Logout

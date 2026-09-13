@@ -1,4 +1,4 @@
-﻿using StudentMentalHealthMonitoringSystem.Models;
+using StudentMentalHealthMonitoringSystem.Models;
 using System;
 using System.Collections.Generic;
 
@@ -121,5 +121,17 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public TimeSpan? NextFollowUpTime { get; set; }
 
         public string? AppointmentRoom { get; set; }
+
+        // =========================================================
+        // 12. SESSION ATTENDANCE / MISSED
+        // =========================================================
+
+        public bool? IsSessionMissed { get; set; }
+
+        public string? MissedReason { get; set; }
+
+        public DateTime? MissedNextDate { get; set; }
+
+        public TimeSpan? MissedNextTime { get; set; }
     }
 }

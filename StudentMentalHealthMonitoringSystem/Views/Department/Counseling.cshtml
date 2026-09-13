@@ -1314,9 +1314,18 @@
                                         }
                                         else if (item.Status == "Cancelled")
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#deptScheduleNextModal_@item.CounselingId" title="Schedule Next Appointment">
-                                                <i class="bi bi-calendar-plus me-1"></i>Reschedule
-                                            </button>
+                                            @if (item.Student?.IsSuspended == true)
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                    <i class="bi bi-person-x me-1"></i> Student Suspended
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#deptScheduleNextModal_@item.CounselingId" title="Schedule Next Appointment">
+                                                    <i class="bi bi-calendar-plus me-1"></i>Reschedule
+                                                </button>
+                                            }
                                         }
                                         else
                                         {

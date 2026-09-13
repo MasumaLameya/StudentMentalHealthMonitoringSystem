@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net" modified="2026-09-11T14:43:00.000Z" agent="5.0" version="21.0.0" type="device">
+  <diagram id="DFD_Level2_Emerg" name="Figure 7.30 Level 2 DFD - Emergency Escalation">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b&gt;Figure 7.30 Level 2 DFD – Emergency Crisis Escalation &amp;amp; Alert Subsystem&lt;/b&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="100" y="20" width="850" height="30" as="geometry" />
+        </mxCell>
+        <!-- Entities -->
+        <mxCell id="ent_guard" value="&lt;b&gt;Guardian&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="120" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="ent_admin" value="&lt;b&gt;Administrator&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;strokeWidth=2;fontSize=14;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="780" y="300" width="140" height="180" as="geometry" />
+        </mxCell>
+        <!-- Processes -->
+        <mxCell id="p1" value="&lt;b&gt;7.1&lt;/b&gt;&lt;br&gt;Detect Crisis &amp;amp;&lt;br&gt;Evaluate" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#000000;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="40" width="95" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="&lt;b&gt;7.2&lt;/b&gt;&lt;br&gt;Generate Alert" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#000000;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="170" width="95" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="&lt;b&gt;7.3&lt;/b&gt;&lt;br&gt;Guardian&lt;br&gt;Report Sent" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#000000;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="300" width="95" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="&lt;b&gt;7.4&lt;/b&gt;&lt;br&gt;Assign Urgent&lt;br&gt;Psychologist" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#000000;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="430" width="95" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="p5" value="&lt;b&gt;7.5&lt;/b&gt;&lt;br&gt;Record Incident&lt;br&gt;Audit &amp;amp; Resolution" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;strokeColor=#000000;strokeWidth=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="260" y="560" width="95" height="95" as="geometry" />
+        </mxCell>
+        <!-- Data Stores -->
+        <mxCell id="ds_obs" value="Observation Report" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;strokeColor=#000000;strokeWidth=2;align=left;spacingLeft=15;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="430" y="60" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ds_inc" value="Incident Resolution Log" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;strokeColor=#000000;strokeWidth=2;align=left;spacingLeft=15;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="430" y="585" width="220" height="40" as="geometry" />
+        </mxCell>
+        <!-- Connectors -->
+        <mxCell id="e1" value="guardian emergency inquiry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="ent_guard" target="p1"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" value="Write: log crisis trigger" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="p1" target="ds_obs"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="crisis helpline &amp;amp; alert dispatch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="p2" target="ent_guard"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="urgent email alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="p3" target="ent_guard"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" value="incident resolution notice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="p5" target="ent_guard"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" value="Write: log resolution record" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="p5" target="ds_inc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" value="Write/Read: configure emergency policy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="ds_obs" target="ent_admin"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" value="Read: audit resolved incident logs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;" edge="1" parent="1" source="ds_inc" target="ent_admin"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

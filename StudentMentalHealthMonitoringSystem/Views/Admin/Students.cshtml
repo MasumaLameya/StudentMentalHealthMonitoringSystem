@@ -22,7 +22,7 @@
         </div>
     }
 
-    <!-- ================= Header ================= -->
+    <!-- ================= Header & Summary Cards ================= -->
 
     <div class="card border-0 shadow-sm rounded-4 mb-4"
          style="background:#F4EEE8;">
@@ -36,39 +36,99 @@
                     <h2 class="fw-bold mb-1"
                         style="color:#5F5146;">
 
-                        👨‍🎓 Student Management
+                        👨‍🎓 Student Management &amp; Account Governance
 
                     </h2>
 
                     <p class="text-muted mb-0">
 
-                        Manage registered students and their information.
+                        Manage registered students, view account status, and reactivate accounts suspended due to missed counseling appointments.
 
                     </p>
 
                 </div>
 
-                <div class="text-end">
-
-                    <div class="small text-muted">
-                        Total Students
-                    </div>
-
-                    <h4 class="fw-bold mb-0"
-                        style="color:#8A7563;">
-
-                        <span id="totalStudents">
-                            @Model.Count()
-                        </span>
-
-                    </h4>
-
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-controller="Admin" asp-action="AddStudent" class="btn text-white rounded-3 px-3 shadow-sm fw-bold" style="background:#A67C52;">
+                        <i class="bi bi-person-plus-fill me-1"></i> Add New Student
+                    </a>
                 </div>
 
             </div>
 
         </div>
 
+    </div>
+
+    <!-- ================= KPI Summary Metrics ================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="All" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100 @(ViewBag.SelectedFilter == "All" ? "border border-2 border-dark" : "")" style="background: #FFFFFF;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Total Campus Enrollment</small>
+                            <h3 class="fw-bold mb-0" style="color:#5F5146;">@(ViewBag.TotalCount ?? Model.Count())</h3>
+                            <small class="text-muted">All Enrolled Students</small>
+                        </div>
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="background:#F4EEE8; color:#8A7563; width:48px; height:48px;">
+                            <i class="bi bi-people-fill fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="Active" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100 @(ViewBag.SelectedFilter == "Active" ? "border border-2 border-success" : "")" style="background: #F0FDF4;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-success text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Active Student Accounts</small>
+                            <h3 class="fw-bold mb-0 text-success">@(ViewBag.ActiveCount ?? 0)</h3>
+                            <small class="text-success">Login Permitted</small>
+                        </div>
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="background:#DCFCE7; color:#15803D; width:48px; height:48px;">
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="Suspended" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100 @(ViewBag.SelectedFilter == "Suspended" ? "border border-2 border-warning" : "")" style="background: #FFFBEB;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-warning-emphasis text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">Total Suspended</small>
+                            <h3 class="fw-bold mb-0 text-warning-emphasis">@(ViewBag.SuspendedCount ?? 0)</h3>
+                            <small class="text-muted">Blocked from Login</small>
+                        </div>
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="background:#FEF3C7; color:#B45309; width:48px; height:48px;">
+                            <i class="bi bi-slash-circle-fill fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6 col-sm-6">
+            <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="MissedSuspended" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 p-3 h-100 @(ViewBag.SelectedFilter == "MissedSuspended" ? "border border-2 border-danger" : "")" style="background: #FEF2F2;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-danger text-uppercase fw-bold d-block mb-1" style="font-size: 0.72rem;">2x Missed Auto-Sessions</small>
+                            <h3 class="fw-bold mb-0 text-danger">@(ViewBag.MissedSuspendedCount ?? 0)</h3>
+                            <small class="text-danger-emphasis">Auto-Suspended Students</small>
+                        </div>
+                        <div class="rounded-circle p-3 d-flex align-items-center justify-content-center" style="background:#FEE2E2; color:#DC2626; width:48px; height:48px;">
+                            <i class="bi bi-calendar-x-fill fs-5"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
 
@@ -79,6 +139,7 @@
         <div class="card-body">
 
             <form method="get" asp-action="Students" class="row g-3 align-items-center mb-3">
+                <input type="hidden" name="filter" value="@ViewBag.SelectedFilter" />
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="color:#5F5146;"><i class="bi bi-building me-1"></i> Filter by Department</label>
                     <select name="department" class="form-select rounded-3" onchange="this.form.submit()">
@@ -91,6 +152,24 @@
                             }
                         }
                     </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="color:#5F5146;"><i class="bi bi-funnel me-1"></i> Filter by Account Status</label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="All" class="btn btn-sm rounded-pill px-3 fw-semibold @(ViewBag.SelectedFilter == "All" || string.IsNullOrWhiteSpace(ViewBag.SelectedFilter) ? "btn-dark" : "btn-outline-secondary")">
+                            All (@(ViewBag.TotalCount ?? Model.Count()))
+                        </a>
+                        <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="Active" class="btn btn-sm rounded-pill px-3 fw-semibold @(ViewBag.SelectedFilter == "Active" ? "btn-success" : "btn-outline-success")">
+                            Active (@(ViewBag.ActiveCount ?? 0))
+                        </a>
+                        <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="Suspended" class="btn btn-sm rounded-pill px-3 fw-semibold @(ViewBag.SelectedFilter == "Suspended" ? "btn-warning" : "btn-outline-warning")">
+                            All Suspended (@(ViewBag.SuspendedCount ?? 0))
+                        </a>
+                        <a asp-controller="Admin" asp-action="Students" asp-route-department="@ViewBag.SelectedDepartment" asp-route-filter="MissedSuspended" class="btn btn-sm rounded-pill px-3 fw-semibold @(ViewBag.SelectedFilter == "MissedSuspended" ? "btn-danger" : "btn-outline-danger")">
+                            <i class="bi bi-calendar-x me-1"></i> 2x Missed Suspended (@(ViewBag.MissedSuspendedCount ?? 0))
+                        </a>
+                    </div>
                 </div>
             </form>
 
@@ -135,7 +214,7 @@
 
             <small class="text-muted">
 
-                Search results update automatically.
+                Search results update automatically. Showing <strong id="visibleStudentCount">@Model.Count()</strong> students.
 
             </small>
 
@@ -168,7 +247,7 @@
                             </th>
 
                             <th class="py-3">
-                                Name
+                                Name &amp; Status
                             </th>
 
                             <th class="py-3">
@@ -195,9 +274,14 @@
 
                         @if (Model != null && Model.Any())
                         {
+                            var streakMap = ViewBag.MissedStreakMap as Dictionary<int, int>;
+
                             foreach (var student in Model)
                             {
-                                <tr class="student-row @(student.IsSuspended ? "table-warning" : "")">
+                                int missedStreak = (streakMap != null && streakMap.ContainsKey(student.StudentId)) ? streakMap[student.StudentId] : 0;
+                                bool is2xMissedSuspended = student.IsSuspended && missedStreak >= 2;
+
+                                <tr class="student-row @(is2xMissedSuspended ? "table-danger" : (student.IsSuspended ? "table-warning" : ""))">
 
                                     <!-- Photo -->
 
@@ -213,7 +297,7 @@
                                         }
                                         else
                                         {
-                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(student.FullName)&background=@(student.IsSuspended ? "999" : "A67C52")&color=fff&size=55"
+                                            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(student.FullName)&background=@(is2xMissedSuspended ? "DC2626" : (student.IsSuspended ? "999" : "A67C52"))&color=fff&size=55"
                                                  width="55"
                                                  height="55"
                                                  class="rounded-circle"
@@ -237,17 +321,35 @@
                                     </td>
 
 
-                                    <!-- Name -->
+                                    <!-- Name & Status -->
 
                                     <td>
 
-                                        <strong style="color:#5F5146;">
-                                            @student.FullName
-                                        </strong>
-                                        @if (student.IsSuspended)
-                                        {
-                                            <span class="badge ms-2 px-2 py-1 rounded-pill" style="background:#E65C00; color:#fff; font-size:10px;">Suspended</span>
-                                        }
+                                        <div>
+                                            <strong style="color:#5F5146;">
+                                                @student.FullName
+                                            </strong>
+                                        </div>
+                                        <div class="mt-1">
+                                            @if (is2xMissedSuspended)
+                                            {
+                                                <span class="badge px-2 py-1 rounded-pill" style="background:#DC2626; color:#fff; font-size:10.5px; font-weight:700;">
+                                                    <i class="bi bi-calendar-x me-1"></i>2x Missed (Suspended)
+                                                </span>
+                                            }
+                                            else if (student.IsSuspended)
+                                            {
+                                                <span class="badge px-2 py-1 rounded-pill" style="background:#E65C00; color:#fff; font-size:10px; font-weight:600;">
+                                                    <i class="bi bi-slash-circle me-1"></i>Suspended
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge px-2 py-1 rounded-pill" style="background:#E8F5E9; color:#2E7D32; font-size:10px; font-weight:600;">
+                                                    <i class="bi bi-check-circle me-1"></i>Active
+                                                </span>
+                                            }
+                                        </div>
 
                                     </td>
 
@@ -289,14 +391,14 @@
 
                                     <td>
 
-                                        <div class="d-flex justify-content-center gap-1">
+                                        <div class="d-flex justify-content-center align-items-center gap-1">
 
                                             <a asp-controller="Admin"
                                                asp-action="StudentDetails"
                                                asp-route-id="@student.StudentId"
                                                class="btn btn-sm rounded-3"
                                                style="background:#D8C7B8; color:#55483D;"
-                                               title="View Student">
+                                               title="View Student Clinical &amp; Assessment Profile">
                                                 <i class="bi bi-eye"></i>
                                             </a>
 
@@ -305,7 +407,7 @@
                                                asp-route-id="@student.StudentId"
                                                class="btn btn-sm rounded-3"
                                                style="background:#E5D3B3; color:#665438;"
-                                               title="Edit Student">
+                                               title="Edit Student Information">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
 
@@ -325,11 +427,12 @@
                                                 <form asp-controller="Admin" asp-action="UnsuspendStudent" method="post" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@student.StudentId" />
-                                                    <button type="submit" class="btn btn-sm rounded-3"
-                                                            style="background:#D4EDDA; color:#155724;"
-                                                            title="Reactivate Student"
-                                                            onclick="return confirm('Reactivate this student account?')">
-                                                        <i class="bi bi-person-check"></i>
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                                    <button type="submit" class="btn btn-sm rounded-3 fw-bold"
+                                                            style="background:#DCFCE7; color:#15803D; border:1px solid #BBF7D0;"
+                                                            title="Reactivate Student Account"
+                                                            onclick="return confirm('Reactivate student account for @student.FullName (@student.StudentIdNumber)? Their portal login will be restored.');">
+                                                        <i class="bi bi-person-check-fill me-1"></i>Active
                                                     </button>
                                                 </form>
                                             }
@@ -338,6 +441,7 @@
                                                 <form asp-controller="Admin" asp-action="SuspendStudent" method="post" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@student.StudentId" />
+                                                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                                                     <button type="submit" class="btn btn-sm rounded-3"
                                                             style="background:#FFE0B2; color:#7A3A00;"
                                                             title="Suspend Student"

@@ -448,6 +448,34 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return View(student);
             }
 
+            // ================= Validate Academic Year & Semester (No future time) =================
+            if (student.AdmissionYear.HasValue && student.AdmissionYear.Value > DateTime.Now.Year)
+            {
+                ModelState.AddModelError("AdmissionYear", "Academic / Batch Year cannot be in the future. Please select a valid academic year.");
+                PopulateRegistrationDepartments();
+                return View(student);
+            }
+
+            if (student.AdmissionYear.HasValue && student.AdmissionYear.Value == DateTime.Now.Year && !string.IsNullOrWhiteSpace(student.Semester))
+            {
+                int currentMonth = DateTime.Now.Month;
+                int currentMaxTermOrder = currentMonth <= 4 ? 1 : (currentMonth <= 8 ? 2 : 3);
+                int selectedTermOrder = student.Semester.Trim().ToLower() switch
+                {
+                    var s when s.StartsWith("spring") => 1,
+                    var s when s.StartsWith("summer") => 2,
+                    var s when s.StartsWith("fall") => 3,
+                    _ => 0
+                };
+
+                if (selectedTermOrder > currentMaxTermOrder)
+                {
+                    ModelState.AddModelError("Semester", "The selected admission term is in the future. Please select a current or past term.");
+                    PopulateRegistrationDepartments();
+                    return View(student);
+                }
+            }
+
             // ================= Password Complexity Validation =================
 
             if (string.IsNullOrWhiteSpace(student.Password) || student.Password.Length < 8 ||
@@ -1297,17 +1325,42 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 // =================================================
                 // AUTO PSYCHOLOGIST ASSIGNMENT
+                // Rule: Student must complete BOTH PHQ-9 and C-SSRS screenings.
+                // Auto appointment triggers only if BOTH exist and either/both is Severe or Extremely Severe.
                 // =================================================
 
-                if (projectSeverity == "Severe" ||
-                    projectSeverity == "Extremely Severe")
+                bool hasCompletedCSSRS = await _context.CSSRSAssessments
+                    .AnyAsync(c => c.StudentId == student.StudentId);
+
+                if (hasCompletedCSSRS)
                 {
-                    await _counselingSchedulerService
-                        .AutoAssignPsychologistAsync(
-                            student.StudentId,
-                            projectSeverity,
-                            "PHQ-9"
-                        );
+                    var latestCSSRS = await _context.CSSRSAssessments
+                        .Where(c => c.StudentId == student.StudentId)
+                        .OrderByDescending(c => c.AssessmentDate)
+                        .FirstOrDefaultAsync();
+
+                    string cssrsProjectSeverity = latestCSSRS != null
+                        ? GetCSSRSProjectSeverity(latestCSSRS.RiskLevel)
+                        : "Normal";
+
+                    bool isSevereOrExtremelySevere = (projectSeverity == "Severe" ||
+                                                      projectSeverity == "Extremely Severe" ||
+                                                      cssrsProjectSeverity == "Severe" ||
+                                                      cssrsProjectSeverity == "Extremely Severe");
+
+                    if (isSevereOrExtremelySevere)
+                    {
+                        string effectiveSeverity = (projectSeverity == "Extremely Severe" || cssrsProjectSeverity == "Extremely Severe")
+                            ? "Extremely Severe"
+                            : "Severe";
+
+                        await _counselingSchedulerService
+                            .AutoAssignPsychologistAsync(
+                                student.StudentId,
+                                effectiveSeverity,
+                                "Semester Screening (PHQ-9 & C-SSRS)"
+                            );
+                    }
                 }
 
 
@@ -1780,17 +1833,42 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
                 // =================================================
                 // AUTO PSYCHOLOGIST ASSIGNMENT
+                // Rule: Student must complete BOTH PHQ-9 and C-SSRS screenings.
+                // Auto appointment triggers only if BOTH exist and either/both is Severe or Extremely Severe.
                 // =================================================
 
-                if (projectSeverity == "Severe" ||
-                    projectSeverity == "Extremely Severe")
+                bool hasCompletedPHQ = await _context.PHQAssessments
+                    .AnyAsync(p => p.StudentId == student.StudentId);
+
+                if (hasCompletedPHQ)
                 {
-                    await _counselingSchedulerService
-                        .AutoAssignPsychologistAsync(
-                            student.StudentId,
-                            projectSeverity,
-                            "C-SSRS"
-                        );
+                    var latestPHQ = await _context.PHQAssessments
+                        .Where(p => p.StudentId == student.StudentId)
+                        .OrderByDescending(p => p.AssessmentDate)
+                        .FirstOrDefaultAsync();
+
+                    string phqProjectSeverity = latestPHQ != null
+                        ? GetPHQProjectSeverity(latestPHQ.SeverityLevel)
+                        : "Normal";
+
+                    bool isSevereOrExtremelySevere = (projectSeverity == "Severe" ||
+                                                      projectSeverity == "Extremely Severe" ||
+                                                      phqProjectSeverity == "Severe" ||
+                                                      phqProjectSeverity == "Extremely Severe");
+
+                    if (isSevereOrExtremelySevere)
+                    {
+                        string effectiveSeverity = (projectSeverity == "Extremely Severe" || phqProjectSeverity == "Extremely Severe")
+                            ? "Extremely Severe"
+                            : "Severe";
+
+                        await _counselingSchedulerService
+                            .AutoAssignPsychologistAsync(
+                                student.StudentId,
+                                effectiveSeverity,
+                                "Semester Screening (PHQ-9 & C-SSRS)"
+                            );
+                    }
                 }
 
 
@@ -2558,6 +2636,65 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // APPOINTMENT
         // =====================================================
 
+        // ================= Session History Helper for Counseling Session Page =================
+        private async Task<StudentSessionHistoryViewModel> GetStudentSessionHistoryViewModelAsync(int studentId)
+        {
+            var student = await _context.Students
+                .FirstOrDefaultAsync(s => s.StudentId == studentId);
+
+            var counselings = await _context.Counselings
+                .Include(c => c.Psychologist)
+                .Where(c => c.StudentId == studentId)
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .ToListAsync();
+
+            var observations = await _context.CounselingObservations
+                .Where(o => o.StudentId == studentId)
+                .ToListAsync();
+
+            var observationReports = await _context.ObservationReports
+                .Where(r => r.StudentId == studentId)
+                .ToListAsync();
+
+            var sessionItems = new List<StudentSessionHistoryItemViewModel>();
+
+            foreach (var c in counselings)
+            {
+                var obs = observations.FirstOrDefault(o => o.CounselingId == c.CounselingId);
+                var rep = observationReports.FirstOrDefault(r => r.RootCounselingId == c.CounselingId ||
+                    (obs != null && r.RootCounselingId == obs.RootCounselingId));
+
+                sessionItems.Add(new StudentSessionHistoryItemViewModel
+                {
+                    CounselingId = c.CounselingId,
+                    CounselingDate = c.CounselingDate,
+                    AppointmentTime = c.AppointmentTime,
+                    AppointmentEndTime = c.AppointmentEndTime,
+                    Status = c.Status,
+                    AppointmentRoom = c.AppointmentRoom,
+                    AppointmentSource = c.AppointmentSource,
+                    TriggerSource = c.TriggerSource,
+                    TriggerSeverity = c.TriggerSeverity,
+                    ObservationNote = c.Observation,
+                    CanCancel = false,
+                    PsychologistId = c.PsychologistId,
+                    PsychologistName = c.Psychologist?.FullName ?? "University Psychologist",
+                    PsychologistSpecialization = c.Psychologist?.Specialization,
+                    PsychologistEmail = c.Psychologist?.Email,
+                    PsychologistProfileImage = c.Psychologist?.ProfileImage,
+                    Observation = obs,
+                    ObservationReport = rep
+                });
+            }
+
+            return new StudentSessionHistoryViewModel
+            {
+                Student = student ?? new Student(),
+                Sessions = sessionItems
+            };
+        }
+
         // ================= Appointment GET =================
 
         [HttpGet]
@@ -2575,16 +2712,29 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            var currentStudent = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+            if (currentStudent == null || currentStudent.IsSuspended)
+            {
+                TempData["Error"] = "Your student account is currently suspended. You cannot schedule counseling appointments.";
+                return RedirectToAction("Dashboard");
+            }
+
             // Automatically transition any expired unassessed appointments to Missed
             await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
             var now = DateTime.Now;
 
-            // Check if student has completed at least one screening assessment (PHQ-9 or C-SSRS)
-            bool hasCompletedScreening = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value) ||
-                                         await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+            // Check if student has completed both screening assessments (PHQ-9 and C-SSRS)
+            bool hasCompletedPHQ = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value);
+            bool hasCompletedCSSRS = await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+            bool hasCompletedScreening = hasCompletedPHQ && hasCompletedCSSRS;
 
+            ViewBag.HasCompletedPHQ = hasCompletedPHQ;
+            ViewBag.HasCompletedCSSRS = hasCompletedCSSRS;
             ViewBag.HasCompletedScreening = hasCompletedScreening;
+
+            // Load complete session history & observation reports
+            ViewBag.SessionHistory = await GetStudentSessionHistoryViewModelAsync(studentId.Value);
 
             // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings
@@ -2637,26 +2787,29 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            var currentStudent = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
+            if (currentStudent == null || currentStudent.IsSuspended)
+            {
+                TempData["Error"] = "Your student account is currently suspended. You cannot schedule counseling appointments.";
+                return RedirectToAction("Dashboard");
+            }
+
             // Automatically transition any expired unassessed appointments to Missed
             await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
 
-            var now = DateTime.Now;
+            // Load complete session history & observation reports
+            ViewBag.SessionHistory = await GetStudentSessionHistoryViewModelAsync(studentId.Value);
 
-            // Check if student has completed at least one screening assessment (PHQ-9 or C-SSRS)
-            bool hasCompletedScreening = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value) ||
-                                         await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+            // Check if student has completed both screening assessments (PHQ-9 and C-SSRS)
+            bool hasCompletedPHQ = await _context.PHQAssessments.AnyAsync(p => p.StudentId == studentId.Value);
+            bool hasCompletedCSSRS = await _context.CSSRSAssessments.AnyAsync(c => c.StudentId == studentId.Value);
+            bool hasCompletedScreening = hasCompletedPHQ && hasCompletedCSSRS;
 
+            ViewBag.HasCompletedPHQ = hasCompletedPHQ;
+            ViewBag.HasCompletedCSSRS = hasCompletedCSSRS;
             ViewBag.HasCompletedScreening = hasCompletedScreening;
 
-            if (!hasCompletedScreening)
-            {
-                TempData["Error"] = "Screening required! You must complete at least one screening assessment (PHQ-9 or C-SSRS) before requesting a counseling appointment.";
-                ModelState.AddModelError(
-                    "",
-                    "Screening required! You must complete at least one screening assessment (PHQ-9 or C-SSRS) before scheduling a counseling session."
-                );
-                return View(model);
-            }
+            var now = DateTime.Now;
 
             // Check if student already has an active, pending, or scheduled appointment with an active psychologist
             var activeAppointment = await _context.Counselings
@@ -3169,6 +3322,23 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             await _context.SaveChangesAsync();
 
 
+            // ================= Create / Update Combined Screening Report =================
+
+            try
+            {
+                await _counselingSchedulerService
+                    .CreateOrUpdateCombinedScreeningReportAsync(
+                        counseling,
+                        "StudentRequest",
+                        "Self-Requested"
+                    );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[StudentController] Failed to generate screening report: {ex.Message}");
+            }
+
+
             // ================= Send Confirmation Email =================
 
             try
@@ -3324,79 +3494,9 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         // =====================================================
 
         [HttpGet]
-        public async Task<IActionResult> History()
+        public IActionResult History()
         {
-            var studentId = HttpContext.Session.GetInt32("StudentId");
-            if (studentId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var student = await _context.Students
-                .FirstOrDefaultAsync(s => s.StudentId == studentId.Value);
-
-            if (student == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            // Run automated missed appointments check
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
-
-            var counselings = await _context.Counselings
-                .Include(c => c.Psychologist)
-                .Where(c => c.StudentId == studentId.Value)
-                .OrderByDescending(c => c.CounselingDate)
-                .ThenByDescending(c => c.AppointmentTime)
-                .ToListAsync();
-
-            var observations = await _context.CounselingObservations
-                .Where(o => o.StudentId == studentId.Value)
-                .ToListAsync();
-
-            var observationReports = await _context.ObservationReports
-                .Where(r => r.StudentId == studentId.Value)
-                .ToListAsync();
-
-            var now = DateTime.Now;
-            var sessionItems = new List<StudentSessionHistoryItemViewModel>();
-
-            foreach (var c in counselings)
-            {
-                var obs = observations.FirstOrDefault(o => o.CounselingId == c.CounselingId);
-                var rep = observationReports.FirstOrDefault(r => r.RootCounselingId == c.CounselingId ||
-                    (obs != null && r.RootCounselingId == obs.RootCounselingId));
-
-                sessionItems.Add(new StudentSessionHistoryItemViewModel
-                {
-                    CounselingId = c.CounselingId,
-                    CounselingDate = c.CounselingDate,
-                    AppointmentTime = c.AppointmentTime,
-                    AppointmentEndTime = c.AppointmentEndTime,
-                    Status = c.Status,
-                    AppointmentRoom = c.AppointmentRoom,
-                    AppointmentSource = c.AppointmentSource,
-                    TriggerSource = c.TriggerSource,
-                    TriggerSeverity = c.TriggerSeverity,
-                    ObservationNote = c.Observation,
-                    CanCancel = false,
-                    PsychologistId = c.PsychologistId,
-                    PsychologistName = c.Psychologist?.FullName ?? "University Psychologist",
-                    PsychologistSpecialization = c.Psychologist?.Specialization,
-                    PsychologistEmail = c.Psychologist?.Email,
-                    PsychologistProfileImage = c.Psychologist?.ProfileImage,
-                    Observation = obs,
-                    ObservationReport = rep
-                });
-            }
-
-            var vm = new StudentSessionHistoryViewModel
-            {
-                Student = student,
-                Sessions = sessionItems
-            };
-
-            return View(vm);
+            return RedirectToAction("Appointment");
         }
 
         // =====================================================

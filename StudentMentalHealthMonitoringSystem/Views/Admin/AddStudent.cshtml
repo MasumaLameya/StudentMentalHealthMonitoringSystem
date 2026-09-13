@@ -268,16 +268,17 @@
                         </label>
 
                         <select asp-for="AdmissionYear"
-                                class="form-select rounded-3">
+                                id="AdminAdmissionYear"
+                                class="form-select rounded-3"
+                                required>
                             <option value="">-- Select Year --</option>
-                            <option value="2027">2027</option>
-                            <option value="2026">2026</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                            <option value="2022">2022</option>
-                            <option value="2021">2021</option>
-                            <option value="2020">2020</option>
+                            @{
+                                int currentYearAdmin = DateTime.Now.Year;
+                                for (int yr = currentYearAdmin; yr >= currentYearAdmin - 8; yr--)
+                                {
+                                    <option value="@yr">@yr</option>
+                                }
+                            }
                         </select>
 
                         <span asp-validation-for="AdmissionYear"
@@ -297,11 +298,13 @@
                         </label>
 
                         <select asp-for="Semester"
-                                class="form-select rounded-3">
+                                id="AdminSemester"
+                                class="form-select rounded-3"
+                                required>
                             <option value="">-- Select Term --</option>
-                            <option value="Spring">Spring</option>
-                            <option value="Summer">Summer</option>
-                            <option value="Fall">Fall</option>
+                            <option value="Spring" data-term-order="1">Spring</option>
+                            <option value="Summer" data-term-order="2">Summer</option>
+                            <option value="Fall" data-term-order="3">Fall</option>
                         </select>
 
                         <span asp-validation-for="Semester"
@@ -541,4 +544,44 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const yearSelect = document.getElementById("AdminAdmissionYear");
+            const semesterSelect = document.getElementById("AdminSemester");
+
+            if (yearSelect && semesterSelect) {
+                const currentYear = @DateTime.Now.Year;
+                const currentMonth = @DateTime.Now.Month;
+                // Spring: Jan-Apr (1-4), Summer: May-Aug (5-8), Fall: Sep-Dec (9-12)
+                const currentMaxTermOrder = currentMonth <= 4 ? 1 : (currentMonth <= 8 ? 2 : 3);
+
+                function updateSemesterOptions() {
+                    const selectedYear = parseInt(yearSelect.value, 10);
+                    const options = semesterSelect.querySelectorAll("option[data-term-order]");
+
+                    options.forEach(opt => {
+                        const termOrder = parseInt(opt.getAttribute("data-term-order"), 10);
+                        if (!isNaN(selectedYear) && selectedYear === currentYear) {
+                            if (termOrder > currentMaxTermOrder) {
+                                opt.disabled = true;
+                                opt.hidden = true;
+                                if (semesterSelect.value === opt.value) {
+                                    semesterSelect.value = "";
+                                }
+                            } else {
+                                opt.disabled = false;
+                                opt.hidden = false;
+                            }
+                        } else {
+                            opt.disabled = false;
+                            opt.hidden = false;
+                        }
+                    });
+                }
+
+                yearSelect.addEventListener("change", updateSemesterOptions);
+                updateSemesterOptions();
+            }
+        });
+    </script>
 }

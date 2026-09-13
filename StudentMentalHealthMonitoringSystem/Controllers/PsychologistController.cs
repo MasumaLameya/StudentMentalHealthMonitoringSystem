@@ -802,6 +802,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            if (student.IsSuspended)
+            {
+                TempData["Error"] = $"Student {student.FullName} is suspended. Counseling appointments cannot be scheduled for suspended students.";
+                return RedirectToAction(
+                    "Students"
+                );
+            }
+
 
             // ================= Create Counseling =================
 
@@ -851,17 +859,21 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
             }
 
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == counseling.StudentId);
+            if (student == null || student.IsSuspended)
+            {
+                TempData["Error"] = $"Student {(student?.FullName ?? "record")} is suspended and cannot be scheduled for counseling appointments.";
+                return RedirectToAction(
+                    "Students"
+                );
+            }
+
 
             // ================= Validation =================
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Student =
-                    _context.Students
-                        .FirstOrDefault(
-                            s => s.StudentId ==
-                                 counseling.StudentId
-                        );
+                ViewBag.Student = student;
 
 
                 return View(counseling);
@@ -907,8 +919,6 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             try
             {
-                var student = await _context.Students
-                    .FirstOrDefaultAsync(s => s.StudentId == counseling.StudentId);
                 var psychologist = await _context.Psychologists
                     .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
 
@@ -1135,6 +1145,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Check if immediate next appointment is provided
             if (nextDate.HasValue && nextTime.HasValue)
             {
+                var studentCheck = counseling.Student ?? await _context.Students.FindAsync(counseling.StudentId);
+                if (studentCheck != null && studentCheck.IsSuspended)
+                {
+                    TempData["Success"] = $"Appointment was cancelled. However, next session cannot be scheduled because {studentCheck.FullName} is suspended.";
+                    return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+                }
+
                 if (nextDate.Value.DayOfWeek == DayOfWeek.Thursday || nextDate.Value.DayOfWeek == DayOfWeek.Friday)
                 {
                     TempData["Success"] = "Appointment cancelled. However, next appointment date must be Saturday to Wednesday. Please schedule next appointment from the list.";
@@ -1245,6 +1262,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
+            if (student.IsSuspended)
+            {
+                TempData["Error"] = $"Student {student.FullName} is suspended. Counseling appointments cannot be scheduled for suspended students.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
+            }
+
             var psychologist = await _context.Psychologists.FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value && !p.IsSuspended);
             if (psychologist == null)
             {
@@ -1349,11 +1372,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return RedirectToAction("Appointment");
             }
 
-            // Check if current appointment has started (cannot schedule follow-up before appointment start time)
-            DateTime currentSessionStartDateTime = counseling.CounselingDate.Date.Add(counseling.AppointmentTime);
-            if (counseling.Status != "Completed" && DateTime.Now < currentSessionStartDateTime)
+            if (counseling.Student != null && counseling.Student.IsSuspended)
             {
-                TempData["Error"] = $"Follow-up appointments cannot be scheduled before the current appointment starts. Scheduled session time: {currentSessionStartDateTime:dd MMM yyyy, h:mm tt}.";
+                TempData["Error"] = $"Student {counseling.Student.FullName} is suspended and cannot be scheduled for follow-up appointments.";
+                return RedirectToAction("Appointment");
+            }
+
+            // Enforce that follow-up appointments can only be scheduled for completed sessions
+            if (counseling.Status != "Completed")
+            {
+                TempData["Error"] = "Follow-up appointments can only be scheduled after the counseling session is completed.";
                 return RedirectToAction("Appointment");
             }
 
@@ -1505,7 +1533,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
             // Automatically transition any expired unassessed appointments to Missed
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
             // ================= Get Counseling =================
 
@@ -1779,7 +1807,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             }
 
 
-            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
             // ================= Get Counseling =================
 
@@ -1801,28 +1829,64 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 return NotFound();
             }
 
-            var now = DateTime.Now;
-            DateTime sessionStartDateTime = counseling.CounselingDate.Date.Add(counseling.AppointmentTime);
-            bool isSessionStarted = now >= sessionStartDateTime;
-
-            if (!isSessionStarted && counseling.Status != "Completed")
+            // =====================================================
+            // HANDLE SESSION MISSED (YES OPTION)
+            // =====================================================
+            if (completionType == "MarkMissed" || model.IsSessionMissed == true)
             {
-                TempData["Error"] = $"Observation forms and follow-ups cannot be submitted before the appointment starts. Scheduled session time: {sessionStartDateTime:dd MMM yyyy, h:mm tt}.";
+                if (counseling.Status == "Completed")
+                {
+                    TempData["Error"] = "Completed counseling sessions cannot be marked as missed.";
+                    return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
+                }
+
+                if (counseling.Status == "Cancelled")
+                {
+                    TempData["Error"] = "Cancelled counseling sessions cannot be marked as missed.";
+                    return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
+                }
+
+                // Process missed appointment strikes & send warning/suspension emails
+                await CounselingSchedulerService.ProcessMissedAppointmentStrikeAsync(counseling, _context, _emailService);
+
+                if (!string.IsNullOrWhiteSpace(model.MissedReason))
+                {
+                    counseling.Observation = model.MissedReason.Trim();
+                }
+
+                // If psychologist also filled next appointment date & time for missed student
+                if (model.MissedNextDate.HasValue && model.MissedNextTime.HasValue)
+                {
+                    var missedStudent = counseling.Student ?? await _context.Students.FindAsync(counseling.StudentId);
+                    if (missedStudent != null && !missedStudent.IsSuspended)
+                    {
+                        var existingChild = await _context.Counselings
+                            .FirstOrDefaultAsync(c => c.ParentCounselingId == counseling.CounselingId && c.Status != "Cancelled");
+                        if (existingChild == null)
+                        {
+                            await _counselingSchedulerService.CreateFollowUpAppointmentAsync(
+                                counseling,
+                                model.MissedNextDate.Value.Date,
+                                model.MissedNextTime.Value
+                            );
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Session has been marked as Missed for {counseling.Student?.FullName ?? "the student"}. Missed count and notifications have been processed.";
+                return RedirectToAction("Appointment");
+            }
+
+            if (counseling.Status == "Missed")
+            {
+                TempData["Error"] = "Observation forms and clinical notes cannot be submitted for a missed appointment. Please schedule a new appointment for the student below.";
                 return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
             }
 
-            bool isPastSession = counseling.Status != "Completed" && (counseling.CounselingDate.Date < DateTime.Today ||
-                (counseling.CounselingDate.Date == DateTime.Today && counseling.AppointmentEndTime < now.TimeOfDay));
-
-            if (counseling.Status == "Missed" || isPastSession || counseling.Status == "Cancelled")
+            if (counseling.Status == "Cancelled")
             {
-                if (counseling.Status != "Cancelled" && counseling.Status != "Missed")
-                {
-                    counseling.Status = "Missed";
-                    await _context.SaveChangesAsync();
-                }
-
-                TempData["Error"] = "Observation forms and reports cannot be submitted for a missed appointment. Please schedule a new appointment for the student below.";
+                TempData["Error"] = "Observation forms and clinical notes cannot be submitted for a cancelled appointment. You can schedule a new appointment if needed.";
                 return RedirectToAction("CounselingDetails", new { id = counseling.CounselingId });
             }
 
@@ -1852,15 +1916,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             bool isUpdate = await _context.CounselingObservations.AnyAsync(o => o.CounselingId == counseling.CounselingId);
 
-            if (completionType == "WithFollowUp")
-            {
-                model.FollowUpRequired = true;
-            }
-            else if (completionType == "WithoutFollowUp")
+            if (completionType == "NoFollowUp" || completionType == "WithoutFollowUp")
             {
                 model.FollowUpRequired = false;
                 model.NextFollowUpDate = null;
                 model.NextFollowUpTime = null;
+            }
+            else if (completionType == "WithFollowUp")
+            {
+                model.FollowUpRequired = model.NextFollowUpDate.HasValue;
             }
             else
             {
@@ -2251,6 +2315,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 recommendedActionText;
 
 
+            var studentCheck = counseling.Student ?? await _context.Students.FindAsync(counseling.StudentId);
+            if (studentCheck != null && studentCheck.IsSuspended)
+            {
+                model.NextFollowUpDate = null;
+                model.NextFollowUpTime = null;
+                model.FollowUpRequired = false;
+            }
+
             observation.FollowUpRequired =
                 model.FollowUpRequired == true;
 
@@ -2392,9 +2464,32 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = isUpdate
-                ? "Clinical notes and observations updated successfully."
-                : "Counseling observation saved and completed successfully. You can schedule a follow-up appointment anytime from the Appointments page.";
+            if (model.NextFollowUpDate.HasValue && model.NextFollowUpTime.HasValue)
+            {
+                var existingChild = await _context.Counselings
+                    .FirstOrDefaultAsync(c => c.ParentCounselingId == counseling.CounselingId && c.Status != "Cancelled");
+                if (existingChild == null)
+                {
+                    await _counselingSchedulerService.CreateFollowUpAppointmentAsync(
+                        counseling,
+                        model.NextFollowUpDate.Value.Date,
+                        model.NextFollowUpTime.Value
+                    );
+                }
+            }
+
+            if (isUpdate)
+            {
+                TempData["Success"] = "Clinical notes and observations updated successfully.";
+            }
+            else if (model.NextFollowUpDate.HasValue && model.NextFollowUpTime.HasValue)
+            {
+                TempData["Success"] = $"Observation saved and follow-up appointment scheduled for {model.NextFollowUpDate.Value:MMM dd, yyyy} at {DateTime.Today.Add(model.NextFollowUpTime.Value):h:mm tt} successfully.";
+            }
+            else
+            {
+                TempData["Success"] = "Observation saved successfully. Session marked as completed with no follow-up needed.";
+            }
 
             return RedirectToAction(
                 "Appointment"

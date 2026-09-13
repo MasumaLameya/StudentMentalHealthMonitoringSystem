@@ -138,7 +138,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         // ================= Students =================
 
-        public IActionResult Students(string? department = null)
+        public async Task<IActionResult> Students(string? department = null, string? filter = null)
         {
             // Check Admin Session
             var adminId = HttpContext.Session.GetInt32("AdminId");
@@ -147,6 +147,47 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 return RedirectToAction("Login");
             }
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
+
+            // Compute consecutive missed auto-appointment counts for all students
+            var allAutoCounselings = await _context.Counselings
+                .Where(c => c.Status != "Cancelled" &&
+                            (c.AppointmentSource == "AutoAssignment" ||
+                             c.AppointmentSource == "Auto-Scheduled" ||
+                             !string.IsNullOrWhiteSpace(c.TriggerSource)))
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .ToListAsync();
+
+            var missedStreakMap = new Dictionary<int, int>();
+            var studentGroups = allAutoCounselings.GroupBy(c => c.StudentId);
+            foreach (var group in studentGroups)
+            {
+                int streak = 0;
+                foreach (var session in group)
+                {
+                    if (session.Status == "Missed")
+                    {
+                        streak++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (streak > 0)
+                {
+                    missedStreakMap[group.Key] = streak;
+                }
+            }
+            ViewBag.MissedStreakMap = missedStreakMap;
+
+            var allStudents = await _context.Students.ToListAsync();
+            ViewBag.TotalCount = allStudents.Count;
+            ViewBag.ActiveCount = allStudents.Count(s => !s.IsSuspended);
+            ViewBag.SuspendedCount = allStudents.Count(s => s.IsSuspended);
+            ViewBag.MissedSuspendedCount = allStudents.Count(s => s.IsSuspended && missedStreakMap.TryGetValue(s.StudentId, out var count) && count >= 2);
 
             var query = _context.Students.AsQueryable();
 
@@ -158,6 +199,26 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             else
             {
                 ViewBag.SelectedDepartment = "All";
+            }
+
+            var selectedFilter = string.IsNullOrWhiteSpace(filter) ? "All" : filter.Trim();
+            ViewBag.SelectedFilter = selectedFilter;
+
+            if (selectedFilter.Equals("Active", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(s => !s.IsSuspended);
+            }
+            else if (selectedFilter.Equals("Suspended", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(s => s.IsSuspended);
+            }
+            else if (selectedFilter.Equals("MissedSuspended", StringComparison.OrdinalIgnoreCase))
+            {
+                var missedSuspendedIds = allStudents
+                    .Where(s => s.IsSuspended && missedStreakMap.TryGetValue(s.StudentId, out var count) && count >= 2)
+                    .Select(s => s.StudentId)
+                    .ToList();
+                query = query.Where(s => missedSuspendedIds.Contains(s.StudentId));
             }
 
             var students = query
@@ -236,6 +297,32 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 );
 
                 return View(student);
+            }
+
+            // ================= Validate Academic Year & Semester (No future time) =================
+            if (student.AdmissionYear.HasValue && student.AdmissionYear.Value > DateTime.Now.Year)
+            {
+                ModelState.AddModelError("AdmissionYear", "Academic / Batch Year cannot be in the future. Please select a valid academic year.");
+                return View(student);
+            }
+
+            if (student.AdmissionYear.HasValue && student.AdmissionYear.Value == DateTime.Now.Year && !string.IsNullOrWhiteSpace(student.Semester))
+            {
+                int currentMonth = DateTime.Now.Month;
+                int currentMaxTermOrder = currentMonth <= 4 ? 1 : (currentMonth <= 8 ? 2 : 3);
+                int selectedTermOrder = student.Semester.Trim().ToLower() switch
+                {
+                    var s when s.StartsWith("spring") => 1,
+                    var s when s.StartsWith("summer") => 2,
+                    var s when s.StartsWith("fall") => 3,
+                    _ => 0
+                };
+
+                if (selectedTermOrder > currentMaxTermOrder)
+                {
+                    ModelState.AddModelError("Semester", "The selected admission term is in the future. Please select a current or past semester.");
+                    return View(student);
+                }
             }
 
             // ================= Duplicate Student ID =================
@@ -2498,134 +2585,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = $"🎉 Semester transition completed! Advanced active students to {targetSemester}. {promotedCount} compliant student(s) promoted, {blockedCount} student(s) with pending screening received a warning reminder email. Overall End-of-Semester Department Reports generated.";
-            return RedirectToAction(nameof(SemesterEndReports));
+            TempData["Success"] = $"🎉 Semester transition completed! Advanced active students to {targetSemester}. {promotedCount} compliant student(s) promoted, {blockedCount} student(s) with pending screening received a warning reminder email.";
+            return RedirectToAction(nameof(SemesterManagement));
         }
 
         [HttpGet]
-        public async Task<IActionResult> SemesterEndReports(string department = "All")
+        public IActionResult SemesterEndReports()
         {
-            var adminId = HttpContext.Session.GetInt32("AdminId");
-            if (adminId == null) return RedirectToAction("Login");
-
-            var studentsQuery = _context.Students.AsQueryable();
-            if (!string.Equals(department, "All", StringComparison.OrdinalIgnoreCase))
-            {
-                studentsQuery = studentsQuery.Where(s => s.Department == department);
-            }
-
-            var students = await studentsQuery.ToListAsync();
-            var phqList = await _context.PHQAssessments.ToListAsync();
-            var cssrsList = await _context.CSSRSAssessments.ToListAsync();
-            var counselingList = await _context.Counselings.ToListAsync();
-            var observationReports = await _context.ObservationReports.ToListAsync();
-
-            var availableDepartments = await _context.Students
-                .Select(s => s.Department)
-                .Where(d => !string.IsNullOrWhiteSpace(d))
-                .Distinct()
-                .OrderBy(d => d)
-                .ToListAsync();
-
-            var deptReports = new List<DepartmentSemesterReportViewModel>();
-
-            var groupedByDept = students.GroupBy(s => s.Department);
-
-            int reportId = 1;
-            foreach (var group in groupedByDept)
-            {
-                var deptName = group.Key;
-                var deptStudents = group.ToList();
-
-                int totalCount = deptStudents.Count;
-                int promotedCount = 0;
-                int blockedCount = 0;
-                int normalCount = 0, moderateCount = 0, severeCount = 0, extremelySevereCount = 0;
-
-                var nonCompliantList = new List<StudentScreeningComplianceItem>();
-
-                foreach (var st in deptStudents)
-                {
-                    var sem = string.IsNullOrWhiteSpace(st.Semester) ? "Semester 1" : st.Semester;
-                    var phq = phqList.Where(p => p.StudentId == st.StudentId).OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
-                    var cssrs = cssrsList.Where(c => c.StudentId == st.StudentId).OrderByDescending(c => c.AssessmentDate).FirstOrDefault();
-
-                    bool hasPHQ = phq != null && string.Equals(phq.Semester, sem, StringComparison.OrdinalIgnoreCase);
-                    bool hasCSSRS = cssrs != null && string.Equals(cssrs.Semester, sem, StringComparison.OrdinalIgnoreCase);
-
-                    var eval = Services.ScreeningComplianceService.Evaluate(
-                        hasPHQ: hasPHQ,
-                        phqSeverity: phq?.SeverityLevel,
-                        phqScore: phq?.TotalScore,
-                        hasCSSRS: hasCSSRS,
-                        cssrsRiskLevel: cssrs?.RiskLevel
-                    );
-
-                    if (eval.IsScreeningComplete)
-                    {
-                        promotedCount++;
-                    }
-                    else
-                    {
-                        blockedCount++;
-                        nonCompliantList.Add(new StudentScreeningComplianceItem
-                        {
-                            StudentId = st.StudentId,
-                            FullName = st.FullName,
-                            DepartmentName = st.Department,
-                            Semester = sem,
-                            Email = st.Email,
-                            HasPHQ = hasPHQ,
-                            PHQScore = phq?.TotalScore,
-                            PHQSeverity = phq?.SeverityLevel ?? "Pending",
-                            HasCSSRS = hasCSSRS,
-                            CSSRSRiskLevel = cssrs?.RiskLevel ?? "Pending"
-                        });
-                    }
-
-                    // Risk breakdown
-                    if (phq != null)
-                    {
-                        if (phq.SeverityLevel == "Normal" || phq.SeverityLevel == "Mild") normalCount++;
-                        else if (phq.SeverityLevel == "Moderate") moderateCount++;
-                        else if (phq.SeverityLevel == "Moderately Severe" || phq.SeverityLevel == "Severe") severeCount++;
-                        else extremelySevereCount++;
-                    }
-                    else
-                    {
-                        normalCount++;
-                    }
-                }
-
-                int totalCounselings = counselingList.Count(c => deptStudents.Any(st => st.StudentId == c.StudentId));
-                int totalObsReports = observationReports.Count(o => deptStudents.Any(st => st.StudentId == o.StudentId));
-
-                deptReports.Add(new DepartmentSemesterReportViewModel
-                {
-                    ReportId = reportId++,
-                    DepartmentName = deptName,
-                    SemesterTitle = "End-of-Semester Mental Health Summary",
-                    ReportGeneratedDate = DateTime.Now,
-                    TotalStudents = totalCount,
-                    PromotedStudents = promotedCount,
-                    BlockedStudents = blockedCount,
-                    NormalRiskCount = normalCount,
-                    ModerateRiskCount = moderateCount,
-                    SevereRiskCount = severeCount,
-                    ExtremelySevereRiskCount = extremelySevereCount,
-                    TotalCounselingSessions = totalCounselings,
-                    ActiveObservationReportsCount = totalObsReports,
-                    ImprovedPatientsCount = totalCounselings > 0 ? (int)(totalCounselings * 0.75) : 0,
-                    ExecutiveSummary = $"Overall mental health evaluation for {deptName} department. {promotedCount} out of {totalCount} students ({Math.Round((double)promotedCount/totalCount*100, 1)}%) successfully completed mandatory semester screening.",
-                    RecommendedAction = blockedCount > 0 ? $"Send follow-up screening notices to {blockedCount} non-compliant student(s) prior to course registration." : "Maintain ongoing proactive mental health monitoring.",
-                    NonCompliantStudents = nonCompliantList
-                });
-            }
-
-            ViewBag.AvailableDepartments = availableDepartments;
-            ViewBag.SelectedDepartment = department;
-
-            return View(deptReports);
+            return RedirectToAction(nameof(SemesterManagement));
         }
 
         // =========================================================
@@ -2933,7 +2900,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 ("04:25 PM - 05:25 PM (Slot 8)", new TimeSpan(16, 25, 0))
             };
 
-            int totalValidBookings = counselings.Count;
+            int totalStandardBookings = counselings.Count(c => standardSlots.Any(s => s.Time == c.AppointmentTime));
             var slotOccupancies = standardSlots.Select(slot =>
             {
                 int count = counselings.Count(c => c.AppointmentTime == slot.Time);
@@ -2941,21 +2908,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 {
                     SlotName = slot.Name,
                     TotalBookings = count,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)count / totalValidBookings * 100, 1) : 0
+                    PercentageOfTotal = totalStandardBookings > 0 ? Math.Round((double)count / totalStandardBookings * 100, 1) : 0
                 };
             }).ToList();
 
-            int otherCount = counselings.Count(c => !standardSlots.Any(s => s.Time == c.AppointmentTime));
-            if (otherCount > 0)
-            {
-                slotOccupancies.Add(new SlotOccupancyViewModel
-                {
-                    SlotName = "Other Custom Slots",
-                    TotalBookings = otherCount,
-                    PercentageOfTotal = totalValidBookings > 0 ? Math.Round((double)otherCount / totalValidBookings * 100, 1) : 0
-                });
-            }
-
+            int totalValidBookings = counselings.Count;
             int totalCompleted = counselings.Count(c => c.Status == "Completed");
             int totalConfirmed = counselings.Count(c => c.Status == "Confirmed");
 
@@ -3192,7 +3149,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SuspendStudent(int id)
+        public IActionResult SuspendStudent(int id, string? returnUrl = null)
         {
             var adminId = HttpContext.Session.GetInt32("AdminId");
             if (adminId == null) return RedirectToAction("Login");
@@ -3203,13 +3160,17 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             student.IsSuspended = true;
             _context.SaveChanges();
 
-            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" has been suspended.";
+            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" ({student.StudentIdNumber}) has been suspended.";
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
             return RedirectToAction("Students");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UnsuspendStudent(int id)
+        public IActionResult UnsuspendStudent(int id, string? returnUrl = null)
         {
             var adminId = HttpContext.Session.GetInt32("AdminId");
             if (adminId == null) return RedirectToAction("Login");
@@ -3220,7 +3181,11 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             student.IsSuspended = false;
             _context.SaveChanges();
 
-            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" has been reactivated.";
+            TempData["SuccessMessage"] = $"Student \"{student.FullName}\" ({student.StudentIdNumber}) has been successfully reactivated.";
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
             return RedirectToAction("Students");
         }
 

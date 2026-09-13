@@ -601,6 +601,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Login");
             }
 
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context, _emailService);
 
             // =====================================================
             // Get Department
@@ -673,6 +674,88 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             return View(students);
+        }
+
+        // =========================================================
+        // SUSPEND STUDENT (Department Action)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendStudent(int id, string? returnUrl = null)
+        {
+            var departmentId = HttpContext.Session.GetInt32("DepartmentId");
+            if (departmentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var department = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentId == departmentId.Value);
+            if (department == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id && s.Department == department.DepartmentName);
+            if (student == null)
+            {
+                TempData["Error"] = "Student not found or does not belong to your department.";
+                return RedirectToAction("Students");
+            }
+
+            student.IsSuspended = true;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Student \"{student.FullName}\" ({student.StudentIdNumber}) has been suspended. Student login is now blocked.";
+            
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Students");
+        }
+
+        // =========================================================
+        // REACTIVATE / UNSUSPEND STUDENT (Department Action)
+        // =========================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnsuspendStudent(int id, string? returnUrl = null)
+        {
+            var departmentId = HttpContext.Session.GetInt32("DepartmentId");
+            if (departmentId == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var department = await _context.Departments.FirstOrDefaultAsync(d => d.DepartmentId == departmentId.Value);
+            if (department == null)
+            {
+                HttpContext.Session.Clear();
+                return RedirectToAction("Login");
+            }
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id && s.Department == department.DepartmentName);
+            if (student == null)
+            {
+                TempData["Error"] = "Student not found or does not belong to your department.";
+                return RedirectToAction("Students");
+            }
+
+            student.IsSuspended = false;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Student \"{student.FullName}\" ({student.StudentIdNumber}) has been reactivated successfully. Login access is restored.";
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Students");
         }
 
 
@@ -812,22 +895,25 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Get Department Students
             // =====================================================
 
-            var students =
+            var allDepartmentStudents =
                 await _context.Students
                     .Where(s =>
                         s.Department ==
                         department.DepartmentName)
-                    .OrderBy(s =>
-                        s.FullName)
                     .ToListAsync();
 
+            var activeStudents =
+                allDepartmentStudents
+                    .Where(s => !s.IsSuspended)
+                    .OrderBy(s => s.FullName)
+                    .ToList();
 
             // =====================================================
-            // Student IDs
+            // Student IDs for History Tracking
             // =====================================================
 
             var studentIds =
-                students
+                allDepartmentStudents
                     .Select(s =>
                         s.StudentId)
                     .ToList();
@@ -881,7 +967,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 missedScreeningCounselings;
 
 
-            return View(students);
+            return View(activeStudents);
         }
 
 
@@ -945,6 +1031,15 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             {
                 TempData["Error"] =
                     "The selected student does not belong to this department.";
+
+                return RedirectToAction(
+                    "Counseling");
+            }
+
+            if (student.IsSuspended)
+            {
+                TempData["Error"] =
+                    $"Student {student.FullName} is currently suspended. Counseling appointments cannot be scheduled for suspended students.";
 
                 return RedirectToAction(
                     "Counseling");
@@ -1212,12 +1307,16 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 ViewBag.SelectedDate = counselingDate.ToString("yyyy-MM-dd");
                 ViewBag.SelectedStartTime = startTime.ToString(@"hh\:mm\:ss");
 
-                var students = await _context.Students
+                var allStudents = await _context.Students
                     .Where(s => s.Department == department.DepartmentName)
-                    .OrderBy(s => s.FullName)
                     .ToListAsync();
 
-                var studentIds = students.Select(s => s.StudentId).ToList();
+                var activeStudents = allStudents
+                    .Where(s => !s.IsSuspended)
+                    .OrderBy(s => s.FullName)
+                    .ToList();
+
+                var studentIds = allStudents.Select(s => s.StudentId).ToList();
 
                 ViewBag.Counselings = await _context.Counselings
                     .Include(c => c.Student)
@@ -1236,7 +1335,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     TempData["Error"] = "All psychologists are fully booked for this date. Please select another date.";
                 }
 
-                return View("Counseling", students);
+                return View("Counseling", activeStudents);
             }
 
 
@@ -1510,6 +1609,13 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             // Check if next appointment was also provided
             if (nextDate.HasValue && nextTime.HasValue && counseling.StudentId > 0)
             {
+                var studentCheck = counseling.Student ?? await _context.Students.FindAsync(counseling.StudentId);
+                if (studentCheck != null && studentCheck.IsSuspended)
+                {
+                    TempData["Success"] = $"Appointment was cancelled. However, next appointment cannot be scheduled because {studentCheck.FullName} is suspended.";
+                    return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+                }
+
                 var nDate = nextDate.Value.Date;
                 var nTime = nextTime.Value;
 
@@ -1620,6 +1726,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (student == null)
             {
                 TempData["Error"] = "Student was not found or does not belong to your department.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            if (student.IsSuspended)
+            {
+                TempData["Error"] = $"Student {student.FullName} is suspended. Counseling appointments cannot be scheduled for suspended students.";
                 return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
             }
 
@@ -1998,6 +2110,20 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
 
 
             // =====================================================
+            // GET MISSED APPOINTMENTS FOR DEPARTMENT STUDENTS
+            // =====================================================
+
+            await CounselingSchedulerService.UpdateMissedAppointmentsAsync(_context);
+
+            var missedAppointments = await _context.Counselings
+                .Include(c => c.Student)
+                .Include(c => c.Psychologist)
+                .Where(c => departmentStudentIds.Contains(c.StudentId) && c.Status == "Missed")
+                .OrderByDescending(c => c.CounselingDate)
+                .ThenByDescending(c => c.AppointmentTime)
+                .ToListAsync();
+
+            // =====================================================
             // Create Risk Report ViewModel
             // =====================================================
 
@@ -2013,8 +2139,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     HighRiskStudents =
                         reportStudents.Count,
 
+                    MissedAppointmentsCount =
+                        missedAppointments.Count,
+
                     Students =
-                        reportStudents
+                        reportStudents,
+
+                    MissedAppointments =
+                        missedAppointments
                 };
 
 

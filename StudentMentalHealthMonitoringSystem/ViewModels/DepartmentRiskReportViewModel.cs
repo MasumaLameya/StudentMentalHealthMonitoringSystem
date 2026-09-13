@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace StudentMentalHealthMonitoringSystem.ViewModels
@@ -38,12 +38,28 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
 
 
         // =====================================================
+        // MISSED APPOINTMENTS COUNT
+        // =====================================================
+
+        public int MissedAppointmentsCount { get; set; }
+
+
+        // =====================================================
         // HIGH-RISK STUDENT LIST
         // =====================================================
 
         public List<DepartmentHighRiskStudentViewModel> Students
         { get; set; }
             = new List<DepartmentHighRiskStudentViewModel>();
+
+
+        // =====================================================
+        // MISSED APPOINTMENTS LIST
+        // =====================================================
+
+        public List<StudentMentalHealthMonitoringSystem.Models.Counseling> MissedAppointments
+        { get; set; }
+            = new List<StudentMentalHealthMonitoringSystem.Models.Counseling>();
     }
 
 

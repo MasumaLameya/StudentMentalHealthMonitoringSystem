@@ -459,45 +459,36 @@
 
                                         @if (item.NextFollowUpDate.HasValue)
                                         {
-                                            var fuDateText = item.NextFollowUpDate.Value.ToString("dd MMM yyyy");
-                                            var fuTimeText = item.NextFollowUpTime.HasValue 
-                                                ? DateTime.Today.Add(item.NextFollowUpTime.Value).ToString("h:mm tt")
-                                                : "";
-
-                                            <div class="d-flex flex-column gap-1">
-                                                <span class="badge rounded-pill px-3 py-2 text-start"
-                                                      style="background:#E8DDD2; color:#5F5146; font-size:12px;">
-                                                    <i class="bi bi-calendar-event me-1"></i>
-                                                    @fuDateText @(string.IsNullOrEmpty(fuTimeText) ? "" : $"at {fuTimeText}")
-                                                </span>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1 align-self-start"
-                                                        style="font-size: 11px;"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#cancelFollowUpModal_@item.CounselingId"
-                                                        title="Cancel active follow-up to reschedule">
-                                                    <i class="bi bi-x-circle me-1"></i> Cancel Follow-up
-                                                </button>
-                                            </div>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-semibold" style="font-size:12px;">
+                                                <i class="bi bi-calendar-check me-1"></i> Follow-up Scheduled
+                                            </span>
                                         }
                                         else
                                         {
-                                            bool isItemSessionStarted = DateTime.Now >= item.CounselingDate.Date.Add(item.AppointmentTime);
-                                            @if (item.Status == "Completed" || (item.Status == "Confirmed" && isItemSessionStarted))
+                                            @if (item.Status == "Completed")
                                             {
-                                                <button type="button"
-                                                        class="btn btn-sm rounded-3 px-3 py-1"
-                                                        style="background:#5F5146; color:white; font-size:12px;"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#scheduleFollowUpModal_@item.CounselingId">
-                                                    <i class="bi bi-calendar-plus me-1"></i> + Follow-up
-                                                </button>
-                                            }
-                                            else if (!isItemSessionStarted && item.Status != "Cancelled" && item.Status != "Missed")
-                                            {
-                                                <span class="badge rounded-pill text-secondary bg-light border px-2 py-1" style="font-size:11px;" title="Follow-up can be scheduled once the session starts">
-                                                    <i class="bi bi-lock me-1"></i>Session Pending
-                                                </span>
+                                                @if (item.Student?.IsSuspended == true)
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                        <i class="bi bi-person-x me-1"></i> Student Suspended
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                        <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                            <i class="bi bi-dash-circle me-1"></i> No Follow-up
+                                                        </span>
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-secondary rounded-3 px-2 py-0.5"
+                                                                style="font-size: 11px;"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#scheduleFollowUpModal_@item.CounselingId"
+                                                                title="Schedule Follow-up">
+                                                            <i class="bi bi-plus-lg"></i>
+                                                        </button>
+                                                    </div>
+                                                }
                                             }
                                             else
                                             {
@@ -546,13 +537,22 @@
                                             }
                                             else if (item.Status == "Cancelled" || item.Status == "Missed")
                                             {
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-primary rounded-3 px-2"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#scheduleNextModal_@item.CounselingId"
-                                                        title="Schedule Next Appointment">
-                                                    <i class="bi bi-calendar-plus me-1"></i> Reschedule
-                                                </button>
+                                                @if (item.Student?.IsSuspended == true)
+                                                {
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:11px;">
+                                                        <i class="bi bi-person-x me-1"></i> Suspended
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-primary rounded-3 px-2"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#scheduleNextModal_@item.CounselingId"
+                                                            title="Schedule Next Appointment">
+                                                        <i class="bi bi-calendar-plus me-1"></i> Reschedule
+                                                    </button>
+                                                }
                                             }
                                         </div>
 

@@ -1,325 +1,200 @@
 @model StudentMentalHealthMonitoringSystem.ViewModels.AdminDashboardViewModel
 
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container-fluid py-4" style="background:#F8F5F2; min-height:100vh;">
+<div class="container-fluid">
 
-    <div class="row">
-
-        <!-- ================= Sidebar ================= -->
-
-        <div class="col-lg-3 mb-4">
-
-            <div class="card border-0 shadow rounded-4">
-
-                <div class="card-body text-center">
-
+    <!-- ================= Welcome Banner ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #5F5146 0%, #8A7563 100%);">
+        <div class="card-body p-4 text-white">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
                     @if (!string.IsNullOrEmpty(Model.Admin?.ProfileImage))
                     {
                         <img src="@Model.Admin.ProfileImage"
-                             class="rounded-circle shadow mb-3"
-                             width="120"
-                             height="120"
+                             class="rounded-circle shadow-sm border border-2 border-white"
+                             width="64"
+                             height="64"
                              style="object-fit:cover;">
                     }
                     else
                     {
-                        <img src="https://ui-avatars.com/api/?name=@Model.Admin?.FullName&background=A67C52&color=fff&size=120"
-                             class="rounded-circle shadow mb-3">
+                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.Admin?.FullName ?? "Admin")&background=FFFFFF&color=5F5146&size=64"
+                             class="rounded-circle shadow-sm border border-2 border-white"
+                             width="64"
+                             height="64">
                     }
-
-                    <h4 class="fw-bold" style="color:#4A3F35;">
-                        @Model.Admin?.FullName
-                    </h4>
-
-                    <p style="color:#8B6B4A;">
-                        System Administrator
-                    </p>
-
-                    <hr>
-
-                    <div class="list-group text-start">
-                        <a asp-action="Dashboard"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2 fw-semibold"
-                           style="background:#8A7563;color:white;">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-
-                        <a asp-action="Students"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-people-fill me-2 text-secondary"></i> Students
-                        </a>
-
-                        <a asp-action="Psychologists"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-person-workspace me-2 text-secondary"></i> Psychologists
-                        </a>
-
-                        <a asp-action="Departments"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-building me-2 text-secondary"></i> Departments
-                        </a>
-
-                        <a asp-action="StudentProgressReports"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-graph-up-arrow me-2 text-secondary"></i> Patient Progress & Graphs
-                        </a>
-
-                        <a asp-action="Reports"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-file-earmark-bar-graph me-2 text-secondary"></i> Reports
-                        </a>
-
-                        <a asp-action="Analytics"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-pie-chart-fill me-2 text-secondary"></i> Analytics
-                        </a>
-
-                        <a asp-action="Settings"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-gear me-2 text-secondary"></i> Settings
-                        </a>
-
-                        <a asp-action="Profile"
-                           class="list-group-item list-group-item-action border-0 rounded-3 mb-2">
-                            <i class="bi bi-person-badge me-2 text-secondary"></i> Profile
-                        </a>
-
-                        <a asp-action="Logout"
-                           class="list-group-item list-group-item-action border-0 rounded-3 text-danger">
-                            <i class="bi bi-box-arrow-right me-2 text-danger"></i> Logout
-                        </a>
+                    <div>
+                        <div class="badge bg-white text-dark rounded-pill px-3 py-1 mb-1 fw-semibold shadow-sm">
+                            <i class="bi bi-shield-lock-fill text-primary me-1"></i> System Administrator
+                        </div>
+                        <h2 class="fw-bold mb-0 text-white">
+                            Welcome Back, @Model.Admin?.FullName 👋
+                        </h2>
+                        <p class="text-white-50 mb-0 small">
+                            Manage students, psychologists, departments, and institutional reports from one unified hub.
+                        </p>
                     </div>
-
                 </div>
 
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                        <i class="bi bi-calendar-event me-1 text-primary"></i> @DateTime.Now.ToString("dd MMM yyyy")
+                    </span>
+                </div>
             </div>
+        </div>
+    </div>
 
+    <!-- ================= Semester Transition Callout ================= -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #002147 0%, #004D25 100%); color: white;">
+        <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h4 class="fw-bold mb-1 text-white">
+                    <i class="bi bi-arrow-repeat me-2"></i>Semester Transition &amp; Governance
+                </h4>
+                <p class="text-white-50 mb-0">End current 4-month semester term, advance compliant students, and reset screening requirements for the new term.</p>
+            </div>
+            <a href="/Admin/SemesterManagement" class="btn btn-warning rounded-3 text-dark fw-bold px-4 py-2.5 shadow-sm">
+                <i class="bi bi-rocket-takeoff me-1"></i> End &amp; Start Semester
+            </a>
+        </div>
+    </div>
+
+    <!-- ================= Statistics ================= -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#ffffff; border-left: 5px solid #8A7563 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0 fw-semibold">
+                            <i class="bi bi-mortarboard me-1 text-primary"></i> Total Students
+                        </h6>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">Enrolled</span>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color:#4A3F35;">
+                        @Model.TotalStudents
+                    </h2>
+                </div>
+            </div>
         </div>
 
-        <!-- ================= Main ================= -->
-
-        <div class="col-lg-9">
-
-            <div class="mb-4">
-
-                <h2 class="fw-bold" style="color:#4A3F35;">
-
-                    Welcome Back,
-                    @Model.Admin?.FullName 👋
-
-                </h2>
-
-                <p class="text-muted">
-
-                    Manage students, psychologists, departments and reports from one place.
-
-                </p>
-
-            </div>
-
-            <!-- ================= Semester Transition Callout ================= -->
-            <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #002147 0%, #004D25 100%); color: white;">
-                <div class="card-body p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h4 class="fw-bold mb-1 text-white">
-                            <i class="bi bi-arrow-repeat me-2"></i>Semester Transition & Governance
-                        </h4>
-                        <p class="text-white-50 mb-0">End current 4-month semester term, advance compliant students, and reset screening requirements for the new term.</p>
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#ffffff; border-left: 5px solid #DC2626 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0 fw-semibold">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> High Risk Students
+                        </h6>
+                        <span class="badge bg-danger rounded-pill px-2.5 py-1">Critical Priority</span>
                     </div>
-                    <a href="/Admin/SemesterManagement" class="btn btn-warning rounded-3 text-dark fw-bold px-4 py-2.5 shadow-sm">
-                        <i class="bi bi-rocket-takeoff me-1"></i> End & Start Semester
+                    <h2 class="fw-bold mb-0 text-danger">
+                        @Model.HighRiskStudents
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#ffffff; border-left: 5px solid #059669 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0 fw-semibold">
+                            <i class="bi bi-person-workspace me-1 text-success"></i> Psychologists
+                        </h6>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1">Active Staff</span>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color:#4A3F35;">
+                        @Model.TotalPsychologists
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#ffffff; border-left: 5px solid #6366F1 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0 fw-semibold">
+                            <i class="bi bi-building me-1 text-indigo"></i> Total Departments
+                        </h6>
+                        <span class="badge bg-indigo-subtle text-indigo rounded-pill px-2.5 py-1">Academic</span>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color:#4A3F35;">
+                        @Model.TotalDepartments
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-3 h-100" style="background:#ffffff; border-left: 5px solid #D97706 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0 fw-semibold">
+                            <i class="bi bi-journal-check me-1 text-warning-emphasis"></i> Counseling Sessions
+                        </h6>
+                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1">Total Bookings</span>
+                    </div>
+                    <h2 class="fw-bold mb-0" style="color:#4A3F35;">
+                        @Model.TotalCounselingSessions
+                    </h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= Bottom Section ================= -->
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header border-0 rounded-top-4 py-3 px-4 fw-bold"
+                     style="background:#EDE2D8; color:#5F5146;">
+                    <i class="bi bi-clock-history me-2"></i> Pending Counseling
+                </div>
+                <div class="card-body p-4">
+                    <h1 class="fw-bold mb-2" style="color:#8A7563;">
+                        @Model.PendingCounselingSessions
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Appointments awaiting clinician follow-up or completion.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header border-0 rounded-top-4 py-3 px-4 fw-bold"
+                     style="background:#EDE2D8; color:#5F5146;">
+                    <i class="bi bi-lightning-charge me-2"></i> Quick Actions
+                </div>
+                <div class="card-body p-4 d-grid gap-2">
+                    <a asp-action="Students"
+                       class="btn rounded-3 fw-semibold py-2.5 text-white"
+                       style="background:#8A7563;">
+                        <i class="bi bi-mortarboard me-2"></i> Manage Students
+                    </a>
+
+                    <a asp-action="Psychologists"
+                       class="btn rounded-3 fw-semibold py-2.5 text-white"
+                       style="background:#8A7563;">
+                        <i class="bi bi-person-workspace me-2"></i> Manage Psychologists
+                    </a>
+
+                    <a asp-action="Reports"
+                       class="btn rounded-3 fw-semibold py-2.5 text-white"
+                       style="background:#5F5146;">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i> View Reports Hub
                     </a>
                 </div>
             </div>
-
-            <!-- ================= Statistics ================= -->
-
-            <div class="row">
-
-                <div class="col-md-4 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-body">
-                            <h6 style="color:#8B6B4A;">
-                                <i class="bi bi-mortarboard me-1"></i> Total Students
-                            </h6>
-
-                            <h2 class="fw-bold" style="color:#A67C52;">
-                                @Model.TotalStudents
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-4 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-body">
-
-                            <h6 style="color:#8B6B4A;">
-                                <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> High Risk Students
-                            </h6>
-
-                            <h2 class="fw-bold" style="color:#A67C52;">
-                                @Model.HighRiskStudents
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-4 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-body">
-
-                            <h6 style="color:#8B6B4A;">
-                                <i class="bi bi-person-workspace me-1"></i> Psychologists
-                            </h6>
-
-                            <h2 class="fw-bold" style="color:#A67C52;">
-                                @Model.TotalPsychologists
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-body">
-
-                            <h6 style="color:#8B6B4A;">
-                                <i class="bi bi-building me-1"></i> Departments
-                            </h6>
-
-                            <h2 class="fw-bold" style="color:#A67C52;">
-                                @Model.TotalDepartments
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-body">
-
-                            <h6 style="color:#8B6B4A;">
-                                <i class="bi bi-journal-check me-1"></i> Counseling Sessions
-                            </h6>
-
-                            <h2 class="fw-bold" style="color:#A67C52;">
-                                @Model.TotalCounselingSessions
-                            </h2>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- ================= Bottom Section ================= -->
-
-            <div class="row">
-
-                <div class="col-md-6 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-header border-0"
-                             style="background:#D8C3A5;">
-
-                            Pending Counseling
-
-                        </div>
-
-                        <div class="card-body">
-
-                            <h1 style="color:#A67C52;">
-
-                                @Model.PendingCounselingSessions
-
-                            </h1>
-
-                            <p class="text-muted">
-
-                                Sessions waiting for psychologist follow-up.
-
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <div class="col-md-6 mb-4">
-
-                    <div class="card border-0 shadow rounded-4">
-
-                        <div class="card-header border-0"
-                             style="background:#D8C3A5;">
-
-                            Quick Actions
-
-                        </div>
-
-                        <div class="card-body d-grid gap-2">
-
-                            <a asp-action="Students"
-                               class="btn"
-                               style="background:#A67C52;color:white;">
-
-                                <i class="bi bi-mortarboard me-2"></i> Manage Students
-
-                            </a>
-
-                            <a asp-action="Psychologists"
-                               class="btn"
-                               style="background:#A67C52;color:white;">
-
-                                <i class="bi bi-person-workspace me-2"></i> Manage Psychologists
-
-                            </a>
-
-                            <a asp-action="Reports"
-                               class="btn"
-                               style="background:#A67C52;color:white;">
-
-                                <i class="bi bi-bar-chart me-2"></i> View Reports
-
-                            </a>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
         </div>
 
     </div>

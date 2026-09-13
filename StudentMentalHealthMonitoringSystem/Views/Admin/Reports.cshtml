@@ -64,7 +64,7 @@
 
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-light text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
-                        <i class="bi bi-grid-fill me-1 text-primary"></i> 11 Advanced Reports Active
+                        <i class="bi bi-grid-fill me-1 text-primary"></i> All Reports &amp; Analytics Active
                     </span>
                 </div>
             </div>
@@ -111,7 +111,7 @@
                             <div class="report-icon-box" style="background:#E0E7FF; color:#4F46E5;">
                                 <i class="bi bi-pie-chart-fill"></i>
                             </div>
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Analytics</span>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Distribution</span>
                         </div>
                         <h5 class="fw-bold text-dark mb-2">Screening Distribution Analytics</h5>
                         <p class="text-muted small mb-3">
@@ -119,6 +119,27 @@
                         </p>
                     </div>
                     <a asp-controller="Admin" asp-action="ScreeningAnalytics" class="btn btn-dark rounded-pill px-4 fw-semibold w-100">
+                        View Distribution <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Comprehensive System Analytics -->
+            <div class="col-xl-4 col-md-6">
+                <div class="report-card p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="report-icon-box" style="background:#FEF3C7; color:#D97706;">
+                                <i class="bi bi-graph-up"></i>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2.5 py-1">Deep Analytics</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">System &amp; Risk Analytics</h5>
+                        <p class="text-muted small mb-3">
+                            Cross-department mental health metrics, risk category distribution, appointment conversion rates, and trends.
+                        </p>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Analytics" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
                         View Analytics <i class="bi bi-arrow-right ms-1"></i>
                     </a>
                 </div>
@@ -191,7 +212,7 @@
 
         <div class="row g-4">
             <!-- Academic Administration & Clearance Report -->
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-6 col-md-6">
                 <div class="report-card p-4 border-primary-subtle" style="background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -212,7 +233,7 @@
             </div>
 
             <!-- Screening Compliance -->
-            <div class="col-xl-4 col-md-6">
+            <div class="col-xl-6 col-md-6">
                 <div class="report-card p-4">
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -232,26 +253,6 @@
                 </div>
             </div>
 
-            <!-- Semester End Reports -->
-            <div class="col-xl-4 col-md-6">
-                <div class="report-card p-4">
-                    <div>
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="report-icon-box" style="background:#F1F5F9; color:#475569;">
-                                <i class="bi bi-journal-text"></i>
-                            </div>
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">Term End</span>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-2">Semester End Reports</h5>
-                        <p class="text-muted small mb-3">
-                            Department-wise term-closing summaries and promotion vs course blocking metrics.
-                        </p>
-                    </div>
-                    <a asp-controller="Admin" asp-action="SemesterEndReports" class="btn btn-outline-dark rounded-pill px-4 fw-semibold w-100">
-                        View Term Reports <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
 
             <!-- Counseling Appointments Roster -->
             <div class="col-xl-6 col-md-6">
