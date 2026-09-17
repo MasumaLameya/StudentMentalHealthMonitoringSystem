@@ -29,45 +29,4 @@ namespace StudentMentalHealthMonitoringSystem.ViewModels
         public string ClearanceStatus => IsCleared ? "Cleared for Registration" : "Clearance Pending";
         public string AdministrativeRemarks { get; set; } = string.Empty;
     }
-
-    // ==========================================
-    // AI TELEHEALTH & COPING HISTORY VIEW MODELS
-    // ==========================================
-    public class StudentAISessionItemViewModel
-    {
-        public int SessionId { get; set; }
-        public string SessionType { get; set; } = "AI Chat"; // "AI Chat" or "Voice Bot"
-        public DateTime StartedAt { get; set; }
-        public DateTime? EndedAt { get; set; }
-        public string DurationText { get; set; } = string.Empty;
-        public int TotalExchanges { get; set; }
-        public string RiskStatus { get; set; } = "Normal";
-        public string Summary { get; set; } = string.Empty;
-        public string CopingAdvice { get; set; } = string.Empty;
-    }
-
-    public class StudentAIHistoryViewModel
-    {
-        public int TotalSessions { get; set; }
-        public int TotalChatSessions { get; set; }
-        public int TotalVoiceSessions { get; set; }
-        public string DominantEmotionalState { get; set; } = "Stable";
-        public string SelectedType { get; set; } = "All"; // "All", "Chat", "Voice"
-
-        public List<StudentAISessionItemViewModel> Sessions { get; set; } = new List<StudentAISessionItemViewModel>();
-    }
-
-    public class StudentAIDetailsViewModel
-    {
-        public int SessionId { get; set; }
-        public string SessionType { get; set; } = "AI Chat";
-        public DateTime StartedAt { get; set; }
-        public DateTime? EndedAt { get; set; }
-        public string RiskStatus { get; set; } = "Normal";
-        public string Summary { get; set; } = string.Empty;
-        public string CopingAdvice { get; set; } = string.Empty;
-
-        public List<ChatMessageItemViewModel> ChatMessages { get; set; } = new List<ChatMessageItemViewModel>();
-        public List<VoiceTranscriptItemViewModel> VoiceTranscripts { get; set; } = new List<VoiceTranscriptItemViewModel>();
-    }
 }

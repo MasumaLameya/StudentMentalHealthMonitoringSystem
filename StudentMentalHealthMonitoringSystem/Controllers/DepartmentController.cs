@@ -88,7 +88,17 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var department =
                 await _context.Departments
                     .FirstOrDefaultAsync(d =>
-                        d.Email == email);
+                        d.Email.ToLower() == email.ToLower());
+
+            if (department == null)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Invalid email or password."
+                );
+
+                return View();
+            }
 
 
             // =====================================================
@@ -120,6 +130,17 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     "Invalid email or password."
                 );
 
+                return View();
+            }
+
+
+            // =====================================================
+            // Check Account Suspension
+            // =====================================================
+
+            if (department.IsSuspended)
+            {
+                ViewBag.SuspendedError = true;
                 return View();
             }
 
