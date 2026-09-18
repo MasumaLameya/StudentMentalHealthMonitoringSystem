@@ -25,6 +25,10 @@
         ViewBag.MissedScreeningCounselings as
         IEnumerable<StudentMentalHealthMonitoringSystem.Models.Counseling>
         ?? Enumerable.Empty<StudentMentalHealthMonitoringSystem.Models.Counseling>();
+
+    var deptRescheduledList = ViewBag.RescheduledParentIds as List<int> ?? new List<int>();
+    var deptActiveStudents = ViewBag.ActiveStudentIds as List<int> ?? new List<int>();
+    var deptActiveApptMap = ViewBag.ActiveAppointmentByStudent as Dictionary<int, StudentMentalHealthMonitoringSystem.Models.Counseling> ?? new Dictionary<int, StudentMentalHealthMonitoringSystem.Models.Counseling>();
 }
 
 
@@ -994,15 +998,38 @@
                                         </span>
                                     </td>
                                     <td class="text-end pe-3 py-3" style="border-top-right-radius:12px; border-bottom-right-radius:12px;">
-                                        <div class="d-flex justify-content-end gap-2">
+                                        <div class="d-flex justify-content-end gap-2 align-items-center">
                                             <a asp-controller="Department" asp-action="StudentDetails" asp-route-id="@missed.StudentId"
                                                class="btn btn-sm btn-outline-dark rounded-pill px-3 py-1 fw-semibold">
                                                 <i class="bi bi-person-bounding-box me-1"></i> Student Case
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-semibold shadow-sm"
-                                                    onclick="selectMissedStudentForBooking(@missed.StudentId)">
-                                                <i class="bi bi-calendar-plus me-1"></i> Re-book
-                                            </button>
+                                            @if (missed.Student?.IsSuspended == true)
+                                            {
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                    <i class="bi bi-person-x me-1"></i> Suspended
+                                                </span>
+                                            }
+                                            else if (deptRescheduledList.Contains(missed.CounselingId))
+                                            {
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
+                                                    <i class="bi bi-arrow-repeat me-1"></i> Rescheduled
+                                                </span>
+                                            }
+                                            else if (deptActiveStudents.Contains(missed.StudentId))
+                                            {
+                                                var nAppt = deptActiveApptMap.ContainsKey(missed.StudentId) ? deptActiveApptMap[missed.StudentId] : null;
+                                                var nInfo = nAppt != null ? $"Scheduled for {nAppt.CounselingDate:MMM dd, yyyy}" : "Active appointment exists";
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size:11px;" title="@nInfo">
+                                                    <i class="bi bi-calendar-check me-1"></i> Appt Exists
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 py-1 fw-semibold shadow-sm"
+                                                        onclick="selectMissedStudentForBooking(@missed.StudentId)">
+                                                    <i class="bi bi-calendar-plus me-1"></i> Re-book
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -1312,12 +1339,26 @@
                                                 <i class="bi bi-check-all me-1"></i>Completed
                                             </span>
                                         }
-                                        else if (item.Status == "Cancelled")
+                                        else if (item.Status == "Cancelled" || item.Status == "Missed")
                                         {
                                             @if (item.Student?.IsSuspended == true)
                                             {
                                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
                                                     <i class="bi bi-person-x me-1"></i> Student Suspended
+                                                </span>
+                                            }
+                                            else if (deptRescheduledList.Contains(item.CounselingId))
+                                            {
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1" style="font-size:11px;" title="This session has already been rescheduled">
+                                                    <i class="bi bi-arrow-repeat me-1"></i> Rescheduled
+                                                </span>
+                                            }
+                                            else if (deptActiveStudents.Contains(item.StudentId))
+                                            {
+                                                var nAppt = deptActiveApptMap.ContainsKey(item.StudentId) ? deptActiveApptMap[item.StudentId] : null;
+                                                var nInfo = nAppt != null ? $"Scheduled for {nAppt.CounselingDate:MMM dd, yyyy}" : "Active appointment scheduled";
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size:11px;" title="@nInfo">
+                                                    <i class="bi bi-calendar-check me-1"></i> Appt Exists
                                                 </span>
                                             }
                                             else
@@ -1423,7 +1464,10 @@
                                 </div>
                             }
 
-                            @if (item.Status == "Cancelled")
+                            @if ((item.Status == "Cancelled" || item.Status == "Missed") &&
+                                 item.Student?.IsSuspended != true &&
+                                 !deptRescheduledList.Contains(item.CounselingId) &&
+                                 !deptActiveStudents.Contains(item.StudentId))
                             {
                                 <!-- Reschedule Modal for Department -->
                                 <div class="modal fade" id="deptScheduleNextModal_@item.CounselingId" tabindex="-1" aria-labelledby="deptScheduleNextModalLabel_@item.CounselingId" aria-hidden="true">

@@ -974,6 +974,32 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                     .ToList();
 
 
+            // Rescheduled Parent IDs (counselings that have already been rescheduled into another appointment)
+            var rescheduledParentIds = await _context.Counselings
+                .Where(c => c.ParentCounselingId != null)
+                .Select(c => c.ParentCounselingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Active / Upcoming appointments for students (Confirmed / Pending, today or future)
+            var now = DateTime.Now;
+            var activeAppointments = await _context.Counselings
+                .Where(c => (c.Status == "Confirmed" || c.Status == "Pending") &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                             (c.CounselingDate.Date == DateTime.Today && c.AppointmentTime > now.TimeOfDay)))
+                .ToListAsync();
+
+            var activeStudentIds = activeAppointments
+                .Select(c => c.StudentId)
+                .Distinct()
+                .ToList();
+
+            var activeAppointmentByStudent = activeAppointments
+                .OrderBy(c => c.CounselingDate.Date)
+                .ThenBy(c => c.AppointmentTime)
+                .GroupBy(c => c.StudentId)
+                .ToDictionary(g => g.Key, g => g.First());
+
             // =====================================================
             // ViewBag Data
             // =====================================================
@@ -987,6 +1013,14 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             ViewBag.MissedScreeningCounselings =
                 missedScreeningCounselings;
 
+            ViewBag.RescheduledParentIds =
+                rescheduledParentIds;
+
+            ViewBag.ActiveStudentIds =
+                activeStudentIds;
+
+            ViewBag.ActiveAppointmentByStudent =
+                activeAppointmentByStudent;
 
             return View(activeStudents);
         }
@@ -1766,6 +1800,19 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             if (date < DateTime.Today || (date == DateTime.Today && appointmentTime <= DateTime.Now.TimeOfDay))
             {
                 TempData["Error"] = "Please select a future appointment date and time.";
+                return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
+            }
+
+            // Check if active uncompleted session exists
+            var existingActive = await _context.Counselings
+                .FirstOrDefaultAsync(c => c.StudentId == studentId &&
+                                          (c.Status == "Confirmed" || c.Status == "Pending") &&
+                                          (c.CounselingDate.Date > DateTime.Today ||
+                                           (c.CounselingDate.Date == DateTime.Today && c.AppointmentTime > DateTime.Now.TimeOfDay)));
+
+            if (existingActive != null)
+            {
+                TempData["Error"] = $"This student already has an active scheduled appointment on {existingActive.CounselingDate:MMM dd, yyyy} at {DateTime.Today.Add(existingActive.AppointmentTime):h:mm tt}.";
                 return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Counseling")! : returnUrl);
             }
 

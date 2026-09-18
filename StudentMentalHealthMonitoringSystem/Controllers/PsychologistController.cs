@@ -33,30 +33,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
 
-        // =========================================================
-        // REGISTER
-        // =========================================================
 
-        // ================= Register GET (Disabled - Admin Only) =================
-
-        [HttpGet]
-        public IActionResult Register()
-        {
-            TempData["Error"] = "Psychologist registration is managed by System Administrators only.";
-            return RedirectToAction("Login");
-        }
-
-
-        // ================= Register POST (Disabled - Admin Only) =================
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Register(
-            Psychologist psychologist)
-        {
-            TempData["Error"] = "Psychologist registration is managed by System Administrators only.";
-            return RedirectToAction("Login");
-        }
 
 
 
@@ -760,208 +737,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
 
-        // =========================================================
-        // COUNSELING
-        // =========================================================
 
-        // ================= Counseling GET =================
-
-        [HttpGet]
-        public IActionResult Counseling(
-            int id)
-        {
-            // ================= Check Session =================
-
-            var psychologistId =
-                HttpContext.Session.GetInt32(
-                    "PsychologistId"
-                );
-
-
-            if (psychologistId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-
-            // ================= Get Student =================
-
-            var student =
-                _context.Students
-                    .FirstOrDefault(
-                        s => s.StudentId == id
-                    );
-
-
-            if (student == null)
-            {
-                return RedirectToAction(
-                    "Students"
-                );
-            }
-
-            if (student.IsSuspended)
-            {
-                TempData["Error"] = $"Student {student.FullName} is suspended. Counseling appointments cannot be scheduled for suspended students.";
-                return RedirectToAction(
-                    "Students"
-                );
-            }
-
-
-            // ================= Create Counseling =================
-
-            Counseling counseling =
-                new Counseling();
-
-
-            counseling.StudentId =
-                student.StudentId;
-
-
-            counseling.PsychologistId =
-                psychologistId.Value;
-
-
-            counseling.CounselingDate =
-                DateTime.Now;
-
-
-            ViewBag.Student =
-                student;
-
-
-            return View(counseling);
-        }
-
-
-        // ================= Counseling POST =================
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Counseling(
-            Counseling counseling)
-        {
-            // ================= Check Session =================
-
-            var psychologistId =
-                HttpContext.Session.GetInt32(
-                    "PsychologistId"
-                );
-
-
-            if (psychologistId == null)
-            {
-                return RedirectToAction(
-                    "Login"
-                );
-            }
-
-            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == counseling.StudentId);
-            if (student == null || student.IsSuspended)
-            {
-                TempData["Error"] = $"Student {(student?.FullName ?? "record")} is suspended and cannot be scheduled for counseling appointments.";
-                return RedirectToAction(
-                    "Students"
-                );
-            }
-
-
-            // ================= Validation =================
-
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Student = student;
-
-
-                return View(counseling);
-            }
-
-
-            // ================= Set Values =================
-
-            counseling.PsychologistId =
-                psychologistId.Value;
-
-
-            if (counseling.CounselingDate == default)
-            {
-                counseling.CounselingDate =
-                    DateTime.Now;
-            }
-
-            if (string.IsNullOrWhiteSpace(counseling.AppointmentRoom))
-            {
-                counseling.AppointmentRoom =
-                    "Mental Health & Counseling Center, Room 402";
-            }
-
-            if (counseling.AppointmentEndTime == default && counseling.AppointmentTime != default)
-            {
-                counseling.AppointmentEndTime =
-                    counseling.AppointmentTime.Add(TimeSpan.FromHours(1));
-            }
-
-
-            // ================= Save =================
-
-            _context.Counselings.Add(
-                counseling
-            );
-
-
-            await _context.SaveChangesAsync();
-
-
-            // ================= Send Confirmation Email =================
-
-            try
-            {
-                var psychologist = await _context.Psychologists
-                    .FirstOrDefaultAsync(p => p.PsychologistId == psychologistId.Value);
-
-                if (student != null && !student.IsSuspended && !string.IsNullOrWhiteSpace(student.Email) && psychologist != null)
-                {
-                    var targetDate = counseling.NextFollowUpDate ?? counseling.CounselingDate;
-                    var startTime = counseling.AppointmentTime != default ? counseling.AppointmentTime : new TimeSpan(10, 0, 0);
-                    var endTime = counseling.AppointmentEndTime != default ? counseling.AppointmentEndTime : startTime.Add(TimeSpan.FromHours(1));
-
-                    await _emailService.SendAppointmentConfirmationEmailAsync(
-                        recipientEmail: student.Email,
-                        studentName: student.FullName,
-                        studentIdNumber: student.StudentIdNumber,
-                        psychologistName: psychologist.FullName,
-                        psychologistSpecialization: psychologist.Specialization,
-                        appointmentDate: targetDate,
-                        startTime: startTime,
-                        endTime: endTime,
-                        appointmentRoom: counseling.AppointmentRoom,
-                        appointmentSource: "PsychologistDirect",
-                        severityOrReason: string.IsNullOrWhiteSpace(counseling.RiskLevel) ? "Psychologist Session Consultation" : $"Clinical Risk Assessment ({counseling.RiskLevel})"
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[PsychologistController] Failed to send counseling email: {ex.Message}");
-            }
-
-
-            TempData["Success"] =
-                "Counseling information saved successfully.";
-
-
-            return RedirectToAction(
-                "StudentDetails",
-                new
-                {
-                    id =
-                        counseling.StudentId
-                }
-            );
-        }
 
 
         // =========================================================
@@ -1015,29 +791,53 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 await _context.Counselings
                     .Include(c => c.Student)
                     .Include(c => c.Psychologist)
-
                     // Only logged-in psychologist
                     .Where(c =>
                         c.PsychologistId ==
                             psychologistId.Value
                     )
-
-                    .OrderBy(c =>
-                        c.CounselingDate
-                    )
-
-                    .ThenBy(c =>
-                        c.AppointmentTime
-                    )
-
                     .ToListAsync();
 
+            // Sequential sorting: earliest date first, and on same date, earliest time first
+            appointments = appointments
+                .OrderBy(c => c.CounselingDate.Date)
+                .ThenBy(c => c.AppointmentTime)
+                .ToList();
+
+            // Rescheduled Parent IDs (counselings that have already been rescheduled into another appointment)
+            var rescheduledParentIds = await _context.Counselings
+                .Where(c => c.ParentCounselingId != null)
+                .Select(c => c.ParentCounselingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Active / Upcoming appointments for students (Confirmed / Pending, today or future)
+            var now = DateTime.Now;
+            var activeAppointments = await _context.Counselings
+                .Where(c => (c.Status == "Confirmed" || c.Status == "Pending") &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                             (c.CounselingDate.Date == DateTime.Today && c.AppointmentTime > now.TimeOfDay)))
+                .ToListAsync();
+
+            var activeStudentIds = activeAppointments
+                .Select(c => c.StudentId)
+                .Distinct()
+                .ToList();
+
+            var activeAppointmentByStudent = activeAppointments
+                .OrderBy(c => c.CounselingDate.Date)
+                .ThenBy(c => c.AppointmentTime)
+                .GroupBy(c => c.StudentId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            ViewBag.RescheduledParentIds = rescheduledParentIds;
+            ViewBag.ActiveStudentIds = activeStudentIds;
+            ViewBag.ActiveAppointmentByStudent = activeAppointmentByStudent;
 
             // ================= Psychologist Name =================
 
             ViewBag.PsychologistName =
                 psychologist.FullName;
-
 
             return View(
                 appointments
@@ -1279,11 +1079,12 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
             var existingActive = await _context.Counselings
                 .FirstOrDefaultAsync(c => c.StudentId == studentId &&
                                           (c.Status == "Confirmed" || c.Status == "Pending") &&
-                                          c.CounselingDate.Date >= DateTime.Today);
+                                          (c.CounselingDate.Date > DateTime.Today ||
+                                           (c.CounselingDate.Date == DateTime.Today && c.AppointmentTime > DateTime.Now.TimeOfDay)));
 
             if (existingActive != null)
             {
-                TempData["Error"] = $"This student already has an active scheduled appointment on {existingActive.CounselingDate:MMM dd, yyyy}.";
+                TempData["Error"] = $"This student already has an active scheduled appointment on {existingActive.CounselingDate:MMM dd, yyyy} at {DateTime.Today.Add(existingActive.AppointmentTime):h:mm tt}.";
                 return Redirect(string.IsNullOrWhiteSpace(returnUrl) ? Url.Action("Appointment")! : returnUrl);
             }
 
@@ -1776,6 +1577,23 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 }
             }
 
+            // Check if this counseling has already been rescheduled
+            bool isAlreadyRescheduled = await _context.Counselings
+                .AnyAsync(c => c.ParentCounselingId == counseling.CounselingId);
+
+            // Check if student has an active scheduled appointment
+            var activeAppt = await _context.Counselings
+                .Where(c => c.StudentId == counseling.StudentId &&
+                            (c.Status == "Confirmed" || c.Status == "Pending") &&
+                            (c.CounselingDate.Date > DateTime.Today ||
+                             (c.CounselingDate.Date == DateTime.Today && c.AppointmentTime > now.TimeOfDay)))
+                .OrderBy(c => c.CounselingDate.Date)
+                .ThenBy(c => c.AppointmentTime)
+                .FirstOrDefaultAsync();
+
+            ViewBag.IsAlreadyRescheduled = isAlreadyRescheduled;
+            ViewBag.HasActiveAppointment = activeAppt != null;
+            ViewBag.ActiveAppointment = activeAppt;
 
             return View(
                 model
@@ -2497,35 +2315,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
         }
 
 
-        // =========================================================
-        // EDIT OBSERVATION REPORT
-        // =========================================================
 
-        [HttpGet]
-        public async Task<IActionResult> EditObservationReport(int id)
-        {
-            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
-            if (psychologistId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var report = await _context.ObservationReports
-                .FirstOrDefaultAsync(r => r.ObservationReportId == id && r.PsychologistId == psychologistId.Value);
-
-            if (report == null)
-            {
-                return NotFound();
-            }
-
-            var latestObs = await _context.CounselingObservations
-                .Where(o => o.StudentId == report.StudentId)
-                .OrderByDescending(o => o.CreatedAt)
-                .FirstOrDefaultAsync();
-
-            int targetCounselingId = latestObs?.CounselingId ?? report.RootCounselingId;
-            return RedirectToAction("CounselingDetails", new { id = targetCounselingId });
-        }
 
 
         // =========================================================
@@ -2786,96 +2576,7 @@ namespace StudentMentalHealthMonitoringSystem.Controllers
                 screeningReport
             );
         }
-        // =========================================================
-        // OBSERVATION REPORTS
-        // =========================================================
 
-        // ================= Observation Reports =================
-
-        [HttpGet]
-        public IActionResult ObservationReports()
-        {
-            return RedirectToAction(nameof(StudentProgressReports));
-        }
-
-        // ================= Observation Report Details =================
-
-        [HttpGet]
-        public async Task<IActionResult> ObservationReportDetails(int id)
-        {
-            // ================= Check Session =================
-            var psychologistId = HttpContext.Session.GetInt32("PsychologistId");
-            if (psychologistId == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            // ================= Get Observation Report =================
-            var observationReport = await _context.ObservationReports
-                .Include(r => r.Student)
-                .Include(r => r.Psychologist)
-                .Include(r => r.RootCounseling)
-                .FirstOrDefaultAsync(r => r.ObservationReportId == id || r.StudentId == id || r.RootCounselingId == id);
-
-            if (observationReport == null)
-            {
-                return NotFound();
-            }
-
-
-            // =====================================================
-            // GET ALL COUNSELING OBSERVATIONS
-            // FOR THIS COUNSELING CHAIN
-            // =====================================================
-
-            var observations =
-                await _context.CounselingObservations
-
-                    .Include(o =>
-                        o.Counseling
-                    )
-
-                    .Include(o =>
-                        o.Psychologist
-                    )
-
-                    .Where(o =>
-                        o.RootCounselingId ==
-                            observationReport.RootCounselingId
-                    )
-
-                    .OrderBy(o =>
-                        o.Counseling!.CounselingDate
-                    )
-
-                    .ThenBy(o =>
-                        o.Counseling!.AppointmentTime
-                    )
-
-                    .ToListAsync();
-
-
-            ViewBag.Observations =
-                observations;
-
-            ViewBag.ProgressDetail =
-                ProgressScoringService.BuildDetailViewModel(
-                    observationReport,
-                    observations
-                );
-
-            return View(
-                observationReport
-            );
-        }
-        // =========================================================
-        // REPORTS
-        // =========================================================
-
-        public IActionResult Reports()
-        {
-            return RedirectToAction(nameof(StudentProgressReports));
-        }
 
 
 

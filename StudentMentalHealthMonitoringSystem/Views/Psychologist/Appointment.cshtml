@@ -244,7 +244,13 @@
 
                         <tbody>
 
-                            @foreach (var item in Model)
+                            @{
+                                var rescheduledList = ViewBag.RescheduledParentIds as List<int> ?? new List<int>();
+                                var activeStudents = ViewBag.ActiveStudentIds as List<int> ?? new List<int>();
+                                var activeApptMap = ViewBag.ActiveAppointmentByStudent as Dictionary<int, StudentMentalHealthMonitoringSystem.Models.Counseling> ?? new Dictionary<int, StudentMentalHealthMonitoringSystem.Models.Counseling>();
+                            }
+
+                            @foreach (var item in Model.OrderBy(c => c.CounselingDate.Date).ThenBy(c => c.AppointmentTime))
                             {
                                 // ==========================================
                                 // Prepare Display Values
@@ -508,6 +514,8 @@
                                             bool canCancel = (item.Status == "Confirmed" || item.Status == "Pending") &&
                                                 (item.CounselingDate.Date > DateTime.Today ||
                                                 (item.CounselingDate.Date == DateTime.Today && item.AppointmentTime > DateTime.Now.TimeOfDay));
+                                            bool isAlreadyRescheduled = rescheduledList.Contains(item.CounselingId);
+                                            bool hasActiveAppointment = activeStudents.Contains(item.StudentId);
                                         }
 
                                         <div class="d-flex justify-content-center gap-1">
@@ -539,8 +547,22 @@
                                             {
                                                 @if (item.Student?.IsSuspended == true)
                                                 {
-                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" style="font-size:11px;">
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:11px;">
                                                         <i class="bi bi-person-x me-1"></i> Suspended
+                                                    </span>
+                                                }
+                                                else if (isAlreadyRescheduled)
+                                                {
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1" style="font-size:11px;" title="This session has already been rescheduled.">
+                                                        <i class="bi bi-arrow-repeat me-1"></i> Rescheduled
+                                                    </span>
+                                                }
+                                                else if (hasActiveAppointment)
+                                                {
+                                                    var nextAppt = activeApptMap.ContainsKey(item.StudentId) ? activeApptMap[item.StudentId] : null;
+                                                    var nextInfo = nextAppt != null ? $"Scheduled for {nextAppt.CounselingDate:MMM dd, yyyy} at {DateTime.Today.Add(nextAppt.AppointmentTime):h:mm tt}" : "Active appointment already scheduled";
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size:11px;" title="@nextInfo">
+                                                        <i class="bi bi-calendar-check me-1"></i> Appt Exists
                                                     </span>
                                                 }
                                                 else
@@ -755,7 +777,10 @@
                     }
 
                     <!-- Schedule Next Appointment Modal for Cancelled and Missed Sessions -->
-                    @if (item.Status == "Cancelled" || item.Status == "Missed")
+                    @if ((item.Status == "Cancelled" || item.Status == "Missed") &&
+                         item.Student?.IsSuspended != true &&
+                         !rescheduledList.Contains(item.CounselingId) &&
+                         !activeStudents.Contains(item.StudentId))
                     {
                         <div class="modal fade" id="scheduleNextModal_@item.CounselingId" tabindex="-1" aria-labelledby="scheduleNextModalLabel_@item.CounselingId" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
